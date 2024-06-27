@@ -1,0 +1,15 @@
+bin
+src
+obj
+build
+makefile
+src/gfx/*.c
+src/gfx/*.h
+audio
+extra
+.DS_Store
+convimg.out
+autotest.json
+desktop.ini
+.vscode
+*.code-workspace

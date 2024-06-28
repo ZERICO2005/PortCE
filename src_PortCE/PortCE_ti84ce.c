@@ -10,7 +10,6 @@
 */
 
 #include "PortCE_Common.h"
-#include "PortCE_ti84ce.h"
 
 #include "PortCE_include/ce/include/sys/lcd.h"
 #include "PortCE_include/ce/include/sys/util.h"

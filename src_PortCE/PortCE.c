@@ -7,7 +7,6 @@
 #include "PortCE.h"
 
 #include "PortCE_Common.h"
-#include "PortCE_ti84ce.h"
 #include "PortCE_Render.h"
 
 void* RAM_ADDRESS(const uint24_t address) {

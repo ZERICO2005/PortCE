@@ -851,13 +851,13 @@ static bool windowResizingCode(uint32_t* resX, uint32_t* resY) {
 	return resizeWindow(x, y, resX, resY);
 }
 
-static void pace_frame(void) {
+static void pace_frame(nano64_t pace_time) {
 	static nano64_t last_frame_time = 0;
 
 	const nano64_t yield_threshold = SECONDS_TO_NANO(1.0e-4);
 
 	nano64_t current_time = getNanoTime();
-	while (current_time - FRAMERATE_TO_NANO(30.01) + yield_threshold < last_frame_time) {
+	while (current_time - pace_time + yield_threshold < last_frame_time) {
 		if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
 			terminateLCDcontroller();
 			exit(0);
@@ -865,7 +865,7 @@ static void pace_frame(void) {
 		sched_yield();
 		current_time = getNanoTime();
 	}
-	while (current_time - FRAMERATE_TO_NANO(30.01) < last_frame_time) {
+	while (current_time - pace_time < last_frame_time) {
 		current_time = getNanoTime();
 	}
 	last_frame_time = current_time;
@@ -918,7 +918,7 @@ void PortCE_new_frame(void) {
 	// printf("\nTime: %.3lfms | %.3lffps %lld", NANO_TO_SECONDS(endTime - startTime) * 1.0e3, NANO_TO_FRAMERATE(endTime - startTime), getNanoTime());
 }
 
-void PortCE_pace_frame(void) {
+void PortCE_pace_frame(float frame_rate) {
 	PortCE_new_frame();
-	pace_frame();
+	pace_frame(FRAMERATE_TO_NANO((fp64)frame_rate));
 }

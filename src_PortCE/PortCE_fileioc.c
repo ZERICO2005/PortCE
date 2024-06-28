@@ -350,6 +350,15 @@ char *ti_Detect(__attribute__((unused)) void **vat_ptr, __attribute__((unused)) 
 	return NULL;
 }
 
+int24_t ti_IsArchived(__attribute__((unused)) uint8_t handle) {
+	return 0;
+}
+
 int24_t ti_SetArchiveStatus(__attribute__((unused)) bool archive, __attribute__((unused)) uint8_t handle) {
+	return 0;
+}
+
+
+int24_t ti_Delete(__attribute__((unused)) const char *name) {
 	return 0;
 }

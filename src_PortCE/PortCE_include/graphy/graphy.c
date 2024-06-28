@@ -574,6 +574,7 @@ void gfy_Begin() {
     #ifndef _EZ80
         gfy_MonospaceFont = 0;
     #endif
+    srand(23);
 }
 
 /* gfy_End */
@@ -588,6 +589,8 @@ void gfy_End(void) {
 }
 
 /* gfy_SetColor */
+
+#include <stdio.h>
 
 uint8_t gfy_SetColor(uint8_t index) {
     #ifdef _EZ80
@@ -2333,7 +2336,7 @@ gfy_rletsprite_t *gfy_ConvertToRLETSprite(const gfy_sprite_t *sprite_in, gfy_rle
 /* gfy_ConvertToNewRLETSprite */
 
 /** @todo implement PortCE routine */
-gfy_rletsprite_t *gfy_ConvertToNewRLETSprite(const gfy_sprite_t *sprite_in, void *(*malloc_routine)(size_t)) {
+gfy_rletsprite_t *gfy_ConvertToNewRLETSprite(__attribute__((unused)) const gfy_sprite_t *sprite_in, __attribute__((unused)) void *(*malloc_routine)(size_t)) {
     #ifdef _EZ80
         return (gfy_rletsprite_t*)gfx_ConvertToNewRLETSprite((const gfx_sprite_t*)sprite_in, malloc_routine);
     #else

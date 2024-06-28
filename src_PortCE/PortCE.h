@@ -121,15 +121,15 @@ extern "C" {
 	/**
 	 * @brief Manually refreshes the screen.
 	 */
-	void PortCE_pace_frame(void);
+	void PortCE_pace_frame(float frame_rate);
 
 	/**
 	 * @brief Used to update registers
 	 * 
-	 * @return This function always returns  0
+	 * @return This function always returns 0
 	 */
 	ti_int PortCE_update_registers(void);
-
+	
 #endif
 
 /* Clock */

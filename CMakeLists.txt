@@ -72,4 +72,4 @@ target_compile_options(
 	-Wconversion-null
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC SDL2 SDL2_mixer)
+target_link_libraries(${PROJECT_NAME} PUBLIC SDL2 SDL2_mixer -lm)

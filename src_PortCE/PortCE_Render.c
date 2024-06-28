@@ -9,9 +9,11 @@
 #include "PortCE_Render.h"
 
 #include "PortCE_include/ce/include/sys/lcd.h"
+#include "PortCE_include/graphy/graphy.h"
 #include "PortCE_include/keypadc/keypadc.h"
 #include "PortCE_include/ce/include/ti/getcsc.h"
 #include "PortCE_config/PortCE_Keybinds.h"
+#include <stdio.h>
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
@@ -52,7 +54,7 @@ static uint8_t PreCalc_BGR555[65536 * 3];
 static uint8_t PreCalc_RGB444[65536 * 3];
 static uint8_t PreCalc_BGR444[65536 * 3];
 
-static void Calculate16BitColor() {
+static void Calculate16BitColor(void) {
 	{ // 1555
 		size_t z = 0;
 		for (uint32_t i = 0; i < 65536; i++) {
@@ -626,12 +628,32 @@ static void renderCursor(uint8_t* data) {
 	}
 }
 
+#ifdef Debug_Print_LCD_Registers
+	void internal_print_LCD_registers(void) {
+		#define PrintVar(label, value) \
+			printf("\t%12s: %" PRId32 "\n", (label), (int32_t)(value));
+		
+		#define PrintHex(label, value) \
+			printf("\t%12s: 0x%06" PRIX32 "\n", (label), (int32_t)(value));
+
+		printf("LCD_registers:\n");
+		PrintHex("lcd_Control", lcd_Control);
+		PrintHex("lcd_UpBase", lcd_UpBase);
+		PrintHex("lcd_LpBase", lcd_LpBase);
+		#undef PrintHex
+		#undef PrintVar
+	}
+#endif
+
 /**
  * @brief Writes the contents of the ti84ce screen to a buffer
  * 
  * @param data buffer to write a LCD_RESX * LCD_RESY image to
  */
 void copyFrame(uint8_t* data) {
+	#ifdef Debug_Print_LCD_Registers
+		internal_print_LCD_registers();
+	#endif
 	memcpy(paletteRAM,lcd_Palette,256 * sizeof(uint16_t));
 	size_t copyAmount = 0;
 	uint16_t colorMode = (lcd_VideoMode & LCD_MASK_BBP);
@@ -661,7 +683,8 @@ void copyFrame(uint8_t* data) {
 			copyAmount = (LCD_RESX * LCD_RESY) * 2;
 	};
 
-	memcpy(videoCopy,((uint8_t*)&simulated_ram[0xD00000 | (lcd_UpBase & (0xFFFF << 3))]),copyAmount);
+	memcpy(videoCopy,((uint8_t*)&simulated_ram[(0xD00000 | (lcd_UpBase & (0xFFFF << 3)))]),copyAmount);
+	
 
 	// Tests BGR bit
     if (lcd_VideoMode & LCD_MASK_BGR) {

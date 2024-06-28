@@ -544,10 +544,17 @@ static int24_t gfy_ClipYMax = GFY_LCD_HEIGHT;
 void gfy_Begin() {
     #ifdef _EZ80
         gfx_Begin();
+    #else
+        gfy_SetDefaultPalette(0);
+            gfy_SetDrawScreen();
+            // lcd_UpBase = RAM_OFFSET(gfy_vram);
+            // lcd_LpBase = RAM_OFFSET(gfy_vram);
+        lcd_VideoMode = lcd_BGR8bit;
     #endif
+
     boot_InitializeHardware();
     SPI_COLUMN_MAJOR();
-    lcd_VideoMode = lcd_BGR8bit;
+    
     // Resetting temp globals
     gfy_Color = 0;
     gfy_Transparent_Color = 0;
@@ -571,21 +578,24 @@ void gfy_Begin() {
     gfy_ClipYMin = 0;
     gfy_ClipXMax = GFY_LCD_WIDTH;
     gfy_ClipYMax = GFY_LCD_HEIGHT;
+    
     #ifndef _EZ80
         gfy_MonospaceFont = 0;
     #endif
-    srand(23);
 }
 
 /* gfy_End */
 
 void gfy_End(void) {
+    SPI_ROW_MAJOR();
+
     #ifdef _EZ80
         gfx_End();
+    #else
+        lcd_VideoMode = lcd_BGR16bit;
+        lcd_UpBase = RAM_OFFSET(gfy_vram);
+        memset(gfy_vram, 0xFF, sizeof(uint16_t) * GFY_LCD_WIDTH * GFY_LCD_HEIGHT);
     #endif
-    SPI_ROW_MAJOR();
-    lcd_VideoMode = lcd_BGR16bit;
-    lcd_UpBase = RAM_OFFSET(gfy_vram);
 }
 
 /* gfy_SetColor */
@@ -605,19 +615,57 @@ uint8_t gfy_SetColor(uint8_t index) {
 
 /* gfy_SetDefaultPalette */
 
+#ifndef _EZ80
+    __attribute__((unused)) static const uint16_t gfy_internal_default_palette[256] = {
+
+    };
+#endif
+
 void gfy_SetDefaultPalette(__attribute__((unused)) gfy_mode_t mode) {
     #ifdef _EZ80
         gfx_SetDefaultPalette((gfx_mode_t)mode);
     #else
-        uint8_t i = 0;
-        for (uint8_t r = 0; r < 8; r++) {
-            for (uint8_t b = 0; b < 4; b++) {
-                for (uint8_t g = 0; g < 8; g++) {
-                    gfy_palette[i] = (uint16_t)((r << 12) | (g << 7) | (b << 3));
-                    i++;
-                }
+        /* RGB332? */
+            // uint8_t i = 0;
+            // for (uint8_t r = 0; r < 8; r++) {
+            //     for (uint8_t b = 0; b < 4; b++) {
+            //         for (uint8_t g = 0; g < 8; g++) {
+            //             gfy_palette[i] = (uint16_t)((r << 12) | (g << 7) | (b << 3));
+            //             i++;
+            //         }
+            //     }
+            // }
+
+        /* Fails to handle rrca, rla, and rra do not handle flags */
+            uint8_t* palette_ptr = (uint8_t*)(void*)gfy_palette;
+            uint8_t b = 0;
+            for (size_t i = 0; i < 256; i++) {
+                //uint8_t carry = 0;
+                uint8_t a = b;
+                
+                a = (a >> 1) | ((a & 1) << 7); // rrca
+                a ^= b;
+                a &= 224;
+                a ^= b;
+
+                *palette_ptr = a;
+                palette_ptr++;
+
+                a = b;
+                a <<= 1; // rla
+                a <<= 1; // rla
+                a <<= 1; // rla
+                a = b;
+                a >>= 1; // rra
+
+                *palette_ptr = a;
+                palette_ptr++;
+
+                b++;
             }
-        }
+        
+        /* Data */
+            //memcpy(gfy_palette, gfy_internal_default_palette, sizeof(uint16_t) * 256);
     #endif
 }
 
@@ -658,10 +706,21 @@ void gfy_SetPixel(uint24_t x, uint8_t y) {
     }
 }
 
+static bool gfy_internal_BlitPixelCheck(void* ptr) {
+    // Checks that pixels won't be written to an invalid address
+    if (
+        ptr >= RAM_ADDRESS(gfy_CurrentBuffer) &&
+        ptr < RAM_ADDRESS(gfy_CurrentBuffer + GFY_LCD_WIDTH * GFY_LCD_HEIGHT)
+    ) {
+        return true;
+    }
+    return false;
+}
+
 /* gfy_GetPixel */
 
 uint8_t gfy_GetPixel(uint24_t x, uint8_t y) {
-    return ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(uint24_t)y + (x * GFY_LCD_HEIGHT)];
+    return ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(uint24_t)y + ((x & 0xFFFF) * GFY_LCD_HEIGHT)];
 }
 
 /* gfy_GetDraw */
@@ -798,6 +857,7 @@ static void gfy_internal_PrintChar_NoClip(const char c, const uint8_t charWidth)
                 const uint8_t fillColor = *bitImage & b ? gfy_Text_FG_Color : gfy_Text_BG_Color;
                 bitImage++;
                 if (fillColor == gfy_Text_TP_Color) {
+                    
                     fillPtr += gfy_TextHeightScale;
                     continue;
                 }
@@ -816,6 +876,7 @@ static void gfy_internal_PrintChar_NoClip(const char c, const uint8_t charWidth)
 /* gfy_PrintChar */
 
 void gfy_PrintChar(const char c) {
+    
     const uint8_t charWidth = gfy_GetCharWidth(c);
     const uint8_t textSizeX = charWidth * gfy_TextWidthScale;
     const uint8_t textSizeY = 8 * gfy_TextHeightScale;
@@ -828,6 +889,32 @@ void gfy_PrintChar(const char c) {
     ) {
         gfy_internal_PrintChar_NoClip(c, charWidth);
         return;
+    }
+    const uint8_t *bitImage = gfy_TextData + 8 * (uint24_t)((unsigned char)c);
+    uint8_t *fillLinePtr = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (gfy_TextYPos + (gfy_TextXPos * GFY_LCD_HEIGHT));
+    uint8_t b = (1 << 7);
+    gfy_TextXPos += charWidth;
+    for (uint8_t x = 0; x < charWidth; x++) {
+        for (uint8_t u = 0; u < gfy_TextWidthScale; u++) {
+            uint8_t *fillPtr = fillLinePtr;
+            for (uint8_t y = 0; y < 8; y++) {
+                const uint8_t fillColor = *bitImage & b ? gfy_Text_FG_Color : gfy_Text_BG_Color;
+                bitImage++;
+                if (fillColor == gfy_Text_TP_Color) {
+                    fillPtr += gfy_TextHeightScale;
+                    continue;
+                }
+                for (uint8_t v = 0; v < gfy_TextHeightScale; v++) {
+                    if (gfy_internal_BlitPixelCheck(fillPtr)) {
+                        *fillPtr = fillColor;   
+                    }
+                    fillPtr++;
+                }
+            }
+            fillLinePtr += GFY_LCD_HEIGHT;
+            bitImage -= 8;
+        }
+        b >>= 1;
     }
 }
 
@@ -1713,6 +1800,7 @@ void gfy_Sprite(const gfy_sprite_t *sprite, int24_t x, int24_t y) {
         x + sprite->width < gfy_ClipXMin ||
         y + sprite->height < gfy_ClipYMin
     ) {
+        printf("Sprite Failed");
         return;
     }
     if (
@@ -1757,6 +1845,7 @@ void gfy_TransparentSprite(const gfy_sprite_t *sprite, int24_t x, int24_t y) {
         x + sprite->width < gfy_ClipXMin ||
         y + sprite->height < gfy_ClipYMin
     ) {
+        printf("Tran-Sprite Failed\ns");
         return;
     }
     if (

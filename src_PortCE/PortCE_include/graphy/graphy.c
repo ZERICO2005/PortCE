@@ -537,6 +537,47 @@ static int24_t gfy_ClipYMax = GFY_LCD_HEIGHT;
     }
 
 //------------------------------------------------------------------------------
+// Internal Library Functions
+//------------------------------------------------------------------------------
+
+static const int8_t gfy_SinTable[65] = {
+    0  ,3  ,6  ,9  ,  13 ,16 ,19 ,22 ,  25 ,28 ,31 ,34 ,  37 ,40 ,43 ,46 ,
+    49 ,52 ,55 ,58 ,  60 ,63 ,66 ,68 ,  71 ,74 ,76 ,79 ,  81 ,84 ,86 ,88 ,
+    91 ,93 ,95 ,97 ,  99 ,101,103,105,  106,108,110,111,  113,114,116,117,
+    118,119,121,122,  122,123,124,125,  126,126,127,127,  127,127,127,127,
+    127
+};
+
+/**
+ * @brief Calculates sin(x) from a lookup table.
+ * 
+ * @param theta angle 0-255
+ * @return sin(x) * 128
+ */
+__attribute__((unused)) static uint8_t gfy_Sin(uint8_t theta) {
+    if (theta < 128) {
+        if (theta < 64) {
+            return gfy_SinTable[theta]; // 0-63
+        }
+        return gfy_SinTable[128 - theta]; // 64-127
+    }
+    if (theta < 192) {
+        return -gfy_SinTable[theta - 128]; // 128-191
+    }
+    return -gfy_SinTable[256 - theta]; // 192-255
+}
+
+/**
+ * @brief Calculates cos(x) from a lookup table.
+ * 
+ * @param theta angle 0-255
+ * @return cos(x) * 128
+ */
+__attribute__((unused)) static uint8_t gfy_Cos(uint8_t theta) {
+    return gfy_Sin(theta + 64);
+}
+
+//------------------------------------------------------------------------------
 // v1 functions
 //------------------------------------------------------------------------------
 
@@ -545,6 +586,7 @@ void gfy_Begin() {
     #ifdef _EZ80
         gfx_Begin();
     #else
+        memset(gfy_vram, 0xFF, GFY_LCD_WIDTH * GFY_LCD_HEIGHT * 2);
         gfy_SetDefaultPalette(0);
             gfy_SetDrawScreen();
             // lcd_UpBase = RAM_OFFSET(gfy_vram);
@@ -705,6 +747,25 @@ void gfy_SetPixel(uint24_t x, uint8_t y) {
         ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(uint24_t)y + (x * GFY_LCD_HEIGHT)] = gfy_Color;
     }
 }
+
+// Macro to write a pixel without clipping
+#define gfy_SetPixel_NoClip(x, y, color) \
+    ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(y) + ((x) * GFY_LCD_HEIGHT)] = (color)
+
+// Macro to write a pixel inside the screen bounds
+#define gfy_SetPixel_ScreenClip(x, y, color); \
+    if ((x) < GFY_LCD_WIDTH && (y) < GFY_LCD_HEIGHT) { \
+        ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(y) + ((x) * GFY_LCD_HEIGHT)] = (color); \
+    }
+
+// Macro to write a pixel inside the clipping region
+#define gfy_SetPixel_RegionClip(x, y, color) \
+    if ( \
+        (int24_t)(x) >= gfy_ClipXMin && (int24_t)(x) < gfy_ClipXMax && \
+        (int24_t)(y) >= gfy_ClipYMin && (int24_t)(y) < gfy_ClipYMax \
+    ) { \
+        ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(y) + ((x) * GFY_LCD_HEIGHT)] = (color); \
+    }
 
 static bool gfy_internal_BlitPixelCheck(void* ptr) {
     // Checks that pixels won't be written to an invalid address
@@ -1512,7 +1573,7 @@ bool gfy_GetClipRegion(gfy_region_t *region) {
     #else
         if (
             region->xmin >= GFY_LCD_WIDTH || region->ymin >= GFY_LCD_WIDTH ||
-            region->xmax < 0 || region->ymax < 0
+            region->xmax <= 0 || region->ymax <= 0
         ) {
             return false;
         }
@@ -2246,7 +2307,268 @@ gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprit
 
 /* gfy_FloodFill */
 
+    // Debug printf statements
+    // #define FLOODFILL_DEBUG
 
+    // Disables FLOODFILL_DEBUG when compiling for the ti84ce
+    #ifdef FLOODFILL_DEBUG
+        #ifdef _EZ80
+            #undef FLOODFILL_DEBUG
+        #endif
+    #endif
+
+    // compress_stack() will run a little bit faster, this can also alter how many pixels are written before a soft stack-overflow
+    #define FLOODFILL_FAST_COMPRESS
+
+    // malloc and free ff_stack each time
+    #define FLOODFILL_MALLOC_STACK
+
+    #define FLOODFILL_STACK_SIZE (3224)
+
+    typedef struct FloodFillCord {
+        int24_t x;
+        uint8_t y;
+    } FloodFillCord;
+
+    #ifndef FLOODFILL_MALLOC_STACK
+        #define Maximum_FloodFill_Stack_Depth (FLOODFILL_STACK_SIZE / sizeof(FloodFillCord))
+
+        static FloodFillCord ff_stack[Maximum_FloodFill_Stack_Depth];
+    #endif
+
+    // static int16_t ff_ClipXMin = 0;
+    // static int16_t ff_ClipXMax = GFY_LCD_WIDTH;
+    // static uint8_t ff_ClipYMin = 0;
+    // static uint8_t ff_ClipYMax = GFY_LCD_HEIGHT;
+
+    static bool ffcord_redundant(
+        #ifdef FLOODFILL_MALLOC_STACK
+            FloodFillCord* const ff_stack,
+        #endif
+        const uint24_t index, const uint8_t replace,
+        const uint8_t ff_ClipYMax, const uint8_t ff_ClipYMin
+    ) {
+        const FloodFillCord ff_cord = ff_stack[index];
+
+        uint8_t* test = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (ff_cord.x * GFY_LCD_HEIGHT + ff_cord.y);
+        test++; // Down 1
+        if (
+            ff_cord.y + 1 < ff_ClipYMax &&
+            *test == replace
+        ) {
+            return false;
+        }
+
+        test -= 2; // Up 2
+        if (
+            ff_cord.y != 0 &&
+            ff_cord.y - 1 >= ff_ClipYMin &&
+            *test == replace
+        ) {
+            return false;
+        }
+
+        test += GFY_LCD_HEIGHT + 1; // Right 1, Down 1
+        if (
+            ff_cord.x + 1 < gfy_ClipXMax &&
+            *test == replace
+        ) {
+            return false;
+        }
+
+        test -= 2 * GFY_LCD_HEIGHT; // Left 2
+        if (
+            ff_cord.x - 1 >= gfy_ClipXMin &&
+            *test == replace
+        ) {
+            return false;
+        }
+        return true;
+    }
+
+    // Returns new stack size
+    static uint24_t compress_stack(
+        #ifdef FLOODFILL_MALLOC_STACK
+            FloodFillCord* const ff_stack,
+        #endif
+        const uint24_t stack_size, const uint8_t replace,
+        const uint8_t ff_ClipYMax, const uint8_t ff_ClipYMin
+    ) {
+        #ifdef FLOODFILL_FAST_COMPRESS
+            uint24_t compressed_size = stack_size;
+            for (uint24_t i = 0; i < compressed_size; i++) {
+                while (
+                    ffcord_redundant(
+                        #ifdef FLOODFILL_MALLOC_STACK
+                            ff_stack,
+                        #endif
+                        i, replace, ff_ClipYMax, ff_ClipYMin
+                    ) && i < compressed_size
+                ) {
+                    compressed_size--;
+                    ff_stack[i] = ff_stack[compressed_size];
+                }
+            }
+            #ifdef FLOODFILL_DEBUG
+                printf("comp: %4u --> %4u\n", (uint32_t)stack_size, (uint32_t)compressed_size);
+            #endif
+            return compressed_size;
+        #else
+            uint24_t dst_index = 0;
+            for (uint24_t src_index = 0; src_index < stack_size; src_index++) {
+                if (ffcord_redundant(
+                    #ifdef FLOODFILL_MALLOC_STACK
+                        ff_stack,
+                    #endif
+                    src_index, replace, ff_ClipYMax, ff_ClipYMin
+                )) {
+                    continue;
+                }
+                ff_stack[dst_index] = ff_stack[src_index];
+                dst_index++;
+            }
+            #ifdef FLOODFILL_DEBUG
+                printf("comp: %4u --> %4u\n", (uint32_t)stack_size, (uint32_t)dst_index);
+            #endif
+            return dst_index;
+        #endif
+    }
+
+    void gfy_FloodFill(uint24_t x, uint8_t y, const uint8_t color) {
+        if (
+            (int24_t)x < gfy_ClipXMin || (int24_t)x >= gfy_ClipXMax ||
+            (int24_t)y < gfy_ClipYMin || (int24_t)y >= gfy_ClipYMax
+        ) {
+            return;
+        }
+        const uint8_t ff_ClipYMin = (uint8_t)gfy_ClipYMin;
+        const uint8_t ff_ClipYMax = (uint8_t)gfy_ClipYMax;
+
+        uint8_t* pixel = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + ((x * GFY_LCD_HEIGHT) + y);
+        const uint8_t replace = *pixel;
+        if (replace == color) {
+            return; // Same color
+        }
+
+        #ifdef FLOODFILL_MALLOC_STACK
+            ti_unsigned_int Maximum_FloodFill_Stack_Depth = FLOODFILL_STACK_SIZE;
+            FloodFillCord* ff_stack = malloc(Maximum_FloodFill_Stack_Depth * sizeof(FloodFillCord));
+            if (ff_stack == NULL) {
+                // Tries to malloc half as much instead
+                Maximum_FloodFill_Stack_Depth = FLOODFILL_STACK_SIZE / 2;
+                ff_stack = malloc(Maximum_FloodFill_Stack_Depth * sizeof(FloodFillCord));
+                if (ff_stack == NULL) {
+                    return;
+                }
+            }
+        #endif
+
+        *pixel = color;
+
+        uint24_t stack_size = 1;
+        ff_stack[0] = (FloodFillCord){(int24_t)x, y};
+        #ifdef FLOODFILL_DEBUG
+            uint24_t max_s = 0;
+            size_t pixels_written = 1;
+        #endif
+        do {
+            #ifdef FLOODFILL_DEBUG
+                if (stack_size > max_s) {
+                    max_s = stack_size;
+                }
+            #endif
+
+            stack_size--;
+            const FloodFillCord ff_cord = ff_stack[stack_size];
+
+
+            uint8_t* test = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (ff_cord.x * GFY_LCD_HEIGHT + ff_cord.y);
+            test++; // Down 1
+            if (
+                ff_cord.y + 1 < ff_ClipYMax &&
+                *test == replace
+            ) {
+                ff_stack[stack_size] = (FloodFillCord){
+                    ff_cord.x, ff_cord.y + 1
+                };
+                stack_size++;
+                *test = color;
+                #ifdef FLOODFILL_DEBUG
+                    pixels_written++;
+                #endif
+            }
+
+            test += GFY_LCD_HEIGHT - 1; // Right 1, Up 1
+            if (
+                ff_cord.x + 1 < gfy_ClipXMax &&
+                *test == replace
+            ) {
+                ff_stack[stack_size] = (FloodFillCord){
+                    ff_cord.x + 1, ff_cord.y
+                };
+                stack_size++;
+                *test = color;
+                #ifdef FLOODFILL_DEBUG
+                    pixels_written++;
+                #endif
+            }
+
+            test -= GFY_LCD_HEIGHT * 2; // Left 2
+            if (
+                ff_cord.x - 1 >= gfy_ClipXMin &&
+                *test == replace
+            ) {
+                ff_stack[stack_size] = (FloodFillCord){
+                    ff_cord.x - 1, ff_cord.y
+                };
+                stack_size++;
+                *test = color;
+                #ifdef FLOODFILL_DEBUG
+                    pixels_written++;
+                #endif
+            }
+
+            test += GFY_LCD_HEIGHT - 1; // Right 1, Up 1
+            if (
+                ff_cord.y != 0 &&
+                ff_cord.y - 1 >= ff_ClipYMin &&
+                *test == replace
+            ) {
+                ff_stack[stack_size] = (FloodFillCord){
+                    ff_cord.x, ff_cord.y - 1
+                };
+                stack_size++;
+                *test = color;
+                #ifdef FLOODFILL_DEBUG
+                    pixels_written++;
+                #endif
+            }
+            if (stack_size > Maximum_FloodFill_Stack_Depth - 4) {
+                #ifdef FLOODFILL_DEBUG
+                    printf("pixels_written: %5zu ", pixels_written);
+                #endif
+                stack_size = compress_stack(
+                    #ifdef FLOODFILL_MALLOC_STACK
+                        ff_stack,
+                    #endif
+                    stack_size, replace, ff_ClipYMax, ff_ClipYMin
+                );
+            }
+        } while (
+            stack_size > 0 &&
+            stack_size <= Maximum_FloodFill_Stack_Depth - 4
+        );
+        #ifdef FLOODFILL_DEBUG
+            printf("Maximum stack_size: %u pixels_written: %zu\n", (uint32_t)max_s, pixels_written);
+            if (stack_size > Maximum_FloodFill_Stack_Depth - 4) {
+                printf("Error: stack_size: %u\n", (uint32_t)stack_size);
+            }
+        #endif
+        #ifdef FLOODFILL_MALLOC_STACK
+            free(ff_stack);
+            ff_stack = NULL;
+        #endif
+    }
 
 //------------------------------------------------------------------------------
 // v6 functions
@@ -2282,21 +2604,21 @@ void gfy_RLETSprite(const gfy_rletsprite_t *sprite, const int24_t x, const int24
     uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (y + (GFY_LCD_HEIGHT * x));
     const uint24_t dst_jump = (sprite->width * GFY_LCD_HEIGHT) - 1;
     for (uint8_t posY = 0; posY < sprite->height; posY++) {
-        bool opaque = false;
         uint8_t posX = 0;
         if (
             y + posY >= gfy_ClipYMin &&
             y + posY < gfy_ClipYMax
         ) {
             while (posX < sprite->width) {
-                if (opaque == false) {
-                    const uint8_t jump_TP = *src_buf;
-                    posX += jump_TP;
-                    dst_buf += jump_TP * GFY_LCD_HEIGHT;
-                    opaque = true;
-                    src_buf++;
-                    continue;
+                const uint8_t jump_TP = *src_buf;
+                posX += jump_TP;
+                dst_buf += jump_TP * GFY_LCD_HEIGHT;
+                src_buf++;
+                
+                if (posX >= sprite->width) {
+                    break;
                 }
+
                 const uint8_t len = *src_buf;
                 src_buf++;
 
@@ -2311,7 +2633,6 @@ void gfy_RLETSprite(const gfy_rletsprite_t *sprite, const int24_t x, const int24
                     posX++;
                     dst_buf += GFY_LCD_HEIGHT;
                 }
-                opaque = false;
             }
             dst_buf -= dst_jump;
         } else {
@@ -2320,16 +2641,16 @@ void gfy_RLETSprite(const gfy_rletsprite_t *sprite, const int24_t x, const int24
             }
             // Fast forward through the decompression
             while (posX < sprite->width) {
-                if (opaque == false) {
-                    posX += *src_buf;
-                    opaque = true;
-                    src_buf++;
-                    continue;
+                posX += *src_buf;
+                src_buf++;
+                
+                if (posX >= sprite->width) {
+                    break;
                 }
+
                 const uint8_t len = *src_buf;
                 src_buf += len + 1;
                 posX += len;
-                opaque = false;
             }
             dst_buf++;
         }
@@ -2344,17 +2665,17 @@ void gfy_RLETSprite_NoClip(const gfy_rletsprite_t *sprite, const uint24_t x, con
     const uint24_t dst_jump = (sprite->width * GFY_LCD_HEIGHT) - 1;
     
     for (uint8_t posY = 0; posY < sprite->height; posY++) {
-        bool opaque = false;
         uint8_t posX = 0;
         while (posX < sprite->width) {
-            if (opaque == false) {
-                const uint8_t jump_TP = *src_buf;
-                posX += jump_TP;
-                dst_buf += jump_TP * GFY_LCD_HEIGHT;
-                opaque = true;
-                src_buf++;
-                continue;
+            const uint8_t jump_TP = *src_buf;
+            posX += jump_TP;
+            dst_buf += jump_TP * GFY_LCD_HEIGHT;
+            src_buf++;
+            
+            if (posX >= sprite->width) {
+                break;
             }
+
             const uint8_t len = *src_buf;
             src_buf++;
             posX += len;
@@ -2363,7 +2684,6 @@ void gfy_RLETSprite_NoClip(const gfy_rletsprite_t *sprite, const uint24_t x, con
                 src_buf++;
                 dst_buf += GFY_LCD_HEIGHT;
             }
-            opaque = false;
         }
         dst_buf -= dst_jump;
     }
@@ -2383,25 +2703,24 @@ gfy_sprite_t *gfy_ConvertFromRLETSprite(const gfy_rletsprite_t *sprite_in, gfy_s
         const uint24_t dst_jump = sprite_in->width - 1;
         
         for (uint8_t posY = 0; posY < sprite_in->height; posY++) {
-            bool opaque = false;
             uint8_t posX = 0;
             while (posX < sprite_in->width) {
-                if (opaque == false) {
-                    const uint8_t jump_TP = *src_buf;
-                    posX += jump_TP;
-                    memset(dst_buf, gfy_Transparent_Color, jump_TP);
-                    dst_buf += jump_TP;
-                    opaque = true;
-                    src_buf++;
-                    continue;
+                const uint8_t jump_TP = *src_buf;
+                posX += jump_TP;
+                memset(dst_buf, gfy_Transparent_Color, jump_TP);
+                dst_buf += jump_TP;
+                src_buf++;
+
+                if (posX >= sprite_in->width) {
+                    break;
                 }
+
                 const uint8_t len = *src_buf;
                 src_buf++;
                 posX += len;
                 memcpy(dst_buf, src_buf, len);
                 src_buf += len;
                 dst_buf += len;
-                opaque = false;
             }
             dst_buf -= dst_jump;
         }
@@ -2411,25 +2730,91 @@ gfy_sprite_t *gfy_ConvertFromRLETSprite(const gfy_rletsprite_t *sprite_in, gfy_s
 
 /* gfy_ConvertToRLETSprite */
 
-/** @todo implement PortCE routine */
+/** @todo test PortCE routine */
 gfy_rletsprite_t *gfy_ConvertToRLETSprite(const gfy_sprite_t *sprite_in, gfy_rletsprite_t *sprite_out) {
     #ifdef _EZ80
         return (gfy_rletsprite_t*)gfx_ConvertToRLETSprite((const gfx_sprite_t*)sprite_in, (gfx_rletsprite_t*)sprite_out);
     #else
         sprite_out->width = sprite_in->width;
         sprite_out->height = sprite_in->height;
+
+        const uint8_t* src_ptr = sprite_in->data;
+        uint8_t* dst_ptr = sprite_out->data;
+
+        for (uint8_t y = 0; y < sprite_in->height; y++) {
+            uint8_t x = 0;
+            
+            while (x < sprite_in->width) {
+                uint8_t transparent_run_length = 0;
+                while (x < sprite_in->width && *src_ptr == gfy_Transparent_Color) {
+                    transparent_run_length++;
+                    x++;
+                    src_ptr++;
+                }
+                *dst_ptr = transparent_run_length;
+                dst_ptr++;
+
+                if (x >= sprite_in->width) {
+                    break;
+                }
+                
+                uint8_t* const opaque_element = dst_ptr;
+                dst_ptr++;
+                uint8_t opaque_run_length = 0;
+                while (x < sprite_in->width && *src_ptr != gfy_Transparent_Color) {
+                    opaque_run_length++;
+                    x++;
+                    *dst_ptr = *src_ptr;
+                    src_ptr++;
+                    dst_ptr++;
+                }
+                *opaque_element = opaque_run_length;
+            }
+        }
         return sprite_out;
     #endif
 }
 
 /* gfy_ConvertToNewRLETSprite */
 
-/** @todo implement PortCE routine */
-gfy_rletsprite_t *gfy_ConvertToNewRLETSprite(__attribute__((unused)) const gfy_sprite_t *sprite_in, __attribute__((unused)) void *(*malloc_routine)(size_t)) {
+/** @todo test PortCE routine */
+gfy_rletsprite_t *gfy_ConvertToNewRLETSprite(const gfy_sprite_t *sprite_in, void *(*malloc_routine)(size_t)) {
     #ifdef _EZ80
         return (gfy_rletsprite_t*)gfx_ConvertToNewRLETSprite((const gfx_sprite_t*)sprite_in, malloc_routine);
     #else
-        return NULL;
+
+        size_t rlet_size = sizeof(gfy_sprite_t);
+        const uint8_t* src_ptr = sprite_in->data;
+
+        // Calculates rlet_size
+        for (uint8_t y = 0; y < sprite_in->height; y++) {
+            uint8_t x = 0;
+            
+            while (x < sprite_in->width) {
+                while (x < sprite_in->width && *src_ptr == gfy_Transparent_Color) {
+                    x++;
+                    src_ptr++;
+                }
+                rlet_size++;
+
+                if (x >= sprite_in->width) {
+                    break;
+                }
+                
+                rlet_size++;
+                while (x < sprite_in->width && *src_ptr != gfy_Transparent_Color) {
+                    x++;
+                    src_ptr++;
+                    rlet_size++;
+                }
+            }
+        }
+
+        gfy_rletsprite_t* sprite_out = (*malloc_routine)(rlet_size);
+        if (sprite_out == NULL) {
+            return NULL; // Allocation failure
+        }
+        return gfy_ConvertToRLETSprite(sprite_in, sprite_out);
     #endif
 }
 
@@ -2548,11 +2933,85 @@ void gfy_CopyRectangle(
 
 /* gfy_FillEllipse */
 
+// Source: https://stackoverflow.com/questions/10322341/simple-algorithm-for-drawing-filled-ellipse-in-c-c
+/** @todo test this function */
+void gfy_FillEllipse(int24_t x, int24_t y, uint24_t a, uint24_t b) {
+    if (a > 128 || b > 128) {
+        return;
+    }
+    const int24_t width = (int24_t)a;
+    const int24_t height = (int24_t)b;
+    const int24_t height_pow2 = height * height;
+    const int24_t width_pow2 = width * width;
+    const int24_t width_pow2_mul_height_pow2 = height_pow2 * width_pow2;
+    int24_t x0 = width;
+    int24_t dx = 0;
 
+    // do the horizontal diameter
+    gfy_HorizLine(x - width, y, width * 2 + 1);
+
+    // now do both halves at the same time, away from the diameter
+    for (int24_t y_cord = 1; y_cord <= height; y_cord++) {
+        int24_t x1 = x0 - (dx - 1);  // try slopes of dx - 1 or more
+        for (; x1 > 0; x1--) {
+            if (
+                x1 * x1 * height_pow2 + y_cord * y_cord * width_pow2
+                <= width_pow2_mul_height_pow2
+            ) {
+                break;
+            }
+        }
+        
+        // current approximation of the slope
+        dx = x0 - x1;
+        x0 = x1;
+
+        gfy_HorizLine(x - x0, y - y_cord, x0 * 2 + 1);
+        gfy_HorizLine(x - x0, y + y_cord, x0 * 2 + 1);
+    }
+}
 
 /* gfy_FillEllipse_NoClip */
 
+// Source: https://stackoverflow.com/questions/10322341/simple-algorithm-for-drawing-filled-ellipse-in-c-c
+/** @todo test this function */
+void gfy_FillEllipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b) {
+    if (a > 128 || b > 128) {
+        return;
+    }
+    const uint8_t width = a;
+    const uint8_t height = b;
+    const int24_t height_pow2 = height * height;
+    const int24_t width_pow2 = width * width;
+    const int24_t width_pow2_mul_height_pow2 = height_pow2 * width_pow2;
+    int24_t x0 = width;
+    int24_t dx = 0;
 
+    // do the horizontal diameter
+    if (y < GFY_LCD_HEIGHT) {
+        gfy_HorizLine_NoClip(x - width, (uint8_t)y, width * 2 + 1);
+    }
+
+    // now do both halves at the same time, away from the diameter
+    for (uint8_t y_cord = 1; y_cord <= height; y_cord++) {
+        int24_t x1 = x0 - (dx - 1);  // try slopes of dx - 1 or more
+        for (; x1 > 0; x1--) {
+            if (
+                x1 * x1 * height_pow2 + y_cord * y_cord * width_pow2
+                <= width_pow2_mul_height_pow2
+            ) {
+                break;
+            }
+        }
+        
+        // current approximation of the slope
+        dx = x0 - x1;
+        x0 = x1;
+
+        gfy_HorizLine_NoClip(x - x0, y - y_cord, x0 * 2 + 1);
+        gfy_HorizLine_NoClip(x - x0, y + y_cord, x0 * 2 + 1);
+    }
+}
 
 #ifdef __cplusplus
 

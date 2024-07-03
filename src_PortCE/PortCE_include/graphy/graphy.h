@@ -933,25 +933,25 @@ void gfy_FillCircle_NoClip(uint24_t x,
                            uint8_t y,
                            uint24_t radius);
 
-// /**
-//  * Draws an unclipped filled ellipse.
-//  *
-//  * @param[in] x X coordinate of the center.
-//  * @param[in] y Y coordinate of the center.
-//  * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
-//  * @param[in] b The vertical radius of the ellipse (current maximum is 128).
-//  */
-// void gfy_FillEllipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b);
+/**
+ * Draws an unclipped filled ellipse.
+ *
+ * @param[in] x X coordinate of the center.
+ * @param[in] y Y coordinate of the center.
+ * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
+ * @param[in] b The vertical radius of the ellipse (current maximum is 128).
+ */
+void gfy_FillEllipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b);
 
-// /**
-//  * Draws a filled ellipse.
-//  *
-//  * @param[in] x X coordinate of the center.
-//  * @param[in] y Y coordinate of the center.
-//  * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
-//  * @param[in] b The vertical radius of the ellipse (current maximum is 128).
-//  */
-// void gfy_FillEllipse(int24_t x, int24_t y, uint24_t a, uint24_t b);
+/**
+ * Draws a filled ellipse.
+ *
+ * @param[in] x X coordinate of the center.
+ * @param[in] y Y coordinate of the center.
+ * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
+ * @param[in] b The vertical radius of the ellipse (current maximum is 128).
+ */
+void gfy_FillEllipse(int24_t x, int24_t y, uint24_t a, uint24_t b);
 
 // /**
 //  * Draws an unclipped ellipse.
@@ -1673,19 +1673,19 @@ uint16_t gfy_Lighten(uint16_t color,
 uint16_t gfy_Darken(uint16_t color,
                     uint8_t amount);
 
-// /**
-//  * Fills an area with a color.
-//  *
-//  * @param[in] x X coordinate to begin filling at.
-//  * @param[in] y Y coordinate to begin filling at.
-//  * @param[in] color New color to fill with.
-//  *
-//  * @note This routine performs clipping to stay within the window,
-//  *       but you must ensure it starts in the window.
-//  */
-// void gfy_FloodFill(uint24_t x,
-//                    uint8_t y,
-//                    uint8_t color);
+/**
+ * Fills an area with a color.
+ *
+ * @param[in] x X coordinate to begin filling at.
+ * @param[in] y Y coordinate to begin filling at.
+ * @param[in] color New color to fill with.
+ *
+ * @note This routine performs clipping to stay within the window,
+ *       but you must ensure it starts in the window.
+ */
+void gfy_FloodFill(uint24_t x,
+                   uint8_t y,
+                   uint8_t color);
 
 /**
  * Draws a sprite with RLE transparency.

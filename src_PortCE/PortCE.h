@@ -19,6 +19,14 @@ extern "C" {
 	
 	typedef signed _BitInt(48) int48_t;
 	typedef unsigned _BitInt(48) uint48_t;
+
+	#define  INT24_MIN (-8388608)
+	#define  INT24_MAX ( 8388607)
+	#define UINT24_MAX (16777215)
+
+	#define  INT48_MIN (-140737488355328)
+	#define  INT48_MAX ( 140737488355327)
+	#define UINT48_MAX ( 281474976710655)
 #endif
 
 /* Integer types */

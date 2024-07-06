@@ -953,94 +953,94 @@ void gfy_FillEllipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b);
  */
 void gfy_FillEllipse(int24_t x, int24_t y, uint24_t a, uint24_t b);
 
-// /**
-//  * Draws an unclipped ellipse.
-//  *
-//  * @param[in] x X coordinate of the center.
-//  * @param[in] y Y coordinate of the center.
-//  * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
-//  * @param[in] b The vertical radius of the ellipse (current maximum is 128).
-//  */
-// void gfy_Ellipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b);
+/**
+ * Draws an unclipped ellipse.
+ *
+ * @param[in] x X coordinate of the center.
+ * @param[in] y Y coordinate of the center.
+ * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
+ * @param[in] b The vertical radius of the ellipse (current maximum is 128).
+ */
+void gfy_Ellipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b);
 
-// /**
-//  * Draws an ellipse.
-//  *
-//  * @param[in] x X coordinate of the center.
-//  * @param[in] y Y coordinate of the center.
-//  * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
-//  * @param[in] b The vertical radius of the ellipse (current maximum is 128).
-//  */
-// void gfy_Ellipse(int24_t x, int24_t y, uint24_t a, uint24_t b);
+/**
+ * Draws an ellipse.
+ *
+ * @param[in] x X coordinate of the center.
+ * @param[in] y Y coordinate of the center.
+ * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
+ * @param[in] b The vertical radius of the ellipse (current maximum is 128).
+ */
+void gfy_Ellipse(int24_t x, int24_t y, uint24_t a, uint24_t b);
 
-// /**
-//  * Draws a clipped polygon outline.
-//  *
-//  * @code{.cpp}
-//  * int24_t points[6] = {
-//  *                    160,  1,  // (x0, y0)
-//  *                    1,  238,  // (x1, y1)
-//  *                    318,238,  // (x2, y2)
-//  *                  };
-//  * num_points = 3;
-//  * gfy_Polygon(points, num_points);
-//  * @endcode
-//  * @param[in] points Pointer to x and y pairs.
-//  * @param[in] num_points Number of x and y pairs.
-//  */
-// void gfy_Polygon(const int24_t *points, unsigned num_points);
+/**
+ * Draws a clipped polygon outline.
+ *
+ * @code{.cpp}
+ * int24_t points[6] = {
+ *                    160,  1,  // (x0, y0)
+ *                    1,  238,  // (x1, y1)
+ *                    318,238,  // (x2, y2)
+ *                  };
+ * num_points = 3;
+ * gfy_Polygon(points, num_points);
+ * @endcode
+ * @param[in] points Pointer to x and y pairs.
+ * @param[in] num_points Number of x and y pairs.
+ */
+void gfy_Polygon(const int24_t *points, size_t num_points);
 
-// /**
-//  * Draws an unclipped polygon outline
-//  *
-//  * @code{.cpp}
-//  * int24_t points[6] = {
-//  *                    160,  1,  // (x0, y0)
-//  *                    1,  238,  // (x1, y1)
-//  *                    318,238,  // (x2, y2)
-//  *                  };
-//  * num_points = 3;
-//  * gfy_Polygon_NoClip(points, num_points)
-//  *
-//  * @endcode
-//  * @param[in] points Pointer to x and y pairs
-//  * @param[in] num_points Number of x and y pairs
-//  */
-// void gfy_Polygon_NoClip(const int24_t *points, unsigned num_points);
+/**
+ * Draws an unclipped polygon outline
+ *
+ * @code{.cpp}
+ * int24_t points[6] = {
+ *                    160,  1,  // (x0, y0)
+ *                    1,  238,  // (x1, y1)
+ *                    318,238,  // (x2, y2)
+ *                  };
+ * num_points = 3;
+ * gfy_Polygon_NoClip(points, num_points)
+ *
+ * @endcode
+ * @param[in] points Pointer to x and y pairs
+ * @param[in] num_points Number of x and y pairs
+ */
+void gfy_Polygon_NoClip(const int24_t *points, size_t num_points);
 
-// /**
-//  * Draws a clipped filled triangle.
-//  *
-//  * @param[in] x0 First X coordinate.
-//  * @param[in] y0 First Y coordinate.
-//  * @param[in] x1 Second X coordinate.
-//  * @param[in] y1 Second Y coordinate.
-//  * @param[in] x2 Third X coordinate.
-//  * @param[in] y2 Third Y coordinate.
-//  */
-// void gfy_FillTriangle(int24_t x0,
-//                       int24_t y0,
-//                       int24_t x1,
-//                       int24_t y1,
-//                       int24_t x2,
-//                       int24_t y2);
+/**
+ * Draws a clipped filled triangle.
+ *
+ * @param[in] x0 First X coordinate.
+ * @param[in] y0 First Y coordinate.
+ * @param[in] x1 Second X coordinate.
+ * @param[in] y1 Second Y coordinate.
+ * @param[in] x2 Third X coordinate.
+ * @param[in] y2 Third Y coordinate.
+ */
+void gfy_FillTriangle(int24_t x0,
+                      int24_t y0,
+                      int24_t x1,
+                      int24_t y1,
+                      int24_t x2,
+                      int24_t y2);
 
-// /**
-//  * Draws a unclipped filled triangle.
-//  *
-//  * @param[in] x0 First X coordinate.
-//  * @param[in] y0 First Y coordinate.
-//  * @param[in] x1 Second X coordinate.
-//  * @param[in] y1 Second Y coordinate.
-//  * @param[in] x2 Third X coordinate.
-//  * @param[in] y2 Third Y coordinate.
-//  */
-// void gfy_FillTriangle_NoClip(int24_t x0,
-//                              int24_t y0,
-//                              int24_t x1,
-//                              int24_t y1,
-//                              int24_t x2,
-//                              int24_t y2);
+/**
+ * Draws a unclipped filled triangle.
+ *
+ * @param[in] x0 First X coordinate.
+ * @param[in] y0 First Y coordinate.
+ * @param[in] x1 Second X coordinate.
+ * @param[in] y1 Second Y coordinate.
+ * @param[in] x2 Third X coordinate.
+ * @param[in] y2 Third Y coordinate.
+ */
+void gfy_FillTriangle_NoClip(int24_t x0,
+                             int24_t y0,
+                             int24_t x1,
+                             int24_t y1,
+                             int24_t x2,
+                             int24_t y2);
 
 /**
  * Forces all graphics routines draw location.
@@ -1568,14 +1568,14 @@ uint8_t *gfy_SetCharData(uint8_t index,
  */
 void gfy_SetFontSpacing(const uint8_t *spacing);
 
-// /**
-//  * Sets the height in pixels of each character.
-//  *
-//  * The default value is 8 pixels.
-//  * @param[in] height New font height in pixels.
-//  * @returns Previous height of font in pixels.
-//  */
-// uint8_t gfy_SetFontHeight(uint8_t height);
+/**
+ * Sets the height in pixels of each character.
+ *
+ * The default value is 8 pixels.
+ * @param[in] height New font height in pixels.
+ * @returns Previous height of font in pixels.
+ */
+uint8_t gfy_SetFontHeight(uint8_t height);
 
 /**
  * Sets a monospaced font width.

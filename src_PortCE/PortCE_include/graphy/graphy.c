@@ -15,8 +15,6 @@
 
 /**
 * @brief Implementation of graphx for Column-Major mode.
-* 
-* @todo Implement graphx v1 functions.
 */
 
 #ifdef __cplusplus
@@ -200,10 +198,10 @@ extern "C"
 * Wrap     gfx_RotateSpriteC
 * Wrap     gfx_RotateSpriteCC
 * Wrap     gfx_RotateSpriteHalf
-*          gfx_Polygon
-*          gfx_Polygon_NoClip
-*          gfx_FillTriangle
-*          gfx_FillTriangle_NoClip
+* Testing  gfx_Polygon
+* Testing  gfx_Polygon_NoClip
+* Testing  gfx_FillTriangle
+* Testing  gfx_FillTriangle_NoClip
 * ------------
 * v2 functions
 * ------------
@@ -224,9 +222,9 @@ extern "C"
 * ------------
 * v5 functions
 * ------------
-*          gfx_SetFontHeight
+* Partial  gfx_SetFontHeight
 * Wrap     gfx_ScaleSprite
-*          gfx_FloodFill
+* Minimal  gfx_FloodFill
 * ------------
 * v6 functions
 * ------------
@@ -260,10 +258,10 @@ extern "C"
 * ------------
 * v12 functions
 * ------------
-*          gfx_Ellipse
-*          gfx_Ellipse_NoClip
-*          gfx_FillEllipse
-*          gfx_FillEllipse_NoClip
+* Testing  gfx_Ellipse
+* Testing  gfx_Ellipse_NoClip
+* Testing  gfx_FillEllipse
+* Testing  gfx_FillEllipse_NoClip
 */
 
 /**
@@ -473,7 +471,10 @@ static int24_t gfy_TextYPos = 0;
 static uint8_t gfy_TextWidthScale = 1;
 static uint8_t gfy_TextHeightScale = 1;
 
+#define GFY_MAXIMUM_FONT_WIDTH (8)
+#define GFY_MAXIMUM_FONT_HEIGHT (8)
 static uint8_t gfy_PrintChar_Clip = gfy_text_noclip;
+static uint8_t gfy_FontHeight = GFY_MAXIMUM_FONT_HEIGHT;
 
 static int24_t gfy_ClipXMin = 0;
 static int24_t gfy_ClipYMin = 0;
@@ -615,6 +616,7 @@ void gfy_Begin() {
     gfy_TextHeightScale = 1;
 
     gfy_PrintChar_Clip = gfy_text_noclip;
+    gfy_FontHeight = GFY_MAXIMUM_FONT_HEIGHT;
 
     gfy_ClipXMin = 0;
     gfy_ClipYMin = 0;
@@ -907,14 +909,14 @@ void gfy_BlitRectangle(
 /* gfy_internal_PrintCharXY_NoClip */
 
 static void gfy_internal_PrintChar_NoClip(const char c, const uint8_t charWidth) {
-    const uint8_t *bitImage = gfy_TextData + 8 * (uint24_t)((unsigned char)c);
+    const uint8_t *bitImage = gfy_TextData + GFY_MAXIMUM_FONT_HEIGHT * (uint24_t)((unsigned char)c);
     uint8_t *fillLinePtr = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (gfy_TextYPos + (gfy_TextXPos * GFY_LCD_HEIGHT));
     uint8_t b = (1 << 7);
     gfy_TextXPos += charWidth;
     for (uint8_t x = 0; x < charWidth; x++) {
         for (uint8_t u = 0; u < gfy_TextWidthScale; u++) {
             uint8_t *fillPtr = fillLinePtr;
-            for (uint8_t y = 0; y < 8; y++) {
+            for (uint8_t y = 0; y < gfy_FontHeight; y++) {
                 const uint8_t fillColor = *bitImage & b ? gfy_Text_FG_Color : gfy_Text_BG_Color;
                 bitImage++;
                 if (fillColor == gfy_Text_TP_Color) {
@@ -928,7 +930,7 @@ static void gfy_internal_PrintChar_NoClip(const char c, const uint8_t charWidth)
                 }
             }
             fillLinePtr += GFY_LCD_HEIGHT;
-            bitImage -= 8;
+            bitImage -= gfy_FontHeight;
         }
         b >>= 1;
     }
@@ -940,7 +942,7 @@ void gfy_PrintChar(const char c) {
     
     const uint8_t charWidth = gfy_GetCharWidth(c);
     const uint8_t textSizeX = charWidth * gfy_TextWidthScale;
-    const uint8_t textSizeY = 8 * gfy_TextHeightScale;
+    const uint8_t textSizeY = GFY_MAXIMUM_FONT_HEIGHT * gfy_TextHeightScale;
     if (
         gfy_PrintChar_Clip == gfy_text_noclip ||
         /* Otherwise, if clipping is enabled */
@@ -951,14 +953,14 @@ void gfy_PrintChar(const char c) {
         gfy_internal_PrintChar_NoClip(c, charWidth);
         return;
     }
-    const uint8_t *bitImage = gfy_TextData + 8 * (uint24_t)((unsigned char)c);
+    const uint8_t *bitImage = gfy_TextData + GFY_MAXIMUM_FONT_HEIGHT * (uint24_t)((unsigned char)c);
     uint8_t *fillLinePtr = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (gfy_TextYPos + (gfy_TextXPos * GFY_LCD_HEIGHT));
     uint8_t b = (1 << 7);
     gfy_TextXPos += charWidth;
     for (uint8_t x = 0; x < charWidth; x++) {
         for (uint8_t u = 0; u < gfy_TextWidthScale; u++) {
             uint8_t *fillPtr = fillLinePtr;
-            for (uint8_t y = 0; y < 8; y++) {
+            for (uint8_t y = 0; y < gfy_FontHeight; y++) {
                 const uint8_t fillColor = *bitImage & b ? gfy_Text_FG_Color : gfy_Text_BG_Color;
                 bitImage++;
                 if (fillColor == gfy_Text_TP_Color) {
@@ -973,7 +975,7 @@ void gfy_PrintChar(const char c) {
                 }
             }
             fillLinePtr += GFY_LCD_HEIGHT;
-            bitImage -= 8;
+            bitImage -= gfy_FontHeight;
         }
         b >>= 1;
     }
@@ -1295,6 +1297,9 @@ void gfy_Line(int24_t x0, int24_t y0, int24_t x1, int24_t y1) {
 /* gfy_HorizLine */
 
 void gfy_HorizLine(int24_t x, int24_t y, int24_t length) {
+    if (y < gfy_ClipYMin || y >= gfy_ClipYMax || x >= gfy_ClipXMax) {
+        return;
+    }
     if (x < gfy_ClipXMin) {
         length -= gfy_ClipXMin - x;
         x = 0;
@@ -1303,12 +1308,18 @@ void gfy_HorizLine(int24_t x, int24_t y, int24_t length) {
     if (length <= 0) {
         return;
     }
+    if (gfy_Color == 195) {
+        printf("Horiz: %d %d %d\n", (int32_t)x, (int32_t)y, (int32_t)length);
+    }
     gfy_HorizLine_NoClip(x, y, length);
 }
 
 /* gfy_VertLine */
 
 void gfy_VertLine(int24_t x, int24_t y, int24_t length) {
+    if (x < gfy_ClipXMin || x >= gfy_ClipXMax || y >= gfy_ClipYMax) {
+        return;
+    }
     if (y < gfy_ClipYMin) {
         length -= gfy_ClipYMin - y;
         y = 0;
@@ -1322,70 +1333,56 @@ void gfy_VertLine(int24_t x, int24_t y, int24_t length) {
 
 /* gfy_Circle */
 
-static void gfy_internal_PlotCirclePoints(int24_t x, int24_t y, int24_t x_pos, int24_t y_pos) {
-    gfy_SetPixel(x + x_pos, y + y_pos);
-    gfy_SetPixel(x - x_pos, y + y_pos);
-    gfy_SetPixel(x + x_pos, y - y_pos);
-    gfy_SetPixel(x - x_pos, y - y_pos);
-    gfy_SetPixel(x + y_pos, y + x_pos);
-    gfy_SetPixel(x - y_pos, y + x_pos);
-    gfy_SetPixel(x + y_pos, y - x_pos);
-    gfy_SetPixel(x - y_pos, y - x_pos);
-}
+// https://zingl.github.io/bresenham.html
+/** @todo make function pixel perfect */
+void gfy_Circle(
+    const int24_t x, const int24_t y, const uint24_t radius
+) {
+    int24_t r = radius;
 
-void gfy_Circle(int24_t x, int24_t y, uint24_t radius) {
-    int24_t x_pos = 0, y_pos = radius;
-    int24_t d = 3 - 2 * radius;
-    gfy_internal_PlotCirclePoints(x, y, x_pos, y_pos);
-    while (y_pos >= x_pos) {   
-        x_pos++;
-        if (d > 0) {
-            y_pos--; 
-            d = d + 4 * (x_pos - y_pos) + 10;
-        } else {
-            d = d + 4 * x_pos + 6;
+    int24_t x_pos = -r;
+    int24_t y_pos = 0;
+    int24_t err = 2 - 2 * r;
+    do {
+        gfy_SetPixel_RegionClip(x - x_pos, y + y_pos, gfy_Color);
+        gfy_SetPixel_RegionClip(x - y_pos, y - x_pos, gfy_Color);
+        gfy_SetPixel_RegionClip(x + x_pos, y - y_pos, gfy_Color);
+        gfy_SetPixel_RegionClip(x + y_pos, y + x_pos, gfy_Color);
+        r = err;
+        if (r <= y_pos) {
+            err += ++y_pos * 2 + 1;
         }
-        gfy_internal_PlotCirclePoints(x, y, x_pos, y_pos);
-    }
+        if (r > x_pos || err > y_pos) {
+            err += ++x_pos * 2 + 1;
+        }
+    } while (x_pos < 0);
 }
 
 /* gfy_FillCircle */
 
-void gfy_FillCircle(int24_t x, int24_t y, uint24_t radius) {
-    // Incorrect clipping
-    if (
-        x - (int24_t)radius >= gfy_ClipXMin &&
-        y - (int24_t)radius >= gfy_ClipYMin &&
-        x + (int24_t)radius < gfy_ClipXMax &&
-        y + (int24_t)radius < gfy_ClipYMax
-    ) {
-        gfy_FillCircle_NoClip(x,y,radius);
-        return;
-    }
-    int24_t x_pos = radius;
-    int24_t y_pos = 0;
-    int24_t xChange = 1 - (2 * radius);
-    int24_t yChange = 0;
-    int24_t radiusError = 0;
-    while (x_pos >= y_pos) {
-        for (int24_t i = x - x_pos; i <= x + x_pos; i++) {
-            if (y + y_pos >= gfy_ClipYMin && y + y_pos < gfy_ClipYMax) { gfy_SetPixel(i, y + y_pos); }
-            if (y - y_pos >= gfy_ClipYMin && y - y_pos < gfy_ClipYMax) { gfy_SetPixel(i, y - y_pos); }
-        }
-        for (int24_t i = x - y_pos; i <= x + y_pos; i++) {
-            if (y + x_pos >= gfy_ClipYMin && y + x_pos < gfy_ClipYMax) { gfy_SetPixel(i, y + x_pos); }
-            if (y - x_pos >= gfy_ClipYMin && y - x_pos < gfy_ClipYMax) { gfy_SetPixel(i, y - x_pos); }
-        }
+// https://zingl.github.io/bresenham.html
+/** @todo make function pixel perfect */
+void gfy_FillCircle(
+    const int24_t x, const int24_t y, const uint24_t radius
+) {
+    int24_t r = radius;
 
-        y_pos++;
-        radiusError += yChange;
-        yChange += 2;
-        if (((radiusError * 2) + xChange) > 0) {
-            x_pos--;
-            radiusError += xChange;
-            xChange += 2;
+    int24_t x_pos = -r;
+    int24_t y_pos = 0;
+    int24_t err = 2 - 2 * r;
+    do {
+        gfy_HorizLine(x + x_pos, y - y_pos, -x_pos * 2 + 1);
+        gfy_HorizLine(x + x_pos, y + y_pos, -x_pos * 2 + 1);
+        r = err;
+        if (r <= y_pos) {
+            y_pos++;
+            err += y_pos * 2 + 1;
         }
-    }
+        if (r > x_pos || err > y_pos) {
+            x_pos++;
+            err += x_pos * 2 + 1;
+        }
+    } while (x_pos < 0);
 }
 
 /* gfy_Rectangle */
@@ -1503,31 +1500,29 @@ void gfy_VertLine_NoClip(uint24_t x, uint8_t y, uint24_t length) { //x postion, 
 
 /* gfy_FillCircle_NoClip */
 
-void gfy_FillCircle_NoClip(uint24_t x, uint8_t y, uint24_t radius) {
-    int24_t x_pos = radius;
-    int24_t y_pos = 0;
-    int24_t xChange = 1 - (2 * radius);
-    int24_t yChange = 0;
-    int24_t radiusError = 0;
-    while (x_pos >= y_pos) {
-        for (int24_t i = (int24_t)x - x_pos; i <= (int24_t)x + x_pos; i++) {
-            ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(int24_t)y + y_pos + (i * GFY_LCD_HEIGHT)] = gfy_Color;
-            ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(int24_t)y - y_pos + (i * GFY_LCD_HEIGHT)] = gfy_Color;
-        }
-        for (int24_t i = (int24_t)x - y_pos; i <= (int24_t)x + y_pos; i++) {
-            ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(int24_t)y + x_pos + (i * GFY_LCD_HEIGHT)] = gfy_Color;
-            ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(int24_t)y - x_pos + (i * GFY_LCD_HEIGHT)] = gfy_Color;
-        }
+// https://zingl.github.io/bresenham.html
+/** @todo make function pixel perfect */
+void gfy_FillCircle_NoClip(
+    const uint24_t x, const uint8_t y, const uint24_t radius
+) {
+    int24_t r = radius;
 
-        y_pos++;
-        radiusError += yChange;
-        yChange += 2;
-        if (((radiusError * 2) + xChange) > 0) {
-            x_pos--;
-            radiusError += xChange;
-            xChange += 2;
+    int24_t x_pos = -r;
+    int24_t y_pos = 0;
+    int24_t err = 2 - 2 * r;
+    do {
+        gfy_HorizLine_NoClip(x + x_pos, (uint8_t)(y - y_pos), -x_pos * 2 + 1);
+        gfy_HorizLine_NoClip(x + x_pos, (uint8_t)(y + y_pos), -x_pos * 2 + 1);
+        r = err;
+        if (r <= y_pos) {
+            y_pos++;
+            err += y_pos * 2 + 1;
         }
-    }
+        if (r > x_pos || err > y_pos) {
+            x_pos++;
+            err += x_pos * 2 + 1;
+        }
+    } while (x_pos < 0);
 }
 
 /* gfy_Rectangle_NoClip */
@@ -2082,7 +2077,6 @@ void gfy_ScaledTransparentSprite_NoClip(
 
 /* gfy_FlipSpriteY */
 
-/** @todo implement PortCE routine */
 gfy_sprite_t *gfy_FlipSpriteY(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprite_out) {
     #ifdef _EZ80
         return (gfy_sprite_t*)gfx_FlipSpriteY((const gfx_sprite_t*)sprite_in, (gfx_sprite_t*)sprite_out);
@@ -2106,7 +2100,6 @@ gfy_sprite_t *gfy_FlipSpriteY(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprit
 
 /* gfy_FlipSpriteX */
 
-/** @todo implement PortCE routine */
 gfy_sprite_t *gfy_FlipSpriteX(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprite_out) {
     #ifdef _EZ80
         return (gfy_sprite_t*)gfx_FlipSpriteX((const gfx_sprite_t*)sprite_in, (gfx_sprite_t*)sprite_out);
@@ -2155,26 +2148,160 @@ gfy_sprite_t *gfy_RotateSpriteHalf(const gfy_sprite_t *sprite_in, gfy_sprite_t *
     #ifdef _EZ80
         return (gfy_sprite_t*)gfx_RotateSpriteHalf((const gfx_sprite_t*)sprite_in, (gfx_sprite_t*)sprite_out);
     #else
-        memcpy(sprite_out, sprite_in, sizeof(gfy_sprite_t) + (sprite_in->width * sprite_in->height));
+        const uint8_t* src_buf = sprite_in->data;
+        uint8_t* dst_buf = sprite_out->data + (sprite_in->width * sprite_in->height);
+        while (dst_buf != sprite_out->data) {
+            dst_buf--;
+            *dst_buf = *src_buf;
+            src_buf++;
+        }
+        sprite_out->width = sprite_in->width;
+        sprite_out->height = sprite_in->height;
         return sprite_out;
     #endif
 }
 
 /* gfy_Polygon */
 
-
+void gfy_Polygon(const int24_t *points, size_t num_points) {
+    if (num_points < 2) {
+        return;
+    }
+    gfy_Line(
+        points[num_points * 2 - 2], points[num_points * 2 - 1],
+        points[0], points[1]
+    );
+    for (size_t i = 2; i < 2 * num_points; i += 2) {
+        gfy_Line(
+            points[i + 0], points[i + 1],
+            points[i + 2], points[i + 3]
+        );
+    }
+}
 
 /* gfy_Polygon_NoClip */
 
-
+void gfy_Polygon_NoClip(const int24_t *points, size_t num_points) {
+    if (num_points < 2) {
+        return;
+    }
+    gfy_Line(
+        points[num_points * 2 - 2], points[num_points * 2 - 1],
+        points[0], points[1]
+    );
+    for (size_t i = 2; i < 2 * num_points; i += 2) {
+        gfy_Line(
+            points[i + 0], points[i + 1],
+            points[i + 2], points[i + 3]
+        );
+    }
+}
 
 /* gfy_FillTriangle */
 
+// y2 >= y1 >= y0
+static void gfy_internal_triangle_sort(
+    int24_t* x0, int24_t* y0,
+    int24_t* x1, int24_t* y1,
+    int24_t* x2, int24_t* y2
+) {
+    #define triangle_swap(a, b) \
+        { \
+            int24_t temp = *(a); \
+            *(a) = *(b); \
+            *(b) = temp; \
+        }
 
+    if (*y0 > *y1) {
+        triangle_swap(x0, x1);
+        triangle_swap(y0, y1);
+    }
+    if (*y1 > *y2) {
+        triangle_swap(x1, x2);
+        triangle_swap(y1, y2);
+    }
+    if (*y0 > *y1) {
+        triangle_swap(x0, x1);
+        triangle_swap(y0, y1);
+    }
+
+    #undef triangle_swap
+}
+
+void gfy_FillTriangle(
+    int24_t x0, int24_t y0,
+    int24_t x1, int24_t y1,
+    int24_t x2, int24_t y2
+) {
+    gfy_internal_triangle_sort(
+        &x0, &y0,
+        &x1, &y1,
+        &x2, &y2
+    );
+    if (y0 == y2) { // Degenerate Triangle
+        int24_t x_min = (x0 < x1) ? x0 : x1;
+        x_min = (x_min < x2) ? x_min : x2;
+        int24_t x_max = (x0 > x1) ? x0 : x1;
+        x_max = (x_max > x2) ? x_max : x2;
+        gfy_HorizLine(x_min, y0, x_max - x_min + 1);
+        return;
+    }
+    int24_t sa = 0;
+    int24_t sb = 0;
+    int24_t dx01 = x1 - x0;
+    int24_t dx02 = x2 - x0;
+    int24_t dy01 = y1 - y0;
+    int24_t dy02 = y2 - y0;
+    int24_t dx12 = x2 - x1;
+    int24_t dy12 = y2 - y1;
+    int24_t last;
+    if (y1 == y2) {
+        last = y1;
+    } else {
+        last = y1 - 1;
+    }
+    int24_t y;
+    for (y = y0; y <= last; y++) {
+        int24_t a = x0 + sa / dy01;
+        int24_t b = x0 + sb / dy02;
+        sa += dx01;
+        sb += dx02;
+        if (b < a) { // Swap
+            int24_t temp = a;
+            a = b;
+            b = temp;
+        }
+        gfy_HorizLine(a, y, b-a+1);
+    }
+    sa = dx12 * (y - y1);
+    sb = dx02 * (y - y0);
+    for(; y <= y2; y++) {
+        int24_t a = x1 + sa / dy12;
+        int24_t b = x0 + sb / dy02;
+        sa += dx12;
+        sb += dx02;
+        if (b < a) { // Swap
+            int24_t temp = a;
+            a = b;
+            b = temp;
+        }
+        gfy_HorizLine(a, y, b-a+1);
+    }
+}
 
 /* gfy_FillTriangle_NoClip */
 
-
+void gfy_FillTriangle_NoClip(
+    int24_t x0, int24_t y0,
+    int24_t x1, int24_t y1,
+    int24_t x2, int24_t y2
+) {
+    gfy_FillTriangle(
+        x0, y0,
+        x1, y1,
+        x2, y2
+    );
+}
 
 //------------------------------------------------------------------------------
 // v2 functions
@@ -2238,20 +2365,28 @@ gfy_sprite_t *gfy_GetSpriteChar(__attribute__((unused)) char c) {
         return (gfy_sprite_t*)gfx_GetSpriteChar(c);
     #else
 
-        const uint8_t *bitImage = gfy_TextData + 8 * (uint24_t)((unsigned char)c);
+        const uint8_t *bitImage = gfy_TextData + GFY_MAXIMUM_FONT_HEIGHT * (uint24_t)((unsigned char)c);
         uint8_t *fillPtr = gfy_TmpCharSprite.data;
         
-        for (uint8_t x = 0; x < gfy_GetCharWidth(c); x++) {
+        const uint8_t CharWidth = gfy_GetCharWidth(c);
+        
+        for (uint8_t y = 0; y < gfy_FontHeight; y++) {
             uint8_t b = 1;
-            for (uint8_t y = 0; y < 8; y++) {
-                const uint8_t fillColor = *bitImage & b ? gfy_Text_FG_Color : gfy_Text_BG_Color;
-                *fillPtr = (fillColor != gfy_Text_TP_Color) ? fillColor : *fillPtr;
+            uint8_t x = 0;
+            for (; x < CharWidth; x++) {
+                *fillPtr = (*bitImage & b) ? gfy_Text_FG_Color : gfy_Text_BG_Color;
                 fillPtr++;
                 b <<= 1;
             }
+            for (; x < GFY_MAXIMUM_FONT_WIDTH; x++) {
+                *fillPtr = gfy_Text_BG_Color;
+                fillPtr++;
+            }
             bitImage++;	
         }
-
+        memset(fillPtr, gfy_Text_BG_Color,
+            (GFY_MAXIMUM_FONT_HEIGHT - gfy_FontHeight) * GFY_MAXIMUM_FONT_WIDTH
+        );
         return &gfy_TmpCharSprite;
     #endif
 }
@@ -2292,7 +2427,17 @@ uint16_t gfy_Darken(uint16_t color, uint8_t amount) {
 
 /* gfy_SetFontHeight */
 
-
+uint8_t gfy_SetFontHeight(uint8_t height) {
+    #ifdef _EZ80
+        gfy_FontHeight = height;
+        return gfy_SetFontHeight(height);
+    #else
+        // The assembly doesn't appear to do any input validation
+        uint8_t temp = gfy_FontHeight;
+        gfy_FontHeight = height;
+        return temp;
+    #endif
+}
 
 /* gfy_ScaleSprite */
 
@@ -2923,94 +3068,121 @@ void gfy_CopyRectangle(
 // v12 functions
 //------------------------------------------------------------------------------
 
+/* gfy_internal_Ellipse */
+
+static void gfy_internal_Ellipse_dual_point(
+    int24_t x, int24_t y, int24_t xc, int24_t yc
+) {
+    gfy_SetPixel_RegionClip(x - xc, y - yc, gfy_Color);
+    gfy_SetPixel_RegionClip(x + xc, y - yc, gfy_Color);
+    gfy_SetPixel_RegionClip(x - xc, y + yc, gfy_Color);
+    gfy_SetPixel_RegionClip(x + xc, y + yc, gfy_Color);
+}
+
+static void gfy_internal_Ellipse_dual_point_NoClip(
+    int24_t x, int24_t y, int24_t xc, int24_t yc
+) {
+    gfy_SetPixel_NoClip(x - xc, y - yc, gfy_Color);
+    gfy_SetPixel_NoClip(x + xc, y - yc, gfy_Color);
+    gfy_SetPixel_NoClip(x - xc, y + yc, gfy_Color);
+    gfy_SetPixel_NoClip(x + xc, y + yc, gfy_Color);
+}
+
+static void gfy_internal_Ellipse_dual_line(
+    int24_t x, int24_t y, int24_t xc, int24_t yc
+) {
+    gfy_HorizLine(x - xc, y - yc, 2 * xc);
+    gfy_HorizLine(x - xc, y + yc, 2 * xc);
+}
+
+static void gfy_internal_Ellipse_dual_line_NoClip(
+    int24_t x, int24_t y, int24_t xc, int24_t yc
+) {
+    gfy_HorizLine_NoClip(x - xc, (uint8_t)(y - yc), 2 * xc);
+    gfy_HorizLine_NoClip(x - xc, (uint8_t)(y + yc), 2 * xc);
+}
+
+// Derived from graphx.asm
+static void gfy_internal_Ellipse(
+    int24_t x, int24_t y, uint24_t a, uint24_t b,
+    void (*plot_function)(int24_t, int24_t, int24_t, int24_t)
+) {	
+    int24_t a2 = a * a;
+    int24_t fa2 = 4 * a2;
+    if (a == 0 || b == 0) {
+        return;
+    }
+    int24_t yc = b;
+    int24_t sigma_add_1 = fa2 * (1 - b);
+    int24_t b2 = b * b;
+    int24_t fb2 = 4 * b2;
+    int24_t xc = 0;
+    int24_t sigma = 2 * b2 + a2 * (1 - 2 * b);
+    int24_t sigma_add_2 = fb2 * (1 - a);
+
+    while(b2 * xc <= a2 * yc) { /* .main_loop1 */
+        (*plot_function)(x, y, xc, yc);
+        if (sigma >= 0) {
+            sigma += sigma_add_1;
+            sigma_add_1 += fa2;
+            yc--;
+        }
+
+        sigma += b2 * (4 * xc + 6);
+        xc++;
+    }
+
+    xc = a;
+    yc = 0;
+    sigma = 2 * a2 + b2 * (1 - 2 * a);
+
+    while(a2 * yc <= b2 * xc) {
+        (*plot_function)(x, y, xc, yc);
+        if (sigma >= 0) {
+            sigma += sigma_add_2;
+            sigma_add_2 += fb2;
+            xc--;
+        }
+
+        sigma += a2 * (4 * yc + 6);
+        yc++;
+    } 
+}
+
 /* gfy_Ellipse */
 
-
+void gfy_Ellipse(int24_t x, int24_t y, uint24_t a, uint24_t b) {
+    gfy_internal_Ellipse(
+        x, y, a, b,
+        gfy_internal_Ellipse_dual_point
+    );
+}
 
 /* gfy_Ellipse_NoClip */
 
-
+void gfy_Ellipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b) {
+    gfy_internal_Ellipse(
+        (int24_t)x, (int24_t)y, (uint24_t)a, (uint24_t)b,
+        gfy_internal_Ellipse_dual_point_NoClip
+    );
+}
 
 /* gfy_FillEllipse */
 
-// Source: https://stackoverflow.com/questions/10322341/simple-algorithm-for-drawing-filled-ellipse-in-c-c
-/** @todo test this function */
 void gfy_FillEllipse(int24_t x, int24_t y, uint24_t a, uint24_t b) {
-    if (a > 128 || b > 128) {
-        return;
-    }
-    const int24_t width = (int24_t)a;
-    const int24_t height = (int24_t)b;
-    const int24_t height_pow2 = height * height;
-    const int24_t width_pow2 = width * width;
-    const int24_t width_pow2_mul_height_pow2 = height_pow2 * width_pow2;
-    int24_t x0 = width;
-    int24_t dx = 0;
-
-    // do the horizontal diameter
-    gfy_HorizLine(x - width, y, width * 2 + 1);
-
-    // now do both halves at the same time, away from the diameter
-    for (int24_t y_cord = 1; y_cord <= height; y_cord++) {
-        int24_t x1 = x0 - (dx - 1);  // try slopes of dx - 1 or more
-        for (; x1 > 0; x1--) {
-            if (
-                x1 * x1 * height_pow2 + y_cord * y_cord * width_pow2
-                <= width_pow2_mul_height_pow2
-            ) {
-                break;
-            }
-        }
-        
-        // current approximation of the slope
-        dx = x0 - x1;
-        x0 = x1;
-
-        gfy_HorizLine(x - x0, y - y_cord, x0 * 2 + 1);
-        gfy_HorizLine(x - x0, y + y_cord, x0 * 2 + 1);
-    }
+    gfy_internal_Ellipse(
+        x, y, a, b,
+        gfy_internal_Ellipse_dual_line
+    );
 }
 
 /* gfy_FillEllipse_NoClip */
 
-// Source: https://stackoverflow.com/questions/10322341/simple-algorithm-for-drawing-filled-ellipse-in-c-c
-/** @todo test this function */
 void gfy_FillEllipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b) {
-    if (a > 128 || b > 128) {
-        return;
-    }
-    const uint8_t width = a;
-    const uint8_t height = b;
-    const int24_t height_pow2 = height * height;
-    const int24_t width_pow2 = width * width;
-    const int24_t width_pow2_mul_height_pow2 = height_pow2 * width_pow2;
-    int24_t x0 = width;
-    int24_t dx = 0;
-
-    // do the horizontal diameter
-    if (y < GFY_LCD_HEIGHT) {
-        gfy_HorizLine_NoClip(x - width, (uint8_t)y, width * 2 + 1);
-    }
-
-    // now do both halves at the same time, away from the diameter
-    for (uint8_t y_cord = 1; y_cord <= height; y_cord++) {
-        int24_t x1 = x0 - (dx - 1);  // try slopes of dx - 1 or more
-        for (; x1 > 0; x1--) {
-            if (
-                x1 * x1 * height_pow2 + y_cord * y_cord * width_pow2
-                <= width_pow2_mul_height_pow2
-            ) {
-                break;
-            }
-        }
-        
-        // current approximation of the slope
-        dx = x0 - x1;
-        x0 = x1;
-
-        gfy_HorizLine_NoClip(x - x0, y - y_cord, x0 * 2 + 1);
-        gfy_HorizLine_NoClip(x - x0, y + y_cord, x0 * 2 + 1);
-    }
+    gfy_internal_Ellipse(
+        (int24_t)x, (int24_t)y, (uint24_t)a, (uint24_t)b,
+        gfy_internal_Ellipse_dual_line_NoClip
+    );
 }
 
 #ifdef __cplusplus

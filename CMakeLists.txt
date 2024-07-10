@@ -37,6 +37,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${SRC_PORTCE_DIR}
 	"${SRC_PORTCE_DIR}/PortCE_include/fileioc"
 	"${SRC_PORTCE_DIR}/PortCE_include/ce/include"
 	"${SRC_PORTCE_DIR}/PortCE_include/ce/include/ti"
+	"${SRC_PORTCE_DIR}/PortCE_include/graphx"
 	"${SRC_PORTCE_DIR}/PortCE_include/graphy"
 )
 

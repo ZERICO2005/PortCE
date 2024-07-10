@@ -13,6 +13,9 @@
 extern "C" {
 #endif
 
+#define ti_malloc(x) malloc(x)
+#define ti_free(x) free(x)
+
 #ifndef _EZ80
 	typedef signed _BitInt(24) int24_t; /** @note Remember to account for integer promotion */
 	typedef unsigned _BitInt(24) uint24_t; /** @note Remember to account for integer promotion */

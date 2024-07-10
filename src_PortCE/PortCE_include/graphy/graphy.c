@@ -6,9 +6,7 @@
 
 #include "graphy.h"
 
-#ifdef _EZ80
-    #include <graphx.h>
-#endif
+#include <graphx.h>
 
 // For memcpy and memset
 #include <string.h>
@@ -769,17 +767,6 @@ void gfy_SetPixel(uint24_t x, uint8_t y) {
         ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(y) + ((x) * GFY_LCD_HEIGHT)] = (color); \
     }
 
-static bool gfy_internal_BlitPixelCheck(void* ptr) {
-    // Checks that pixels won't be written to an invalid address
-    if (
-        ptr >= RAM_ADDRESS(gfy_CurrentBuffer) &&
-        ptr < RAM_ADDRESS(gfy_CurrentBuffer + GFY_LCD_WIDTH * GFY_LCD_HEIGHT)
-    ) {
-        return true;
-    }
-    return false;
-}
-
 /* gfy_GetPixel */
 
 uint8_t gfy_GetPixel(uint24_t x, uint8_t y) {
@@ -968,7 +955,10 @@ void gfy_PrintChar(const char c) {
                     continue;
                 }
                 for (uint8_t v = 0; v < gfy_TextHeightScale; v++) {
-                    if (gfy_internal_BlitPixelCheck(fillPtr)) {
+                    if (
+						fillPtr >= (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) &&
+						fillPtr < (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer + GFY_LCD_WIDTH * GFY_LCD_HEIGHT)
+					) {
                         *fillPtr = fillColor;   
                     }
                     fillPtr++;
@@ -1238,9 +1228,7 @@ static void gfy_internal_Line0(int24_t x0, int24_t y0, int24_t x1, int24_t y1) {
     dY *= 2;
     int24_t y = y0;
     for (int24_t x = x0; x < x1; x++) {
-        if (y >= gfy_ClipYMin && y < gfy_ClipYMax && x >= gfy_ClipXMin && x < gfy_ClipXMax) {
-            ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(uint24_t)y + (x * GFY_LCD_HEIGHT)] = gfy_Color;
-        }
+        gfy_SetPixel_RegionClip(x, y, gfy_Color);
         if (dD > 0) {
             y += yI;
             dD += dD_jump;
@@ -1265,9 +1253,7 @@ static void gfy_internal_Line1(int24_t x0, int24_t y0, int24_t x1, int24_t y1) {
     int24_t x = x0;
 
     for (int24_t y = y0; y < y1; y++) {
-        if (x >= gfy_ClipXMin && x < gfy_ClipXMax && y >= gfy_ClipYMin && y < gfy_ClipYMax) {
-            ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(uint24_t)y + (x * GFY_LCD_HEIGHT)] = gfy_Color;
-        }
+        gfy_SetPixel_RegionClip(x, y, gfy_Color);
         if (dD > 0) {
             x += xI;
             dD += dD_jump;
@@ -1307,9 +1293,6 @@ void gfy_HorizLine(int24_t x, int24_t y, int24_t length) {
     length = (x + length > gfy_ClipXMax) ? (gfy_ClipXMax - x) : length;
     if (length <= 0) {
         return;
-    }
-    if (gfy_Color == 195) {
-        printf("Horiz: %d %d %d\n", (int32_t)x, (int32_t)y, (int32_t)length);
     }
     gfy_HorizLine_NoClip(x, y, length);
 }
@@ -1429,7 +1412,7 @@ static void gfy_internal_Line0_NoClip(int24_t x0, int24_t y0, int24_t x1, int24_
     dY *= 2;
     int24_t y = y0;
     for (int24_t x = x0; x < x1; x++) {
-        ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(uint24_t)y + (x * GFY_LCD_HEIGHT)] = gfy_Color;
+        gfy_SetPixel_NoClip(x, y, gfy_Color);
         if (dD > 0) {
             y += yI;
             dD += dD_jump;
@@ -1454,7 +1437,7 @@ static void gfy_internal_Line1_NoClip(int24_t x0, int24_t y0, int24_t x1, int24_
     int24_t x = x0;
 
     for (int24_t y = y0; y < y1; y++) {
-        ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer))[(uint24_t)y + (x * GFY_LCD_HEIGHT)] = gfy_Color;
+		gfy_SetPixel_NoClip(x, y, gfy_Color);
         if (dD > 0) {
             x += xI;
             dD += dD_jump;
@@ -1876,10 +1859,10 @@ gfy_sprite_t *gfy_AllocSprite(
         uint8_t sizeX = sprite->width - (min_clipX + max_clipX);
         uint8_t sizeY = sprite->height - (min_clipY + max_clipY);
         const uint8_t* src_buf = sprite->data + min_clipX + (min_clipY * sprite->width);
-        const uint8_t clip_jump = min_clipX + max_clipX;
+        const uint8_t clip_jumpX = min_clipX + max_clipX;
 
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (y + min_clipY) + ((x + min_clipX) * GFY_LCD_HEIGHT);
-        const uint24_t dst_jump = (GFY_LCD_HEIGHT * (sprite->width - clip_jump)) - 1;
+        const uint24_t dst_jump = (GFY_LCD_HEIGHT * (sprite->width - clip_jumpX)) - 1;
         
         for (uint8_t y_cord = 0; y_cord < sizeY; y_cord++) {
             for (uint8_t x_cord = 0; x_cord < sizeX; x_cord++) {
@@ -1887,7 +1870,7 @@ gfy_sprite_t *gfy_AllocSprite(
                 src_buf++;
                 dst_buf += GFY_LCD_HEIGHT;
             }
-            src_buf += clip_jump;
+            src_buf += clip_jumpX;
             dst_buf -= dst_jump;
         }
     }
@@ -1918,7 +1901,7 @@ gfy_sprite_t *gfy_AllocSprite(
         uint8_t sizeX = sprite->width - (min_clipX + max_clipX);
         uint8_t sizeY = sprite->height - (min_clipY + max_clipY);
         
-        const uint8_t* src_buf = sprite->data + min_clipX + (min_clipY * sprite->width);
+        const uint8_t* src_buf = sprite->data + min_clipY + (min_clipX * sprite->height);
         
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (y + min_clipY) + ((x + min_clipX) * GFY_LCD_HEIGHT);
         
@@ -1959,10 +1942,10 @@ gfy_sprite_t *gfy_AllocSprite(
         uint8_t sizeX = sprite->width - min_clipX - max_clipX;
         uint8_t sizeY = sprite->height - min_clipY - max_clipY;
         const uint8_t* src_buf = sprite->data + min_clipX + (min_clipY * sprite->width);
-        const uint8_t clip_jump = min_clipX + max_clipX;
+        const uint8_t clip_jumpX = min_clipX + max_clipX;
 
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (y + min_clipY) + ((x + min_clipX) * GFY_LCD_HEIGHT);
-        const uint24_t dst_jump = (GFY_LCD_HEIGHT * (sprite->width - clip_jump)) - 1;
+        const uint24_t dst_jump = (GFY_LCD_HEIGHT * (sprite->width - clip_jumpX)) - 1;
 
         for (uint8_t y_cord = 0; y_cord < sizeY; y_cord++) {
             for (uint8_t x_cord = 0; x_cord < sizeX; x_cord++) {
@@ -1970,7 +1953,7 @@ gfy_sprite_t *gfy_AllocSprite(
                 src_buf++;
                 dst_buf += GFY_LCD_HEIGHT;
             }
-            src_buf += clip_jump;
+            src_buf += clip_jumpX;
             dst_buf -= dst_jump;
         }
     }
@@ -2000,17 +1983,11 @@ gfy_sprite_t *gfy_AllocSprite(
 
         uint8_t sizeX = sprite->width - (min_clipX + max_clipX);
         uint8_t sizeY = sprite->height - (min_clipY + max_clipY);
-        const uint8_t* src_buf = sprite->data + min_clipX + (min_clipY * sprite->width);
-        const uint8_t clip_jump = min_clipX + max_clipX;
+        const uint8_t* src_buf = sprite->data + min_clipY + (min_clipX * sprite->height);
+        const uint8_t clip_jumpY = min_clipY + max_clipY;
 
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (y + min_clipY) + ((x + min_clipX) * GFY_LCD_HEIGHT);
         const uint24_t dst_jump = GFY_LCD_HEIGHT - sizeY;
-
-        for (uint8_t x_cord = 0; x_cord < sizeX; x_cord++) {
-            memcpy(dst_buf, src_buf, sizeY);
-            src_buf += sprite->height;
-            dst_buf += GFY_LCD_HEIGHT;
-        }
 
         for (uint8_t x_cord = 0; x_cord < sizeX; x_cord++) {
             for (uint8_t y_cord = 0; y_cord < sizeY; y_cord++) {
@@ -2018,7 +1995,7 @@ gfy_sprite_t *gfy_AllocSprite(
                 src_buf++;
                 dst_buf++;
             }
-            src_buf += clip_jump;
+            src_buf += clip_jumpY;
             dst_buf += dst_jump;
         }
     }
@@ -2293,43 +2270,21 @@ gfy_sprite_t *gfy_AllocSprite(
 /* gfy_FlipSpriteY */
 
 gfy_sprite_t *gfy_FlipSpriteY(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprite_out) {
-    #ifdef _EZ80
-        return (gfy_sprite_t*)gfx_FlipSpriteY((const gfx_sprite_t*)sprite_in, (gfx_sprite_t*)sprite_out);
-    #else
-        sprite_out->width = sprite_in->width;
-        sprite_out->height = sprite_in->height;
-        const uint8_t* src_buf = sprite_in->data + (sprite_in->width - 1);
-        uint8_t* dst_buf = sprite_out->data;
-        const uint24_t src_jump = (2 * sprite_in->width);
-        for (uint8_t y = 0; y < sprite_in->height; y++) {
-            for (uint8_t x = 0; x < sprite_in->width; x++) {
-                *dst_buf = *src_buf;
-                src_buf--;
-                dst_buf++;
-            }
-            src_buf += src_jump;
-        }
-        return sprite_out;
-    #endif
+    #ifdef USE_GRAPHX_SPRITE_DATA
+		return (gfy_sprite_t*)gfx_FlipSpriteY((const gfx_sprite_t*)sprite_in, (gfx_sprite_t*)sprite_out);
+	#else
+    	return (gfy_sprite_t*)gfx_FlipSpriteX((const gfx_sprite_t*)sprite_in, (gfx_sprite_t*)sprite_out);
+	#endif
 }
 
 /* gfy_FlipSpriteX */
 
 gfy_sprite_t *gfy_FlipSpriteX(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprite_out) {
-    #ifdef _EZ80
-        return (gfy_sprite_t*)gfx_FlipSpriteX((const gfx_sprite_t*)sprite_in, (gfx_sprite_t*)sprite_out);
-    #else
-        sprite_out->width = sprite_in->width;
-        sprite_out->height = sprite_in->height;
-        const uint8_t* src_buf = sprite_in->data + (sprite_in->width * (sprite_in->height - 1));
-        uint8_t* dst_buf = sprite_out->data;
-        for (uint8_t y = 0; y < sprite_in->height; y++) {
-            memcpy(dst_buf, src_buf, sprite_in->width);
-            src_buf -= sprite_in->width;
-            dst_buf += sprite_in->width;
-        }
-        return sprite_out;
-    #endif
+	#ifdef USE_GRAPHX_SPRITE_DATA
+    	return (gfy_sprite_t*)gfx_FlipSpriteX((const gfx_sprite_t*)sprite_in, (gfx_sprite_t*)sprite_out);
+	#else
+		return (gfy_sprite_t*)gfx_FlipSpriteY((const gfx_sprite_t*)sprite_in, (gfx_sprite_t*)sprite_out);
+	#endif
 }
 
 /* gfy_RotateSpriteC */
@@ -2604,11 +2559,7 @@ uint8_t gfy_SetTransparentColor(uint8_t index) {
 /* gfy_ZeroScreen */
 
 void gfy_ZeroScreen(void) {
-    #ifdef _EZ80
-        gfx_ZeroScreen();
-    #else
-        memset(RAM_ADDRESS(gfy_CurrentBuffer), 0, GFY_LCD_WIDTH * GFY_LCD_HEIGHT);
-    #endif
+    gfx_ZeroScreen();
 }
 
 /* gfy_SetTextConfig */
@@ -2661,27 +2612,13 @@ gfy_sprite_t *gfy_GetSpriteChar(__attribute__((unused)) char c) {
 /* gfy_Lighten */
 
 uint16_t gfy_Lighten(uint16_t color, uint8_t amount) {
-    #ifdef _EZ80
-        return gfx_Lighten(color, amount);
-    #else
-        return ~gfy_Darken(~color, amount);
-    #endif
+    return ~gfy_Darken(~color, amount);
 }
 
 /* gfy_Darken */
 
 uint16_t gfy_Darken(uint16_t color, uint8_t amount) {
-    #ifdef _EZ80
-        return gfx_Darken(color, amount);
-    #else
-        uint8_t r = (uint8_t)(color & 0x1F);
-        uint8_t g = (uint8_t)((color & 0x3E0) >> 4) + ((color & 0x8000) ? 1 : 0);
-        uint8_t b = (uint8_t)((color & 0x7C00) >> 10);
-        r = (r * amount + 128) / 256;
-        g = (g * amount + 128) / 256;
-        b = (b * amount + 128) / 256;
-        return ((g & 0x1) ? 0x8000 : 0x0000) | (r << 10) | ((g >> 1) << 5) | b;
-    #endif
+    return gfx_Darken(color, amount);
 }
 
 //------------------------------------------------------------------------------

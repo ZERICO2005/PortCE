@@ -48,6 +48,13 @@
 
 /* Configuration */
 
+    /**
+     * Configures the graphy to use row-major graphx data instead of
+     * column-major graphy data. This may cause sprite and tilemap functions
+     * to run slower.
+     */
+    // #define USE_GRAPHX_SPRITE_DATA
+
 	#ifdef _EZ80
 		#define RAM_ADDRESS(x) ((void*)(x))
 		#define RAM_OFFSET(ptr) ((uint24_t)(ptr))

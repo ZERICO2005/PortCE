@@ -989,7 +989,7 @@ void gfx_Ellipse(int24_t x, int24_t y, uint24_t a, uint24_t b);
  * @param[in] points Pointer to x and y pairs.
  * @param[in] num_points Number of x and y pairs.
  */
-void gfx_Polygon(const int24_t *points, unsigned num_points);
+void gfx_Polygon(const int24_t *points, size_t num_points);
 
 /**
  * Draws an unclipped polygon outline
@@ -1007,7 +1007,7 @@ void gfx_Polygon(const int24_t *points, unsigned num_points);
  * @param[in] points Pointer to x and y pairs
  * @param[in] num_points Number of x and y pairs
  */
-void gfx_Polygon_NoClip(const int24_t *points, unsigned num_points);
+void gfx_Polygon_NoClip(const int24_t *points, size_t num_points);
 
 /**
  * Draws a clipped filled triangle.

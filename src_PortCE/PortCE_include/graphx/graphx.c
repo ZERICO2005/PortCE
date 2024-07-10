@@ -355,8 +355,6 @@ void gfx_End(void) {
 
 /* gfx_SetColor */
 
-#include <stdio.h>
-
 uint8_t gfx_SetColor(uint8_t index) {
     const uint8_t prev_Color = gfx_Color;
     gfx_Color = index;
@@ -459,7 +457,7 @@ void gfx_SetPixel(uint24_t x, uint8_t y) {
         (int24_t)(x) >= gfx_ClipXMin && (int24_t)(x) < gfx_ClipXMax && \
         (int24_t)(y) >= gfx_ClipYMin && (int24_t)(y) < gfx_ClipYMax \
     ) { \
-        ((uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer))[(x) + ((y) * GFX_LCD_WIDTH)] = (color)] = (color); \
+        ((uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer))[(x) + ((y) * GFX_LCD_WIDTH)] = (color); \
     }
 
 /* gfx_GetPixel */
@@ -559,10 +557,6 @@ void gfx_BlitRectangle(
 
 
 /* gfx_PrintInt */
-
-
-
-/* gfx_PrintUInt */
 
 
 

@@ -642,8 +642,6 @@ void gfy_End(void) {
 
 /* gfy_SetColor */
 
-#include <stdio.h>
-
 uint8_t gfy_SetColor(uint8_t index) {
     #ifdef _EZ80
         gfy_Color = index;

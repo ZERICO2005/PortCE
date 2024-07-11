@@ -9,6 +9,10 @@
 
 #include <stdint.h>
 
+#ifndef _EZ80
+	#include <stdio.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -90,6 +94,8 @@ extern "C" {
 
 	#define PortCE_terminate()
 
+	#define PortCE_pace_frame(...)
+
 	#define PortCE_new_frame()
 
 	#define PortCE_update_registers() 0
@@ -147,7 +153,8 @@ extern "C" {
 
 	#define TI_CLOCKS_PER_SEC 32768
 	#ifdef _EZ80
-		typedef clock_t ti_clock_t;
+		// typedef clock_t ti_clock_t;
+		#define ti_clock_t clock_t
 		#define ti_clock() clock()
 	#else
 		typedef ti_long ti_clock_t;

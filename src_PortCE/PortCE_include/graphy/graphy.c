@@ -483,6 +483,12 @@ static int24_t gfy_ClipYMin = 0;
 static int24_t gfy_ClipXMax = GFY_LCD_WIDTH;
 static int24_t gfy_ClipYMax = GFY_LCD_HEIGHT;
 
+#define GFY_CLIPPING_ASSUMPTIONS()\
+// __builtin_assume(gfy_ClipXMin >= 0 && gfy_ClipXMin <  GFY_LCD_WIDTH );\
+// __builtin_assume(gfy_ClipYMin >= 0 && gfy_ClipYMin <  GFY_LCD_HEIGHT);\
+// __builtin_assume(gfy_ClipXMax >  0 && gfy_ClipXMax <= GFY_LCD_WIDTH );\
+// __builtin_assume(gfy_ClipYMax >  0 && gfy_ClipYMax <= GFY_LCD_HEIGHT);
+
 #ifndef _EZ80
     static uint8_t gfy_MonospaceFont = 0;
 #endif
@@ -503,27 +509,27 @@ static int24_t gfy_ClipYMax = GFY_LCD_HEIGHT;
         uint8_t* off = ((uint8_t*)gfy_vram) + ((xC * GFY_LCD_HEIGHT) + yC);
         uint8_t* v = off + 1;
         len *= 4;
-        const uint24_t x2 = 1 + len;
+        const uint8_t x2 = 1 + len;
         for (uint8_t dY = 1; dY < 6; dY++) { // Draws a black outline for each character
-            for (uint24_t dX = 0; dX < x2; dX += 4) {
+            for (uint8_t dX = 0; dX < x2; dX += 4) {
                 *v = 0;
                 v += (4 * GFY_LCD_HEIGHT);
             }
             v += 1 - ((x2 + 3) * GFY_LCD_HEIGHT);
         }
         v = off;
-        for (uint24_t dX = 0; dX < x2; dX++) { // Top Line
+        for (uint8_t dX = 0; dX < x2; dX++) { // Top Line
             *v = 0;
             v += GFY_LCD_HEIGHT;
         }
         v = off + 6;
-        for (uint24_t dX = 0; dX < x2; dX++) { // Bottom Line
+        for (uint8_t dX = 0; dX < x2; dX++) { // Bottom Line
             *v = 0;
             v += GFY_LCD_HEIGHT;
         }
         uint24_t powN = 1;
         uint8_t* fill = off + (1 + ((len - 3) * GFY_LCD_HEIGHT));
-        for (uint24_t k = 0; k < len; k += 4) {
+        for (uint8_t k = 0; k < len; k += 4) {
             uint16_t bitImage = num3x5[(in / powN) % base];
             for (uint8_t y = 0; y < 5; y++) {
                 for (uint8_t x = 0; x < 3; x++) {
@@ -929,6 +935,7 @@ static void gfy_internal_PrintChar_NoClip(const char c, const uint8_t charWidth)
 /* gfy_PrintChar */
 
 void gfy_PrintChar(const char c) {
+    GFY_CLIPPING_ASSUMPTIONS();
     
     const uint8_t charWidth = gfy_GetCharWidth(c);
     const uint8_t textSizeX = charWidth * gfy_TextWidthScale;
@@ -1286,9 +1293,11 @@ void gfy_Line(int24_t x0, int24_t y0, int24_t x1, int24_t y1) {
 /* gfy_HorizLine */
 
 void gfy_HorizLine(int24_t x, int24_t y, int24_t length) {
+    GFY_CLIPPING_ASSUMPTIONS();
     if (y < gfy_ClipYMin || y >= gfy_ClipYMax || x >= gfy_ClipXMax) {
         return;
     }
+	__builtin_assume(gfy_ClipXMin >= 0 && gfy_ClipXMin <  GFY_LCD_WIDTH );
     if (x < gfy_ClipXMin) {
         length -= gfy_ClipXMin - x;
         x = 0;
@@ -1303,6 +1312,7 @@ void gfy_HorizLine(int24_t x, int24_t y, int24_t length) {
 /* gfy_VertLine */
 
 void gfy_VertLine(int24_t x, int24_t y, int24_t length) {
+    GFY_CLIPPING_ASSUMPTIONS();
     if (x < gfy_ClipXMin || x >= gfy_ClipXMax || y >= gfy_ClipYMax) {
         return;
     }
@@ -1383,6 +1393,7 @@ void gfy_Rectangle(int24_t x, int24_t y, int24_t width, int24_t height) {
 /* gfy_FillRectangle */
 
 void gfy_FillRectangle(int24_t x, int24_t y, int24_t width, int24_t height) {
+    GFY_CLIPPING_ASSUMPTIONS();
     if (x < gfy_ClipXMin) {
         width -= gfy_ClipXMin - x;
         x = 0;
@@ -1536,6 +1547,10 @@ void gfy_FillRectangle_NoClip(uint24_t x, uint8_t y, uint24_t width, uint8_t hei
 /* gfy_SetClipRegion */
 
 void gfy_SetClipRegion(int24_t xmin, int24_t ymin, int24_t xmax, int24_t ymax) {
+    xmin = (xmin <  0) ? 0 : xmin; xmin = (xmin >= GFY_LCD_WIDTH ) ? (GFY_LCD_WIDTH -  1) : xmin;
+    ymin = (ymin <  0) ? 0 : ymin; ymin = (ymin >= GFY_LCD_HEIGHT) ? (GFY_LCD_HEIGHT - 1) : ymin;
+    xmax = (xmax <= 0) ? 1 : xmax; xmax = (xmax >  GFY_LCD_WIDTH ) ?  GFY_LCD_WIDTH       : xmax;
+    ymax = (ymax <= 0) ? 1 : ymax; ymax = (ymax >  GFY_LCD_HEIGHT) ?  GFY_LCD_HEIGHT      : ymax;
     gfy_ClipXMin = xmin;
     gfy_ClipYMin = ymin;
     gfy_ClipXMax = xmax;
@@ -1570,6 +1585,7 @@ bool gfy_GetClipRegion(gfy_region_t *region) {
 
 void gfy_ShiftDown(uint8_t pixels) {
     if (pixels == 0) { return; }
+    GFY_CLIPPING_ASSUMPTIONS();
     const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + (gfy_ClipXMin * GFY_LCD_HEIGHT);
     uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (gfy_ClipYMin + pixels) + (gfy_ClipXMin * GFY_LCD_HEIGHT);
     const uint24_t copySize = gfy_ClipYMax - gfy_ClipYMin - pixels;
@@ -1586,6 +1602,7 @@ void gfy_ShiftDown(uint8_t pixels) {
 
 void gfy_ShiftUp(uint8_t pixels) {
     if (pixels == 0) { return; }
+    GFY_CLIPPING_ASSUMPTIONS();
     const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + (gfy_ClipXMin * GFY_LCD_HEIGHT);
     uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (gfy_ClipYMin - pixels) + (gfy_ClipXMin * GFY_LCD_HEIGHT);
     const uint24_t copySize = gfy_ClipYMax - gfy_ClipYMin - pixels;
@@ -1602,6 +1619,7 @@ void gfy_ShiftUp(uint8_t pixels) {
 
 void gfy_ShiftLeft(uint24_t pixels) {
     if (pixels == 0) { return; }
+    GFY_CLIPPING_ASSUMPTIONS();
     const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + (gfy_ClipXMin * GFY_LCD_HEIGHT);
     uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + ((gfy_ClipXMin - pixels) * GFY_LCD_HEIGHT);
     const uint24_t copySize = gfy_ClipYMax - gfy_ClipYMin;
@@ -1620,6 +1638,7 @@ void gfy_ShiftLeft(uint24_t pixels) {
 
 void gfy_ShiftRight(uint24_t pixels) {
     if (pixels == 0) { return; }
+    GFY_CLIPPING_ASSUMPTIONS();
     const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + (gfy_ClipXMin * GFY_LCD_HEIGHT);
     uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + ((gfy_ClipXMin - pixels) * GFY_LCD_HEIGHT);
     const uint24_t copySize = gfy_ClipYMax - gfy_ClipYMin;
@@ -1712,6 +1731,7 @@ void gfy_ShiftRight(uint24_t pixels) {
 /* gfy_Tilemap */
 
 void gfy_Tilemap(const gfy_tilemap_t* tilemap, uint24_t x_offset, uint24_t y_offset) {
+    GFY_CLIPPING_ASSUMPTIONS();
     // Unoptimized and overclips a bit
     uint24_t map_row = x_offset / tilemap->tile_width;
     uint24_t map_col = y_offset / tilemap->tile_height;
@@ -1872,6 +1892,7 @@ void gfy_Tilemap_NoClip(const gfy_tilemap_t *tilemap, uint24_t x_offset, uint24_
 /* gfy_TransparentTilemap */
 
 void gfy_TransparentTilemap(const gfy_tilemap_t* tilemap, uint24_t x_offset, uint24_t y_offset) {
+    GFY_CLIPPING_ASSUMPTIONS();
     // Unoptimized and overclips a bit
     uint24_t map_row = x_offset / tilemap->tile_width;
     uint24_t map_col = y_offset / tilemap->tile_height;
@@ -2006,6 +2027,7 @@ gfy_sprite_t *gfy_AllocSprite(
 
 #ifdef USE_GRAPHX_SPRITE_DATA
     void gfy_Sprite(const gfy_sprite_t *sprite, int24_t x, int24_t y) {
+        GFY_CLIPPING_ASSUMPTIONS();
         if (
             x >= gfy_ClipXMax || y >= gfy_ClipYMax ||
             sprite->width == 0 || sprite->height == 0 ||
@@ -2048,6 +2070,7 @@ gfy_sprite_t *gfy_AllocSprite(
     }
 #else
     void gfy_Sprite(const gfy_sprite_t *sprite, int24_t x, int24_t y) {
+        GFY_CLIPPING_ASSUMPTIONS();
         if (
             x >= gfy_ClipXMax || y >= gfy_ClipYMax ||
             sprite->width == 0 || sprite->height == 0 ||
@@ -2089,6 +2112,7 @@ gfy_sprite_t *gfy_AllocSprite(
 
 #ifdef USE_GRAPHX_SPRITE_DATA
     void gfy_TransparentSprite(const gfy_sprite_t *sprite, int24_t x, int24_t y) {
+        GFY_CLIPPING_ASSUMPTIONS();
         if (
             x >= gfy_ClipXMax || y >= gfy_ClipYMax ||
             sprite->width == 0 || sprite->height == 0 ||
@@ -2131,6 +2155,7 @@ gfy_sprite_t *gfy_AllocSprite(
     }
 #else
     void gfy_TransparentSprite(const gfy_sprite_t *sprite, int24_t x, int24_t y) {
+        GFY_CLIPPING_ASSUMPTIONS();
         if (
             x >= gfy_ClipXMax || y >= gfy_ClipYMax ||
             sprite->width == 0 || sprite->height == 0 ||
@@ -2975,6 +3000,7 @@ gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprit
     }
 
     void gfy_FloodFill(uint24_t x, uint8_t y, const uint8_t color) {
+        GFY_CLIPPING_ASSUMPTIONS();
         if (
             (int24_t)x < gfy_ClipXMin || (int24_t)x >= gfy_ClipXMax ||
             (int24_t)y < gfy_ClipYMin || (int24_t)y >= gfy_ClipYMax
@@ -3121,6 +3147,7 @@ gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprit
     * @todo Move the decompression fast-forward loop outside the drawing loop
     */
     void gfy_RLETSprite(const gfy_rletsprite_t *sprite, const int24_t x, const int24_t y) {
+        GFY_CLIPPING_ASSUMPTIONS();
         if (
             /* Out of Bounds */
             x >= gfy_ClipXMax || y >= gfy_ClipYMax ||
@@ -3199,6 +3226,7 @@ gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprit
     }
 #else
     void gfy_RLETSprite(const gfy_rletsprite_t *sprite, const int24_t x, const int24_t y) {
+        GFY_CLIPPING_ASSUMPTIONS();
         if (
             /* Out of Bounds */
             x >= gfy_ClipXMax || y >= gfy_ClipYMax ||

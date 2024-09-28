@@ -150,15 +150,15 @@ void lcd_SetDefaultGamma(void);
 	void lcd_SetIdleMode(bool on);
 	#define lcd_SetInterlacedMode(on)
 
-	#define lcd_SetColumnAddress(XS, XE)
-	#define lcd_SetRowAddress(YS, YE)
+	void lcd_SetColumnAddress(uint16_t XS, uint16_t XE);
+	void lcd_SetRowAddress(uint16_t YS, uint16_t YE);
 	void lcd_SetColumnMajor(bool on);
 
 	#define lcd_StartPixelWrite()
 	#define lcd_ContinuePixelWrite()
 
-	#define lcd_SetPartialArea(PSL, PEL)
-	#define lcd_SetScrollArea(TFA, VSA, BFA)
+	void lcd_SetPartialArea(uint16_t PSL, uint16_t PEL);
+	void lcd_SetScrollArea(uint16_t TFA, uint16_t VSA, uint16_t BFA);
 	#define lcd_SetScrollAddress(addr)
 
 	#define lcd_SetRamAccessOrder(param)
@@ -434,10 +434,17 @@ typedef struct lcd_lcmctrl {
 //#define LCD_CMD_VRHS        0xC3 /**< VRH set */
 //#define LCD_CMD_VDV         0xC4 /**< VDV set */
 #define LCD_CMD_VCMOFSET    0xC5 /**< VCOM offset set */
+#ifdef _EZ80
 struct lcd_vcmofset {
     uint8_t VCMOFS : 6;
     uint8_t : 2;
 } lcd_vcmofset_t;
+#else
+typedef struct lcd_vcmofset {
+    uint8_t VCMOFS : 6;
+    uint8_t : 2;
+} lcd_vcmofset_t;
+#endif
 #define LCD_CMD_FRCTRL2     0xC6 /**< Frame rate control in normal mode */
 typedef struct lcd_frctrl2 {
     uint8_t RTNA : 5;

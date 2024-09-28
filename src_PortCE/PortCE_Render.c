@@ -30,11 +30,75 @@ static int_enum PortCE_scale_mode = SDL_ScaleModeNearest;
 	void lcd_SetInvertedMode(bool on) {
 		PortCE_invert_colors = on;
 	}
-	void lcd_SetColumnMajor(bool on) {
-		PortCE_column_major = on;
-	}
+
 	void lcd_SetIdleMode(bool on) {
 		PortCE_color_idle_mode = on;
+	}
+
+	void lcd_SetColumnAddress(uint16_t XS, uint16_t XE) {
+		if (XS > XE || XS > LCD_RESX || XE >= LCD_RESX) {
+			printf("lcd_SetColumnAddress invalid parameters %" PRIu16 " %" PRIu16 "\n", XS, XE);
+			return;
+		}
+		PortCE_SPI_State.X0_addr = XS;
+		PortCE_SPI_State.X1_addr = XE;
+	}
+	void lcd_SetRowAddress(uint16_t YS, uint16_t YE) {
+		if (YS > YE || YS > LCD_RESX || YE >= LCD_RESX) {
+			printf("lcd_SetColumnAddress invalid parameters %" PRIu16 " %" PRIu16 "\n", YS, YE);
+			return;
+		}
+		PortCE_SPI_State.Y0_addr = YS;
+		PortCE_SPI_State.Y1_addr = YE;
+	}
+
+	void lcd_SetColumnMajor(bool on) {
+		PortCE_column_major = on;
+		lcd_SetColumnAddress(0, on ? 239 : 319);
+		lcd_SetRowAddress(0, on ? 319 : 239);
+	}
+
+	/** @todo validate inputs */
+	void lcd_SetPartialArea(uint16_t PSL, uint16_t PEL) {
+		PortCE_SPI_State.partial_start_line = PSL;
+		PortCE_SPI_State.partial_end_line = PEL;
+	}
+
+	/** @todo validate inputs */
+	void lcd_SetScrollArea(uint16_t TFA, uint16_t VSA, uint16_t BFA) {
+		PortCE_SPI_State.top_fixed_area = TFA;
+		PortCE_SPI_State.virtical_scrolling_area = VSA;
+		PortCE_SPI_State.bottom_fixed_area = BFA;
+	}
+
+	void reset_SPI_state(void) {
+		PortCE_SPI_State.gamma_curve = 0x2;
+
+		lcd_SetColumnAddress(0, LCD_RESX - 1);
+		lcd_SetRowAddress   (0, LCD_RESY - 1);
+		
+		lcd_SetPartialArea(0, LCD_RESX - 1);
+		lcd_SetScrollArea(0, LCD_RESX, 0);
+
+		PortCE_SPI_State.MDA.enable_polarity = 0x0;
+		PortCE_SPI_State.MDA.dotclk_polarity = 0x0;
+		PortCE_SPI_State.MDA.hsync_polarity = 0x0;
+		PortCE_SPI_State.MDA.vsync_polarity = 0x0;
+		PortCE_SPI_State.MDA.RGB_interface_data_enable_mode = 0x0;
+		PortCE_SPI_State.MDA.direct_RGB_mode = 0x0;
+		PortCE_SPI_State.MDA.RGB_interface_vsync_back_porch = 0x0;
+		PortCE_SPI_State.MDA.RGB_interface_hsync_back_porch = 0x0;
+
+		PortCE_SPI_State.vertical_scroll_start_addr = 0;
+
+		/* TiOS Defaults */
+		PortCE_SPI_State.LCM_control.XGS  = 0;
+		PortCE_SPI_State.LCM_control.XMV  = 1;
+		PortCE_SPI_State.LCM_control.XMH  = 0;
+		PortCE_SPI_State.LCM_control.XMX  = 0;
+		PortCE_SPI_State.LCM_control.XINV = 0;
+		PortCE_SPI_State.LCM_control.XBGR = 1;
+		PortCE_SPI_State.LCM_control.XMY  = 0;
 	}
 
 /* Legacy Functions */

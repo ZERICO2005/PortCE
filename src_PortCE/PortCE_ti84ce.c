@@ -11,9 +11,11 @@
 
 #include "PortCE_Common.h"
 
+#include "PortCE_Render.h"
 #include "PortCE_include/ce/include/sys/lcd.h"
 #include "PortCE_include/ce/include/sys/util.h"
 #include "PortCE_include/ce/include/sys/timers.h"
+#include "PortCE_include/lcddrvce/lcddrvce.h"
 
 // #include <process.h>
 //#include <dir.h>

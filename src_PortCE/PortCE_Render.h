@@ -16,6 +16,8 @@ typedef struct PortCE_Config PortCE_Config;
 void initLCDcontroller(const char* window_title, const PortCE_Config* config);
 int terminateLCDcontroller(void);
 
+void reset_SPI_state(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -34,7 +34,8 @@ uint24_t RAM_OFFSET(const void* const restrict ptr) {
 void PortCE_initialize(const char* window_title) {
 	// memset(simulated_ram, 0, sizeof(simulated_ram));
 	reset_ti84ce_registers();
-	
+	reset_SPI_state();
+
 	// import_config_file();
 	PortCE_Config config = {2, false, false, false, false};
 	initLCDcontroller(window_title, &config);

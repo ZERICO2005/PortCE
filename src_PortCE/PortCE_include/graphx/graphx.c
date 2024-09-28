@@ -410,7 +410,7 @@ void gfx_SetDefaultPalette(__attribute__((unused)) gfx_mode_t mode) {
         }
         
     /* Data */
-        //memcpy(gfx_palette, gfx_internal_default_palette, sizeof(uint16_t) * 256);
+        // memcpy(gfx_palette, gfx_internal_default_palette, sizeof(uint16_t) * 256);
 }
 
 /* gfx_SetPalette */
@@ -552,25 +552,165 @@ void gfx_BlitRectangle(
     }
 }
 
+/* gfx_internal_PrintCharXY_NoClip */
+
+static void gfx_internal_PrintChar_NoClip(const char c, const uint8_t charWidth) {
+    const uint8_t *bitImage = gfx_TextData + GFX_MAXIMUM_FONT_HEIGHT * (uint24_t)((unsigned char)c);
+    uint8_t *fillLinePtr = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + (gfx_TextXPos + (gfx_TextYPos * GFX_LCD_WIDTH));
+    
+    gfx_TextXPos += charWidth;
+
+    for (uint8_t y = 0; y < gfx_FontHeight; y++) {
+        for (uint8_t v = 0; v < gfx_TextHeightScale; v++) {
+            uint8_t *fillPtr = fillLinePtr;
+            uint8_t b = (1 << 7);
+            for (uint8_t x = 0; x < charWidth; x++) {
+                const uint8_t fillColor = *bitImage & b ? gfx_Text_FG_Color : gfx_Text_BG_Color;
+                b >>= 1;
+                
+                if (fillColor == gfx_Text_TP_Color) {
+                    fillPtr += gfx_TextWidthScale;
+                    continue;
+                }
+                for (uint8_t u = 0; u < gfx_TextWidthScale; u++) {
+                    *fillPtr = fillColor;
+                    fillPtr++;
+                }
+            }
+            fillLinePtr += GFX_LCD_WIDTH;
+            bitImage++;
+        }
+    }
+}
+
 /* gfx_PrintChar */
 
+void gfx_PrintChar(const char c) {
+    // GFX_CLIPPING_ASSUMPTIONS();
+    
+    const uint8_t charWidth = gfx_GetCharWidth(c);
+    const uint8_t textSizeX = charWidth * gfx_TextWidthScale;
+    const uint8_t textSizeY = GFX_MAXIMUM_FONT_HEIGHT * gfx_TextHeightScale;
+    if (
+        gfx_PrintChar_Clip == gfx_text_noclip ||
+        /* Otherwise, if clipping is enabled */
+        gfx_TextXPos >= gfx_ClipXMin || gfx_TextYPos >= gfx_ClipYMin ||
+        gfx_TextXPos + textSizeX <= gfx_ClipXMax ||
+        gfx_TextYPos + textSizeY <= gfx_ClipYMax
+    ) {
+        gfx_internal_PrintChar_NoClip(c, charWidth);
+        return;
+    }
+    const uint8_t *bitImage = gfx_TextData + GFX_MAXIMUM_FONT_HEIGHT * (uint24_t)((unsigned char)c);
+    uint8_t *fillLinePtr = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + (gfx_TextXPos + (gfx_TextYPos * GFX_LCD_WIDTH));
+    gfx_TextXPos += charWidth;
 
+    for (uint8_t y = 0; y < gfx_FontHeight; y++) {
+        for (uint8_t v = 0; v < gfx_TextHeightScale; v++) {
+            uint8_t *fillPtr = fillLinePtr;
+            uint8_t b = (1 << 7);
+            for (uint8_t x = 0; x < charWidth; x++) {
+                const uint8_t fillColor = *bitImage & b ? gfx_Text_FG_Color : gfx_Text_BG_Color;
+                b >>= 1;
+                if (fillColor == gfx_Text_TP_Color) {
+                    fillPtr += gfx_TextWidthScale;
+                    continue;
+                }
+                for (uint8_t u = 0; u < gfx_TextWidthScale; u++) {
+                    if (
+                        fillPtr >= (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) &&
+                        fillPtr < (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer + GFX_LCD_WIDTH * GFX_LCD_HEIGHT)
+                    ) {
+                        *fillPtr = fillColor;   
+                    }
+                    fillPtr++;
+                }
+            }
+            fillLinePtr += GFX_LCD_WIDTH;
+            bitImage++;
+        }
+    }
+}
 
 /* gfx_PrintInt */
 
+void gfx_PrintInt(int24_t n, uint8_t length) {
+    if (n >= 0) {
+        gfx_PrintUInt(n, length);
+        return;
+    }
+    gfx_PrintChar('-');
+    gfx_PrintUInt(-n, length);
+}
 
 
 /* gfx_PrintUInt */
 
-
+void gfx_PrintUInt(uint24_t n, uint8_t length) {
+    if (length == 0) {
+        return;
+    }
+    length = (length > 8) ? 8 : length;
+    uint8_t digit_count = 0;
+    {
+        int24_t n_temp = n;
+        while (n_temp != 0) {
+            n_temp /= 10;
+            digit_count++;
+        }
+    }
+    for (uint8_t l = digit_count; l < length; l++) {
+        gfx_PrintChar('0');
+    }
+    uint8_t digit;
+    switch (digit_count) {
+        case 8: // 10'000'000 <= n <= 16'777'215
+            gfx_PrintChar('1');
+        case 7:
+            digit = ((n / 1000000) % 10) + '0';
+            gfx_PrintChar(digit);
+        case 6:
+            digit = ((n / 100000) % 10) + '0';
+            gfx_PrintChar(digit);
+        case 5:
+            digit = ((n / 10000) % 10) + '0';
+            gfx_PrintChar(digit);
+        case 4:
+            digit = ((n / 1000) % 10) + '0';
+            gfx_PrintChar(digit);
+        case 3:
+            digit = ((n / 100) % 10) + '0';
+            gfx_PrintChar(digit);
+        case 2:
+            digit = ((n / 10) % 10) + '0';
+            gfx_PrintChar(digit);
+        case 1:
+            digit = (n % 10) + '0';
+            gfx_PrintChar(digit);
+        case 0:
+        return;
+    }
+}
 
 /* gfx_PrintString */
 
+void gfx_PrintString(const char *string) {
+    while (*string != '\0') {
+        gfx_PrintChar(*string);
+        string++;
+    }
+}
 
 
 /* gfx_PrintStringXY */
 
-
+void gfx_PrintStringXY(const char *string, int24_t x, int24_t y) {
+    gfx_SetTextXY(x,y);
+    while (*string != '\0') {
+        gfx_PrintChar(*string);
+        string++;
+    }
+}
 
 /* gfx_SetTextXY */
 

@@ -9,47 +9,27 @@
 #ifndef TICE_H
 #define TICE_H
 
-#ifdef _EZ80
-	#include <sys/basicusb.h>
-	#include <sys/lcd.h>
-	#include <sys/power.h>
-	#include <sys/rtc.h>
-	#include <sys/timers.h>
-	#include <sys/util.h>
-	#include <ti/debug.h>
-	#include <ti/error.h>
-	#include <ti/flags.h>
-	#include <ti/getcsc.h>
-	#include <ti/getkey.h>
-	#include <ti/graph.h>
-	#include <ti/info.h>
-	#include <ti/python.h>
-	#include <ti/real.h>
-	#include <ti/screen.h>
-	#include <ti/tokens.h>
-	#include <ti/ui.h>
-	#include <ti/vars.h>
-#else
-	// #include "sys/basicusb.h"
-	#include "sys/lcd.h"
-	// #include "sys/power.h"
-	#include "sys/rtc.h"
-	#include "sys/timers.h"
-	#include "sys/util.h"
-	#include "ti/debug.h"
-	// #include "ti/error.h"
-	// #include "ti/flags.h"
-	#include "ti/getcsc.h"
-	// #include "ti/getkey.h"
-	// #include "ti/graph.h"
-	// #include "ti/info.h"
-	// #include "ti/python.h"
-	#include "ti/real.h"
-	#include "ti/screen.h"
-	// #include "ti/tokens.h"
-	#include "ti/ui.h"
-	#include "ti/vars.h"
-#endif
+
+#include <sys/basicusb.h>
+#include <sys/lcd.h>
+#include <sys/power.h>
+#include <sys/rtc.h>
+#include <sys/timers.h>
+#include <sys/util.h>
+#include <ti/debug.h>
+#include <ti/error.h>
+#include <ti/flags.h>
+#include <ti/getcsc.h>
+#include <ti/getkey.h>
+#include <ti/graph.h>
+#include <ti/info.h>
+#include <ti/python.h>
+#include <ti/real.h>
+#include <ti/screen.h>
+#include <ti/tokens.h>
+#include <ti/ui.h>
+#include <ti/vars.h>
+
 
 #ifdef _EZ80
 	/* Compatibility defines */

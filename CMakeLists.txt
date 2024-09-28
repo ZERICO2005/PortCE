@@ -32,6 +32,7 @@ add_executable(${PROJECT_NAME} ${SRC_FILES} ${SRC_PORTCE_DIR})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${SRC_PORTCE_DIR}
 	"${SRC_PORTCE_DIR}/PortCE_include/"
+	"${SRC_PORTCE_DIR}/PortCE_include/ce"
 	"${SRC_PORTCE_DIR}/PortCE_include/ce/include/sys"
 	"${SRC_PORTCE_DIR}/PortCE_include/keypadc"
 	"${SRC_PORTCE_DIR}/PortCE_include/fileioc"
@@ -39,6 +40,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${SRC_PORTCE_DIR}
 	"${SRC_PORTCE_DIR}/PortCE_include/ce/include/ti"
 	"${SRC_PORTCE_DIR}/PortCE_include/graphx"
 	"${SRC_PORTCE_DIR}/PortCE_include/graphy"
+	"${SRC_PORTCE_DIR}/PortCE_include/lcddrvce"
 )
 
 # Compiler Flags Debug(-g -O0) Release(-O3)

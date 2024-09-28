@@ -9,6 +9,7 @@
 #ifndef TI_GETCSC_H
 #define TI_GETCSC_H
 
+// #include <stdint.h>
 #include <PortCE.h>
 
 #ifdef __cplusplus

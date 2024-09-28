@@ -9,7 +9,6 @@
 #include "PortCE_Render.h"
 
 #include "PortCE_include/ce/include/sys/lcd.h"
-#include "PortCE_include/graphy/graphy.h"
 #include "PortCE_include/keypadc/keypadc.h"
 #include "PortCE_include/ce/include/ti/getcsc.h"
 #include "PortCE_config/PortCE_Keybinds.h"
@@ -24,20 +23,88 @@
 static bool PortCE_SDL2_initialized = false;
 static bool PortCE_invert_colors = false;
 static bool PortCE_column_major = false;
+static bool PortCE_color_idle_mode = false;
 static int_enum PortCE_scale_mode = SDL_ScaleModeNearest;
 
-void SPI_UNINVERT_COLORS(void) {
-	PortCE_invert_colors = false;
-}
-void SPI_INVERT_COLORS(void) {
-	PortCE_invert_colors = true;
-}
-void SPI_ROW_MAJOR(void) {
-	PortCE_column_major = false;
-}
-void SPI_COLUMN_MAJOR(void) {
-	PortCE_column_major = true;
-}
+/* <lcddrvce.h> */
+	void lcd_SetInvertedMode(bool on) {
+		PortCE_invert_colors = on;
+	}
+	void lcd_SetColumnMajor(bool on) {
+		PortCE_column_major = on;
+	}
+	void lcd_SetIdleMode(bool on) {
+		PortCE_color_idle_mode = on;
+	}
+
+/* Legacy Functions */
+	void SPI_UNINVERT_COLORS(void) {
+		PortCE_invert_colors = false;
+	}
+	void SPI_INVERT_COLORS(void) {
+		PortCE_invert_colors = true;
+	}
+	void SPI_ROW_MAJOR(void) {
+		PortCE_column_major = false;
+	}
+	void SPI_COLUMN_MAJOR(void) {
+		PortCE_column_major = true;
+	}
+
+/* Unimplemented */
+	void lcd_Init(void) {
+		return;
+	}
+	void lcd_Wait(void) {
+		return;
+	}
+	void lcd_Cleanup(void) {
+		return;
+	}
+	const void *lcd_SendCommandRaw(
+		__attribute__((unused)) uint16_t sized_cmd,
+		__attribute__((unused)) const void *params
+	) {
+		return NULL;
+	}
+	const void *lcd_SendParamsRaw(
+		__attribute__((unused)) size_t size,
+		__attribute__((unused)) const void *params
+	) {
+		return NULL;
+	}
+	void lcd_SendCommand(__attribute__((unused)) uint8_t cmd) {
+		return;
+	}
+	void lcd_SendCommand1(
+		__attribute__((unused)) uint8_t cmd,
+		__attribute__((unused)) uint8_t param
+	) {
+		return;
+	}
+	void lcd_SendCommand2(
+		__attribute__((unused)) uint8_t cmd,
+		__attribute__((unused)) uint8_t param1,
+		__attribute__((unused)) uint8_t param2
+	) {
+		return;
+	}
+	void lcd_SendCommandBytes(
+		__attribute__((unused)) uint16_t sized_cmd, ...
+	) {
+		return;
+	}
+	void lcd_SendCommandWords(
+		__attribute__((unused)) uint16_t sized_cmd, ...
+	) {
+		return;
+	}
+	void lcd_SetUniformGamma(void) {
+		return;
+	}
+	void lcd_SetDefaultGamma(void) {
+		return;
+	}
 
 static int32_t RESX_MINIMUM = LCD_RESX;
 static int32_t RESY_MINIMUM = LCD_RESY;
@@ -249,7 +316,10 @@ static void resetKey(uint8_t k) {
 
 static uint8_t internal_kb_Scan(void) {
 	static uint8_t tempKey[56];
-    SDL_PollEvent(&event);
+    if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
+        terminateLCDcontroller();
+        exit(0);
+    }
     KEYS = SDL_GetKeyboardState(&KEYCOUNT);
     uint32_t length = sizeof(PortCE_Keybind_Selection)/sizeof(PortCE_Keybind_Selection[0]);
     for (uint32_t i = 0; i < length; i++) {
@@ -300,14 +370,17 @@ bool boot_CheckOnPressed(void) {
 }
 
 static uint8_t internal_CSC_Scan(void) {
-    SDL_PollEvent(&event);
-    KEYS = SDL_GetKeyboardState(&KEYCOUNT);
-    uint32_t length = sizeof(PortCE_Keybind_Selection)/sizeof(PortCE_Keybind_Selection[0]);
-    for (uint32_t i = 0; i < length; i++) {
-        if (KEYS[PortCE_Keybind_Selection[i].SDL] == 1) {
-            return PortCE_Keybind_Selection[i].CE;
-        }
-    }
+	if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
+		terminateLCDcontroller();
+		exit(0);
+	}
+	KEYS = SDL_GetKeyboardState(&KEYCOUNT);
+	uint32_t length = sizeof(PortCE_Keybind_Selection)/sizeof(PortCE_Keybind_Selection[0]);
+	for (uint32_t i = 0; i < length; i++) {
+		if (KEYS[PortCE_Keybind_Selection[i].SDL] == 1) {
+			return PortCE_Keybind_Selection[i].CE;
+		}
+	}
 	return 0;
 }
 
@@ -628,6 +701,14 @@ static void renderCursor(uint8_t* data) {
 	}
 }
 
+static void render_color_idle_mode(uint8_t* data) {
+	for (size_t i = 0; i < LCD_RESX * LCD_RESY * 3; i += 3) {
+		data[i + 0] = (data[i + 0] >= 128) ? 128 : 0;
+		data[i + 1] = (data[i + 1] >= 128) ? 128 : 0;
+		data[i + 2] = (data[i + 2] >= 128) ? 128 : 0;
+	}
+}
+
 #ifdef Debug_Print_LCD_Registers
 	void internal_print_LCD_registers(void) {
 		#define PrintVar(label, value) \
@@ -755,6 +836,9 @@ void copyFrame(uint8_t* data) {
 			blit16bpp(data, videoCopy);
 	};
 	renderCursor(data);
+	if (PortCE_color_idle_mode) {
+		render_color_idle_mode(data);
+	}
 }
 
 /*

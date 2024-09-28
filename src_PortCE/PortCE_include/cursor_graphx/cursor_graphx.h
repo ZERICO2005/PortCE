@@ -74,6 +74,9 @@
 
     void crsr_gfx_SetPixel(uint8_t x, uint8_t y);
 
+	/**
+	 *  Returns 0xFF on out of bounds
+	 */
     uint8_t crsr_gfx_GetPixel(uint8_t x, uint8_t y);
 
     void crsr_gfx_FillScreen(void);
@@ -92,12 +95,6 @@
         int8_t y,
         int8_t width,
         int8_t height
-    );
-
-    void crsr_gfx_Rectangle(
-        int8_t x,
-        int8_t y,
-        int8_t length
     );
 
     void crsr_gfx_HorizLine(

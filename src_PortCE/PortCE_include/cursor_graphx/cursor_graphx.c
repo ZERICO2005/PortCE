@@ -1,5 +1,6 @@
 #include "cursor_graphx.h"
 #include <sys/lcd.h>
+#include <string.h>
 
 /* Internal */
 
@@ -17,7 +18,7 @@
         crsr_gfx_Hide();
         crsr_gfx_SetCursorSize(Crsr_Size_32x32);
         crsr_gfx_SetCursorIndex(0);
-        crsr_gfx_ZeroScreen(void);
+        crsr_gfx_ZeroScreen();
         lcd_CrsrClip = 0;
     }
 
@@ -47,7 +48,7 @@
         }
     }
 
-    static uint8_t crsr_gfx_GetCursorType() {
+    __attribute__((unused)) static uint8_t crsr_gfx_GetCursorType() {
         return lcd_CrsrConfig & 0x1;
     }
 
@@ -123,9 +124,9 @@
         }
     }
 
-    uint8_t crsr_gfx_GetPixel(int8_t x, int8_t y) {
+    uint8_t crsr_gfx_GetPixel(uint8_t x, uint8_t y) {
         if (crsr_gfx_InsideClippingBound(x,y) == false) {
-            return;
+            return 0xFF;
         }
         uint8_t* pixel = crsr_gfx_GetCursorOffset();
         pixel += (x >> 4) + y * crsr_gfx_GetCursorPitch();
@@ -139,6 +140,7 @@
             case 0x3:
                 return *pixel & 0x03;
         }
+		return 0xFF; // Unreachable
     }
 
     void crsr_gfx_FillScreen(void) {

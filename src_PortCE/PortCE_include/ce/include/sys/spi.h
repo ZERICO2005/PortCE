@@ -2,6 +2,7 @@
  * @file
  * @authors
  * @brief CE SPI controller define file
+ * @deprecated spi.h is non-standard
  */
 
 #ifndef SYS_SPI_H

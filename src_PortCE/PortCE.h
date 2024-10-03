@@ -145,6 +145,24 @@ extern "C" {
 
 #endif
 
+/* Float types */
+
+#ifdef _EZ80
+	/** ieee binary32 */
+	typedef float ti_float;
+	/** ieee binary32 (Alias for float) */
+	typedef double ti_double;
+	/** ieee binary64 */
+	typedef long double ti_long_double;
+#else
+	/** ieee binary32 */
+	typedef float ti_float;
+	/** ieee binary32 (Alias for float) */
+	typedef float ti_double;
+	/** ieee binary64 */
+	typedef double ti_long_double;
+#endif
+
 #ifdef _EZ80
 
 	/**
@@ -183,7 +201,7 @@ extern "C" {
 	 * @param ptr 
 	 * @return uint24_t 
 	 */
-	uint24_t RAM_OFFSET(const void* restrict ptr);
+	uint24_t RAM_OFFSET(const void* ptr);
 
 	/**
 	 * @brief Initializes the PortCE screen, keyboard, timers, etc.

@@ -12,6 +12,8 @@
 #include "PortCE_include/keypadc/keypadc.h"
 #include "PortCE_include/ce/include/ti/getcsc.h"
 #include "PortCE_config/PortCE_Keybinds.h"
+#include "PortCE_include/lcddrvce/lcddrvce.h"
+#include "PortCE_SPI.h"
 #include <stdio.h>
 
 #define SDL_MAIN_HANDLED
@@ -20,155 +22,11 @@
 #include <pthread.h>
 #include <sched.h>
 
+bool PortCE_invert_colors = false;
+bool PortCE_color_idle_mode = false;
+
 static bool PortCE_SDL2_initialized = false;
-static bool PortCE_invert_colors = false;
-static bool PortCE_column_major = false;
-static bool PortCE_color_idle_mode = false;
 static int_enum PortCE_scale_mode = SDL_ScaleModeNearest;
-
-/* <lcddrvce.h> */
-	void lcd_SetInvertedMode(bool on) {
-		PortCE_invert_colors = on;
-	}
-
-	void lcd_SetIdleMode(bool on) {
-		PortCE_color_idle_mode = on;
-	}
-
-	void lcd_SetColumnAddress(uint16_t XS, uint16_t XE) {
-		if (XS > XE || XS > LCD_RESX || XE >= LCD_RESX) {
-			printf("lcd_SetColumnAddress invalid parameters %" PRIu16 " %" PRIu16 "\n", XS, XE);
-			return;
-		}
-		PortCE_SPI_State.X0_addr = XS;
-		PortCE_SPI_State.X1_addr = XE;
-	}
-	void lcd_SetRowAddress(uint16_t YS, uint16_t YE) {
-		if (YS > YE || YS > LCD_RESX || YE >= LCD_RESX) {
-			printf("lcd_SetColumnAddress invalid parameters %" PRIu16 " %" PRIu16 "\n", YS, YE);
-			return;
-		}
-		PortCE_SPI_State.Y0_addr = YS;
-		PortCE_SPI_State.Y1_addr = YE;
-	}
-
-	void lcd_SetColumnMajor(bool on) {
-		PortCE_column_major = on;
-		lcd_SetColumnAddress(0, on ? 239 : 319);
-		lcd_SetRowAddress(0, on ? 319 : 239);
-	}
-
-	/** @todo validate inputs */
-	void lcd_SetPartialArea(uint16_t PSL, uint16_t PEL) {
-		PortCE_SPI_State.partial_start_line = PSL;
-		PortCE_SPI_State.partial_end_line = PEL;
-	}
-
-	/** @todo validate inputs */
-	void lcd_SetScrollArea(uint16_t TFA, uint16_t VSA, uint16_t BFA) {
-		PortCE_SPI_State.top_fixed_area = TFA;
-		PortCE_SPI_State.virtical_scrolling_area = VSA;
-		PortCE_SPI_State.bottom_fixed_area = BFA;
-	}
-
-	void reset_SPI_state(void) {
-		PortCE_SPI_State.gamma_curve = 0x2;
-
-		lcd_SetColumnAddress(0, LCD_RESX - 1);
-		lcd_SetRowAddress   (0, LCD_RESY - 1);
-		
-		lcd_SetPartialArea(0, LCD_RESX - 1);
-		lcd_SetScrollArea(0, LCD_RESX, 0);
-
-		PortCE_SPI_State.MDA.enable_polarity = 0x0;
-		PortCE_SPI_State.MDA.dotclk_polarity = 0x0;
-		PortCE_SPI_State.MDA.hsync_polarity = 0x0;
-		PortCE_SPI_State.MDA.vsync_polarity = 0x0;
-		PortCE_SPI_State.MDA.RGB_interface_data_enable_mode = 0x0;
-		PortCE_SPI_State.MDA.direct_RGB_mode = 0x0;
-		PortCE_SPI_State.MDA.RGB_interface_vsync_back_porch = 0x0;
-		PortCE_SPI_State.MDA.RGB_interface_hsync_back_porch = 0x0;
-
-		PortCE_SPI_State.vertical_scroll_start_addr = 0;
-
-		/* TiOS Defaults */
-		PortCE_SPI_State.LCM_control.XGS  = 0;
-		PortCE_SPI_State.LCM_control.XMV  = 1;
-		PortCE_SPI_State.LCM_control.XMH  = 0;
-		PortCE_SPI_State.LCM_control.XMX  = 0;
-		PortCE_SPI_State.LCM_control.XINV = 0;
-		PortCE_SPI_State.LCM_control.XBGR = 1;
-		PortCE_SPI_State.LCM_control.XMY  = 0;
-	}
-
-/* Legacy Functions */
-	void SPI_UNINVERT_COLORS(void) {
-		PortCE_invert_colors = false;
-	}
-	void SPI_INVERT_COLORS(void) {
-		PortCE_invert_colors = true;
-	}
-	void SPI_ROW_MAJOR(void) {
-		PortCE_column_major = false;
-	}
-	void SPI_COLUMN_MAJOR(void) {
-		PortCE_column_major = true;
-	}
-
-/* Unimplemented */
-	void lcd_Init(void) {
-		return;
-	}
-	void lcd_Wait(void) {
-		return;
-	}
-	void lcd_Cleanup(void) {
-		return;
-	}
-	const void *lcd_SendCommandRaw(
-		__attribute__((unused)) uint16_t sized_cmd,
-		__attribute__((unused)) const void *params
-	) {
-		return NULL;
-	}
-	const void *lcd_SendParamsRaw(
-		__attribute__((unused)) size_t size,
-		__attribute__((unused)) const void *params
-	) {
-		return NULL;
-	}
-	void lcd_SendCommand(__attribute__((unused)) uint8_t cmd) {
-		return;
-	}
-	void lcd_SendCommand1(
-		__attribute__((unused)) uint8_t cmd,
-		__attribute__((unused)) uint8_t param
-	) {
-		return;
-	}
-	void lcd_SendCommand2(
-		__attribute__((unused)) uint8_t cmd,
-		__attribute__((unused)) uint8_t param1,
-		__attribute__((unused)) uint8_t param2
-	) {
-		return;
-	}
-	void lcd_SendCommandBytes(
-		__attribute__((unused)) uint16_t sized_cmd, ...
-	) {
-		return;
-	}
-	void lcd_SendCommandWords(
-		__attribute__((unused)) uint16_t sized_cmd, ...
-	) {
-		return;
-	}
-	void lcd_SetUniformGamma(void) {
-		return;
-	}
-	void lcd_SetDefaultGamma(void) {
-		return;
-	}
 
 static int32_t RESX_MINIMUM = LCD_RESX;
 static int32_t RESY_MINIMUM = LCD_RESY;
@@ -282,15 +140,15 @@ uint32_t PortCE_get_mouse_state(int32_t* posX, int32_t* posY) {
 	int32_t image_ResX = window_ResX;
 	int32_t image_ResY = window_ResY;
 	{
-		const fp64 LCD_AspectRatio = (fp64)LCD_RESX / (fp64)LCD_RESY;
-		const fp64 LCD_AspectRatio_Inverse = (fp64)LCD_RESY / (fp64)LCD_RESX;
-		const fp64 window_AspectRatio = (fp64)window_ResX / (fp64)window_ResY;
+		const double LCD_AspectRatio = (double)LCD_RESX / (double)LCD_RESY;
+		const double LCD_AspectRatio_Inverse = (double)LCD_RESY / (double)LCD_RESX;
+		const double window_AspectRatio = (double)window_ResX / (double)window_ResY;
 
 		if (window_AspectRatio > LCD_AspectRatio) {
-			image_ResX = (int32_t)((fp64)window_ResY * LCD_AspectRatio);
+			image_ResX = (int32_t)((double)window_ResY * LCD_AspectRatio);
 			offsetX = (window_ResX - image_ResX) / 2;
 		} else if (window_AspectRatio < LCD_AspectRatio) {
-			image_ResY = (int32_t)((fp64)window_ResX * LCD_AspectRatio_Inverse);
+			image_ResY = (int32_t)((double)window_ResX * LCD_AspectRatio_Inverse);
 			offsetY = (window_ResY - image_ResY) / 2;
 		}
 	}
@@ -529,9 +387,9 @@ static void blit16bpp(uint8_t* dst_buf, const uint8_t* src_buf) {
 			dst_buf[w] = PreCalc16[c]; w++;
 			dst_buf[w] = PreCalc16[c + 1]; w++;
 			dst_buf[w] = PreCalc16[c + 2]; w++;
-			z += PortCE_column_major ? LCD_RESY : 1;
+			z += PortCE_query_column_major() ? LCD_RESY : 1;
 		}
-		z -= PortCE_column_major ? ((LCD_RESX * LCD_RESY) - 1) : 0;
+		z -= PortCE_query_column_major() ? ((LCD_RESX * LCD_RESY) - 1) : 0;
 		//w += pitch - (LCD_RESX * 3);
 	}
 }
@@ -545,9 +403,9 @@ static void blit8bpp(uint8_t* dst_buf, const uint8_t* src_buf) {
 			dst_buf[w] = colorR[c]; w++;
 			dst_buf[w] = colorG[c]; w++;
 			dst_buf[w] = colorB[c]; w++;
-			z += PortCE_column_major ? LCD_RESY : 1;
+			z += PortCE_query_column_major() ? LCD_RESY : 1;
 		}
-		z -= PortCE_column_major ? ((LCD_RESX * LCD_RESY) - 1) : 0;
+		z -= PortCE_query_column_major() ? ((LCD_RESX * LCD_RESY) - 1) : 0;
 		//w += pitch - (LCD_RESX * lenY * 3);
 	}
 }
@@ -556,7 +414,7 @@ static void blit4bpp(uint8_t* dst_buf, const uint8_t* src_buf) {
 	const uint32_t PixelsPerByte = 2;
 	size_t w = 0;
 	size_t z = 0;
-	if (PortCE_column_major == false) {
+	if (PortCE_query_column_major() == false) {
 		for (uint32_t y = 0; y < LCD_RESY; y++) {
 			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
 				uint8_t c = src_buf[z];
@@ -593,7 +451,7 @@ static void blit2bpp(uint8_t* dst_buf, const uint8_t* src_buf) {
 	const uint32_t PixelsPerByte = 4;
 	size_t w = 0;
 	size_t z = 0;
-	if (PortCE_column_major == false) {
+	if (PortCE_query_column_major() == false) {
 		for (uint32_t y = 0; y < LCD_RESY; y++) {
 			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
 				uint8_t c = src_buf[z];
@@ -636,7 +494,7 @@ static void blit1bpp(uint8_t* dst_buf, const uint8_t* src_buf) {
 	const uint32_t PixelsPerByte = 8;
 	size_t w = 0;
 	size_t z = 0;
-	if (PortCE_column_major == false) {
+	if (PortCE_query_column_major() == false) {
 		for (uint32_t y = 0; y < LCD_RESY; y++) {
 			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
 				uint8_t c = src_buf[z];
@@ -686,7 +544,7 @@ static void renderCursor(uint8_t* data) {
 
 	const uint8_t cursorDim = fullCursor ? 64 : 32;
 
-	bool use_columnMajorCursor = PortCE_column_major && false;
+	bool use_columnMajorCursor = PortCE_query_column_major() && false;
 	const uint16_t cursor_PosX  = use_columnMajorCursor ? lcd_CrsrY     : lcd_CrsrX    ;
 	const uint8_t  cursor_PosY  = use_columnMajorCursor ? lcd_CrsrX     : lcd_CrsrY    ;
 	const uint8_t  cursor_ClipX = use_columnMajorCursor ? lcd_CrsrClipY : lcd_CrsrClipX;
@@ -696,7 +554,7 @@ static void renderCursor(uint8_t* data) {
 		// printf("\nError: Everything is clipped");
 		return; // Everything is clipped
 	}
-	const int32_t LCD_RESV = PortCE_column_major ? LCD_RESX : LCD_RESY;
+	const int32_t LCD_RESV = PortCE_query_column_major() ? LCD_RESX : LCD_RESY;
 	if (cursor_PosX >= LCD_RESV || cursor_PosY >= LCD_RESY) {
 		// printf("\nError: Out of bounds");
 		return; // Out of bounds
@@ -1063,18 +921,18 @@ void PortCE_new_frame(void) {
 		SDL_GetWindowSize(window, &window_ResX, &window_ResY);
 		SDL_Rect dstRect = {0,0,window_ResX,window_ResY};
 
-		const fp64 LCD_AspectRatio = (fp64)LCD_RESX / (fp64)LCD_RESY;
-		const fp64 LCD_AspectRatio_Inverse = (fp64)LCD_RESY / (fp64)LCD_RESX;
-		const fp64 window_AspectRatio = (fp64)window_ResX / (fp64)window_ResY;
+		const double LCD_AspectRatio = (double)LCD_RESX / (double)LCD_RESY;
+		const double LCD_AspectRatio_Inverse = (double)LCD_RESY / (double)LCD_RESX;
+		const double window_AspectRatio = (double)window_ResX / (double)window_ResY;
 
 		if (window_AspectRatio > LCD_AspectRatio) {
-			int image_ResX = (int)((fp64)window_ResY * LCD_AspectRatio);
+			int image_ResX = (int)((double)window_ResY * LCD_AspectRatio);
 			dstRect = (SDL_Rect) {
 				(window_ResX - image_ResX) / 2, 0,
 				image_ResX, window_ResY
 			};
 		} else if (window_AspectRatio < LCD_AspectRatio) {
-			int image_ResY = (int)((fp64)window_ResX * LCD_AspectRatio_Inverse);
+			int image_ResY = (int)((double)window_ResX * LCD_AspectRatio_Inverse);
 			dstRect = (SDL_Rect){
 				0, (window_ResY - image_ResY) / 2,
 				window_ResX, image_ResY
@@ -1091,5 +949,5 @@ void PortCE_new_frame(void) {
 
 void PortCE_pace_frame(float frame_rate) {
 	PortCE_new_frame();
-	pace_frame(FRAMERATE_TO_NANO((fp64)frame_rate));
+	pace_frame(FRAMERATE_TO_NANO((double)frame_rate));
 }

@@ -8,8 +8,6 @@
 
 uint8_t simulated_ram[16777216];
 
-SPI_State PortCE_SPI_State;
-
 nano64_t getNanoTime(void) {
 	struct timespec tp;
 	if (clock_gettime(CLOCK_REALTIME, &tp) == 0) {
@@ -21,6 +19,6 @@ nano64_t getNanoTime(void) {
 	}
 }
 
-fp64 getDecimalTime(void) {
+double getDecimalTime(void) {
 	return NANO_TO_SECONDS(getNanoTime());
 }

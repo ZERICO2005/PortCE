@@ -139,11 +139,11 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
 	// 		return 0;
 	// 	}
 	// 	if (simulated_timer[n - 1].rate == 0) {
-	// 		fp64 timerCPU = getDecimalTime(); //Time in seconds
+	// 		double timerCPU = getDecimalTime(); //Time in seconds
 	// 		timerCPU *= 15000000.0;
 	// 		return (uint32_t)timerCPU;
 	// 	}
-	// 	fp64 timer32K = getDecimalTime(); //Time in seconds
+	// 	double timer32K = getDecimalTime(); //Time in seconds
 	// 	timer32K *= 32768.0;
 	// 	return (uint32_t)timer32K;
 	// }
@@ -178,7 +178,7 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
 		}
 
 		void ticksleep(ti_unsigned_long ticks) {
-			nano64_t dur = (nano64_t)((fp64)ticks * (1000000000.0 / (fp64)TI_CLOCKS_PER_SEC));
+			nano64_t dur = (nano64_t)((double)ticks * (1000000000.0 / (double)TI_CLOCKS_PER_SEC));
 			nano64_t startTime = getNanoTime();
 			PortCE_new_frame();
 			while (getNanoTime() - startTime < dur) {
@@ -212,10 +212,10 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
 // static Ti_Timer* const timer_list = (Ti_Timer*)((void*)&simulated_ram[0xF20000]);
 // static const size_t timer_count = 3;
 
-static const fp64 timer_mult = 1.0;
+static const double timer_mult = 1.0;
 
 ti_clock_t ti_clock() {
-	return (ti_clock_t)((fp64)clock() * ((fp64)TI_CLOCKS_PER_SEC / (fp64)CLOCKS_PER_SEC) * timer_mult);
+	return (ti_clock_t)((double)clock() * ((double)TI_CLOCKS_PER_SEC / (double)CLOCKS_PER_SEC) * timer_mult);
 }
 
 static nano64_t last_timer_update = 0;
@@ -227,8 +227,8 @@ static void PortCE_update_timers(void) {
 	const nano64_t current_time = getNanoTime();
 	
 	const nano64_t delta_nano = (current_time - last_timer_update);
-	const uint32_t delta_32K = (uint32_t)((int32_t)((fp64)delta_nano * (32768.0 / 1.0e9) * timer_mult)); // 32 KHz
-	const uint32_t delta_CPU = (uint32_t)((int32_t)((fp64)delta_nano * (8.0e6 / 1.0e9) * timer_mult)); // 8 MHz
+	const uint32_t delta_32K = (uint32_t)((int32_t)((double)delta_nano * (32768.0 / 1.0e9) * timer_mult)); // 32 KHz
+	const uint32_t delta_CPU = (uint32_t)((int32_t)((double)delta_nano * (8.0e6 / 1.0e9) * timer_mult)); // 8 MHz
 	if (delta_32K == 0 || delta_CPU == 0) {
 		return; // Prevents infinite loops if not enough time passes between updates 
 	}

@@ -16,7 +16,9 @@ typedef struct PortCE_Config PortCE_Config;
 void initLCDcontroller(const char* window_title, const PortCE_Config* config);
 int terminateLCDcontroller(void);
 
-void reset_SPI_state(void);
+extern bool PortCE_invert_colors;
+extern bool PortCE_column_major;
+extern bool PortCE_color_idle_mode;
 
 #ifdef __cplusplus
 }

@@ -13,4 +13,5 @@ autotest.json
 desktop.ini
 .vscode
 *.code-workspace
-oiram_archive
+oiram_src
+doom_src

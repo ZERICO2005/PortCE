@@ -594,7 +594,7 @@ __attribute__((unused)) static uint8_t gfy_Cos(uint8_t theta) {
 /* gfy_Begin */
 void gfy_Begin() {
     lcd_Init();
-	lcd_SetColumnMajor(true);
+    lcd_SetColumnMajor(true);
 
     gfx_Begin();
     
@@ -631,7 +631,7 @@ void gfy_Begin() {
 /* gfy_End */
 
 void gfy_End(void) {
-	lcd_SetColumnMajor(false);
+    lcd_SetColumnMajor(false);
 
     #ifdef _EZ80
         gfx_End();
@@ -640,7 +640,7 @@ void gfy_End(void) {
         lcd_UpBase = RAM_OFFSET(gfy_vram);
         memset(gfy_vram, 0xFF, sizeof(uint16_t) * GFY_LCD_WIDTH * GFY_LCD_HEIGHT);
     #endif
-	lcd_Cleanup();
+    lcd_Cleanup();
 }
 
 /* gfy_SetColor */
@@ -900,7 +900,7 @@ static void gfy_internal_PrintChar_NoClip(const char c, const uint8_t charWidth)
     const uint8_t *bitImage = gfy_TextData + GFY_MAXIMUM_FONT_HEIGHT * (uint24_t)((unsigned char)c);
     uint8_t *fillLinePtr = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (gfy_TextYPos + (gfy_TextXPos * GFY_LCD_HEIGHT));
     uint8_t b = (1 << 7);
-    gfy_TextXPos += charWidth;
+    gfy_TextXPos += charWidth * gfy_TextWidthScale;
     for (uint8_t x = 0; x < charWidth; x++) {
         for (uint8_t u = 0; u < gfy_TextWidthScale; u++) {
             uint8_t *fillPtr = fillLinePtr;
@@ -945,7 +945,7 @@ void gfy_PrintChar(const char c) {
     const uint8_t *bitImage = gfy_TextData + GFY_MAXIMUM_FONT_HEIGHT * (uint24_t)((unsigned char)c);
     uint8_t *fillLinePtr = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (gfy_TextYPos + (gfy_TextXPos * GFY_LCD_HEIGHT));
     uint8_t b = (1 << 7);
-    gfy_TextXPos += charWidth;
+    gfy_TextXPos += charWidth * gfy_TextWidthScale;
     for (uint8_t x = 0; x < charWidth; x++) {
         for (uint8_t u = 0; u < gfy_TextWidthScale; u++) {
             uint8_t *fillPtr = fillLinePtr;
@@ -1192,7 +1192,7 @@ uint24_t gfy_GetStringWidth(const char *string) {
             len += gfy_GetCharWidth(*string);
             string++;
         }
-        return len;
+        return len * gfy_TextWidthScale;
     #endif
 }
 
@@ -1582,13 +1582,14 @@ bool gfy_GetClipRegion(gfy_region_t *region) {
 void gfy_ShiftDown(uint8_t pixels) {
     if (pixels == 0) { return; }
     GFY_CLIPPING_ASSUMPTIONS();
-    const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + (gfy_ClipXMin * GFY_LCD_HEIGHT);
-    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (gfy_ClipYMin + pixels) + (gfy_ClipXMin * GFY_LCD_HEIGHT);
-    const uint24_t copySize = gfy_ClipYMax - gfy_ClipYMin - pixels;
+    const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + (gfy_ClipXMin * GFY_LCD_HEIGHT);
+    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (gfy_ClipYMin + (int8_t)pixels) + (gfy_ClipXMin * GFY_LCD_HEIGHT);
+    const int24_t copySize = gfy_ClipXMax - gfy_ClipXMin - (int24_t)pixels;
+    if (copySize <= 0) { return; }
     int24_t x0 = gfy_ClipXMin;
     int24_t x1 = gfy_ClipXMax;
     for (int24_t x = x0; x < x1; x++) {
-        memmove(dst_buf, src_buf, copySize); // memcpy would be UB
+        memmove(dst_buf, src_buf, (size_t)copySize); // memcpy would be UB
         src_buf += GFY_LCD_HEIGHT;
         dst_buf += GFY_LCD_HEIGHT;
     }
@@ -1599,13 +1600,14 @@ void gfy_ShiftDown(uint8_t pixels) {
 void gfy_ShiftUp(uint8_t pixels) {
     if (pixels == 0) { return; }
     GFY_CLIPPING_ASSUMPTIONS();
-    const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + (gfy_ClipXMin * GFY_LCD_HEIGHT);
-    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (gfy_ClipYMin - pixels) + (gfy_ClipXMin * GFY_LCD_HEIGHT);
-    const uint24_t copySize = gfy_ClipYMax - gfy_ClipYMin - pixels;
+    const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + (gfy_ClipXMin * GFY_LCD_HEIGHT);
+    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (gfy_ClipYMin - (int8_t)pixels) + (gfy_ClipXMin * GFY_LCD_HEIGHT);
+    const int24_t copySize = gfy_ClipXMax - gfy_ClipXMin - (int24_t)pixels;
+    if (copySize <= 0) { return; }
     int24_t x0 = gfy_ClipXMin;
     int24_t x1 = gfy_ClipXMax;
     for (int24_t x = x0; x < x1; x++) {
-        memmove(dst_buf, src_buf, copySize); // memcpy would be UB
+        memmove(dst_buf, src_buf, (size_t)copySize); // memcpy would be UB
         src_buf += GFY_LCD_HEIGHT;
         dst_buf += GFY_LCD_HEIGHT;
     }
@@ -1616,9 +1618,9 @@ void gfy_ShiftUp(uint8_t pixels) {
 void gfy_ShiftLeft(uint24_t pixels) {
     if (pixels == 0) { return; }
     GFY_CLIPPING_ASSUMPTIONS();
-    const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + (gfy_ClipXMin * GFY_LCD_HEIGHT);
-    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + ((gfy_ClipXMin - pixels) * GFY_LCD_HEIGHT);
-    const uint24_t copySize = gfy_ClipYMax - gfy_ClipYMin;
+    const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + (gfy_ClipXMin * GFY_LCD_HEIGHT);
+    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + ((gfy_ClipXMin - (int24_t)pixels) * GFY_LCD_HEIGHT);
+    const size_t copySize = gfy_ClipYMax - gfy_ClipYMin;
     int24_t x0 = gfy_ClipXMin + pixels;
     int24_t x1 = gfy_ClipXMax;
     src_buf += pixels * GFY_LCD_HEIGHT;
@@ -1635,9 +1637,9 @@ void gfy_ShiftLeft(uint24_t pixels) {
 void gfy_ShiftRight(uint24_t pixels) {
     if (pixels == 0) { return; }
     GFY_CLIPPING_ASSUMPTIONS();
-    const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + (gfy_ClipXMin * GFY_LCD_HEIGHT);
-    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + ((gfy_ClipXMin - pixels) * GFY_LCD_HEIGHT);
-    const uint24_t copySize = gfy_ClipYMax - gfy_ClipYMin;
+    const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + (gfy_ClipXMin * GFY_LCD_HEIGHT);
+    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + gfy_ClipYMin + ((gfy_ClipXMin - (int24_t)pixels) * GFY_LCD_HEIGHT);
+    const size_t copySize = gfy_ClipYMax - gfy_ClipYMin;
     int24_t x0 = gfy_ClipXMin + pixels;
     int24_t x1 = gfy_ClipXMax;
     src_buf += pixels * GFY_LCD_HEIGHT;
@@ -2769,8 +2771,8 @@ uint8_t gfy_SetTransparentColor(uint8_t index) {
         gfy_Color = index;
         return gfx_SetTransparentColor(index);
     #else
-        const uint8_t prev_Color = gfy_Color;
-        gfy_Color = index;
+        const uint8_t prev_Color = gfy_Transparent_Color;
+        gfy_Transparent_Color = index;
         return prev_Color;
     #endif
 }

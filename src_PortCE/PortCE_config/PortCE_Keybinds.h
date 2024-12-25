@@ -23,7 +23,10 @@ typedef enum PortCE_Keycode {
     KB_Down = 48    , KB_Left   , KB_Right  , KB_Up    
 } PortCE_Keycode;
 
-
+/**
+ * You can use this website to obtain the SDL Scancodes:
+ * https://zerico2005.github.io/SDL-Keycode-Scancode-Tool/
+*/
 
 /* Select which Keybinds the program will use */
 #define PortCE_Keybind_Selection PortCE_Keybind_Default
@@ -40,6 +43,8 @@ static const PortCE_Keybind PortCE_Keybind_Default[] = { // Mixture of WASD-EQ-Z
     {SDL_SCANCODE_KP_5,KB_5},{SDL_SCANCODE_KP_6,KB_6},{SDL_SCANCODE_KP_7,KB_7},{SDL_SCANCODE_KP_8,KB_8},{SDL_SCANCODE_KP_9,KB_9},
 	{SDL_SCANCODE_0,KB_0},{SDL_SCANCODE_1,KB_1},{SDL_SCANCODE_2,KB_2},{SDL_SCANCODE_3,KB_3},{SDL_SCANCODE_4,KB_4},
     {SDL_SCANCODE_5,KB_5},{SDL_SCANCODE_6,KB_6},{SDL_SCANCODE_7,KB_7},{SDL_SCANCODE_8,KB_8},{SDL_SCANCODE_9,KB_9},
+	/* Keypad Symbols */
+	{SDL_SCANCODE_KP_PLUS,KB_Add},{SDL_SCANCODE_KP_MINUS,KB_Sub},{SDL_SCANCODE_KP_MULTIPLY,KB_Mul},{SDL_SCANCODE_KP_DIVIDE,KB_Div},{SDL_SCANCODE_KP_PERIOD,KB_DecPnt},
     /* Arrows */
     {SDL_SCANCODE_W,KB_Up},{SDL_SCANCODE_S,KB_Down},{SDL_SCANCODE_A,KB_Left},{SDL_SCANCODE_D,KB_Right},
     {SDL_SCANCODE_UP,KB_Up},{SDL_SCANCODE_DOWN,KB_Down},{SDL_SCANCODE_LEFT,KB_Left},{SDL_SCANCODE_RIGHT,KB_Right},
@@ -52,7 +57,9 @@ static const PortCE_Keybind PortCE_Keybind_Default[] = { // Mixture of WASD-EQ-Z
     {SDL_SCANCODE_LSHIFT,KB_GraphVar}, {SDL_SCANCODE_RSHIFT,KB_GraphVar},
     {SDL_SCANCODE_X,KB_Mode}, {SDL_SCANCODE_BACKSPACE, KB_Mode},
     {SDL_SCANCODE_C,KB_Clear}, {SDL_SCANCODE_ESCAPE,KB_Clear},
-    {SDL_SCANCODE_P,KB_Del}, {SDL_SCANCODE_DELETE,KB_Del}
+    {SDL_SCANCODE_P,KB_Del}, {SDL_SCANCODE_DELETE,KB_Del},
+	/* Functions */
+	{SDL_SCANCODE_F1,KB_Graph}, {SDL_SCANCODE_F2,KB_Trace}, {SDL_SCANCODE_F3,KB_Zoom}, {SDL_SCANCODE_F4,KB_Window}, {SDL_SCANCODE_F5,KB_Yequ},
 };
 
 #ifdef __cplusplus

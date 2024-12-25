@@ -308,7 +308,7 @@ void PortCE_reset_SPI_state(const bool TiOS_defaults) {
 /* Query SPI */
 
 bool PortCE_query_column_major(void) {
-	return (
+	return !(
 		PortCE_SPI_State.memory_data_access.page_column_order !=
 		PortCE_SPI_State.LCM_control.invert_page_column_order
 	);

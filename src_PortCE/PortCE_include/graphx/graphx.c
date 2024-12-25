@@ -558,7 +558,7 @@ static void gfx_internal_PrintChar_NoClip(const char c, const uint8_t charWidth)
     const uint8_t *bitImage = gfx_TextData + GFX_MAXIMUM_FONT_HEIGHT * (uint24_t)((unsigned char)c);
     uint8_t *fillLinePtr = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + (gfx_TextXPos + (gfx_TextYPos * GFX_LCD_WIDTH));
     
-    gfx_TextXPos += charWidth;
+    gfx_TextXPos += charWidth * gfx_TextWidthScale;
 
     for (uint8_t y = 0; y < gfx_FontHeight; y++) {
         for (uint8_t v = 0; v < gfx_TextHeightScale; v++) {
@@ -578,8 +578,8 @@ static void gfx_internal_PrintChar_NoClip(const char c, const uint8_t charWidth)
                 }
             }
             fillLinePtr += GFX_LCD_WIDTH;
-            bitImage++;
         }
+        bitImage++;
     }
 }
 
@@ -603,7 +603,7 @@ void gfx_PrintChar(const char c) {
     }
     const uint8_t *bitImage = gfx_TextData + GFX_MAXIMUM_FONT_HEIGHT * (uint24_t)((unsigned char)c);
     uint8_t *fillLinePtr = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + (gfx_TextXPos + (gfx_TextYPos * GFX_LCD_WIDTH));
-    gfx_TextXPos += charWidth;
+    gfx_TextXPos += charWidth * gfx_TextWidthScale;
 
     for (uint8_t y = 0; y < gfx_FontHeight; y++) {
         for (uint8_t v = 0; v < gfx_TextHeightScale; v++) {
@@ -627,8 +627,8 @@ void gfx_PrintChar(const char c) {
                 }
             }
             fillLinePtr += GFX_LCD_WIDTH;
-            bitImage++;
         }
+        bitImage++;
     }
 }
 
@@ -771,7 +771,7 @@ uint24_t gfx_GetStringWidth(const char *string) {
         len += gfx_GetCharWidth(*string);
         string++;
     }
-    return len;
+    return len * gfx_TextWidthScale;
 }
 
 /* gfx_GetCharWidth */
@@ -1141,17 +1141,17 @@ bool gfx_GetClipRegion(gfx_region_t *region) {
 
 void gfx_ShiftDown(uint8_t pixels) {
     if (pixels == 0) { return; }
-    const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + gfx_ClipXMin + (gfx_ClipYMin * GFX_LCD_WIDTH);
-    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + gfx_ClipXMin + ((gfx_ClipYMin + pixels) * GFX_LCD_WIDTH);
-    const uint24_t copySize = gfx_ClipXMax - gfx_ClipXMin;
-    int24_t y0 = gfx_ClipYMin + pixels;
+    const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + gfx_ClipXMin + (gfx_ClipYMin * GFX_LCD_WIDTH);
+    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + gfx_ClipXMin + ((gfx_ClipYMin + (int8_t)pixels) * GFX_LCD_WIDTH);
+    const size_t copySize = gfx_ClipXMax - gfx_ClipXMin;
+    int24_t y0 = gfx_ClipYMin + (int8_t)pixels;
     int24_t y1 = gfx_ClipYMax;
     src_buf += pixels * GFX_LCD_WIDTH;
     dst_buf += pixels * GFX_LCD_WIDTH;
     for (int24_t y = y0; y < y1; y++) {
         memcpy(dst_buf, src_buf, copySize);
-        src_buf += GFX_LCD_WIDTH;
-        dst_buf += GFX_LCD_WIDTH;
+        src_buf -= GFX_LCD_WIDTH;
+        dst_buf -= GFX_LCD_WIDTH;
     }
 }
 
@@ -1159,15 +1159,16 @@ void gfx_ShiftDown(uint8_t pixels) {
 
 void gfx_ShiftUp(uint8_t pixels) {
     if (pixels == 0) { return; }
-    const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + gfx_ClipXMin + (gfx_ClipYMin * GFX_LCD_WIDTH);
-    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + gfx_ClipXMin + ((gfx_ClipYMin - pixels) * GFX_LCD_WIDTH);
-    const uint24_t copySize = gfx_ClipXMax - gfx_ClipXMin;
-    int24_t y0 = gfx_ClipYMin + pixels;
+    const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + gfx_ClipXMin + (gfx_ClipYMin * GFX_LCD_WIDTH);
+    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + gfx_ClipXMin + ((gfx_ClipYMin - (int8_t)pixels) * GFX_LCD_WIDTH);
+    const int24_t copySize = gfx_ClipXMax - gfx_ClipXMin - (int24_t)pixels;
+    if (copySize <= 0) { return; }
+    int24_t y0 = gfx_ClipYMin + (int8_t)pixels;
     int24_t y1 = gfx_ClipYMax;
-    src_buf += pixels * GFX_LCD_WIDTH;
-    dst_buf += pixels * GFX_LCD_WIDTH;
+    src_buf -= pixels * GFX_LCD_WIDTH;
+    dst_buf -= pixels * GFX_LCD_WIDTH;
     for (int24_t y = y0; y < y1; y++) {
-        memcpy(dst_buf, src_buf, copySize);
+        memcpy(dst_buf, src_buf, (size_t)copySize);
         src_buf += GFX_LCD_WIDTH;
         dst_buf += GFX_LCD_WIDTH;
     }
@@ -1177,13 +1178,14 @@ void gfx_ShiftUp(uint8_t pixels) {
 
 void gfx_ShiftLeft(uint24_t pixels) {
     if (pixels == 0) { return; }
-    const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + gfx_ClipXMin + (gfx_ClipYMin * GFX_LCD_WIDTH);
-    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + (gfx_ClipXMin - pixels) + (gfx_ClipYMin * GFX_LCD_WIDTH);
-    const uint24_t copySize = gfx_ClipXMax - gfx_ClipXMin - pixels;
+    const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + gfx_ClipXMin + (gfx_ClipYMin * GFX_LCD_WIDTH);
+    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + (gfx_ClipXMin - (int24_t)pixels) + (gfx_ClipYMin * GFX_LCD_WIDTH);
+    const int24_t copySize = gfx_ClipXMax - gfx_ClipXMin - (int24_t)pixels;
+    if (copySize <= 0) { return; }
     int24_t y0 = gfx_ClipYMin;
     int24_t y1 = gfx_ClipYMax;
     for (int24_t y = y0; y < y1; y++) {
-        memmove(dst_buf, src_buf, copySize); // memcpy would be UB
+        memmove(dst_buf, src_buf, (size_t)copySize); // memcpy would be UB
         src_buf += GFX_LCD_WIDTH;
         dst_buf += GFX_LCD_WIDTH;
     }
@@ -1193,9 +1195,9 @@ void gfx_ShiftLeft(uint24_t pixels) {
 
 void gfx_ShiftRight(uint24_t pixels) {
     if (pixels == 0) { return; }
-    const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + gfx_ClipXMin + (gfx_ClipYMin * GFX_LCD_WIDTH);
-    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + (gfx_ClipXMin + pixels) + (gfx_ClipYMin * GFX_LCD_WIDTH);
-    const uint24_t copySize = gfx_ClipXMax - gfx_ClipXMin - pixels;
+    const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + gfx_ClipXMin + (gfx_ClipYMin * GFX_LCD_WIDTH);
+    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + (gfx_ClipXMin + (int24_t)pixels) + (gfx_ClipYMin * GFX_LCD_WIDTH);
+    const size_t copySize = gfx_ClipXMax - gfx_ClipXMin - pixels;
     int24_t y0 = gfx_ClipYMin;
     int24_t y1 = gfx_ClipYMax;
     for (int24_t y = y0; y < y1; y++) {
@@ -1458,7 +1460,7 @@ void gfx_TransparentSprite(const gfx_sprite_t *sprite, int24_t x, int24_t y) {
         x + sprite->width <= gfx_ClipXMax &&
         y + sprite->height <= gfx_ClipYMax
     ) {
-        gfx_Sprite_NoClip(sprite, (uint24_t)x, (uint8_t)y);
+        gfx_TransparentSprite_NoClip(sprite, (uint24_t)x, (uint8_t)y);
         return;
     }
     const uint8_t min_clipX = (x < gfx_ClipXMin) ? (gfx_ClipXMin - x) : 0;
@@ -1652,7 +1654,15 @@ gfx_sprite_t *gfx_FlipSpriteX(const gfx_sprite_t *sprite_in, gfx_sprite_t *sprit
 
 /** @todo implement PortCE routine */
 gfx_sprite_t *gfx_RotateSpriteC(const gfx_sprite_t *sprite_in, gfx_sprite_t *sprite_out) {
-    memcpy(sprite_out, sprite_in, sizeof(gfx_sprite_t) + (sprite_in->width * sprite_in->height));
+    sprite_out->height = sprite_in->width;
+    sprite_out->width = sprite_in->height;
+    const uint8_t* src_ptr = (const uint8_t*)&sprite_in->data;
+    for (uint8_t x = 0; x < sprite_in->width; x++) {
+        for (uint8_t y = 0; y < sprite_in->height; y++) {
+            sprite_out->data[(sprite_in->width - x - 1) + y * sprite_in->width] = *src_ptr;
+            src_ptr++;
+        }
+    }
     return sprite_out;
 }
 
@@ -1660,7 +1670,15 @@ gfx_sprite_t *gfx_RotateSpriteC(const gfx_sprite_t *sprite_in, gfx_sprite_t *spr
 
 /** @todo implement PortCE routine */
 gfx_sprite_t *gfx_RotateSpriteCC(const gfx_sprite_t *sprite_in, gfx_sprite_t *sprite_out) {
-    memcpy(sprite_out, sprite_in, sizeof(gfx_sprite_t) + (sprite_in->width * sprite_in->height));
+    sprite_out->height = sprite_in->width;
+    sprite_out->width = sprite_in->height;
+    const uint8_t* src_ptr = (const uint8_t*)&sprite_in->data;
+    for (uint8_t x = 0; x < sprite_in->width; x++) {
+        for (uint8_t y = 0; y < sprite_in->height; y++) {
+            sprite_out->data[x + (sprite_in->height - y - 1) * sprite_in->width] = *src_ptr;
+            src_ptr++;
+        }
+    }
     return sprite_out;
 }
 
@@ -1890,8 +1908,8 @@ void gfx_SetTextScale(uint8_t width_scale, uint8_t height_scale) {
 /* gfx_SetTransparentColor */
 
 uint8_t gfx_SetTransparentColor(uint8_t index) {
-    const uint8_t prev_Color = gfx_Color;
-    gfx_Color = index;
+    const uint8_t prev_Color = gfx_Transparent_Color;
+    gfx_Transparent_Color = index;
     return prev_Color;
 }
 
@@ -1973,7 +1991,19 @@ uint8_t gfx_SetFontHeight(uint8_t height) {
 
 /* gfx_ScaleSprite */
 
-
+gfx_sprite_t* gfx_ScaleSprite(
+    const gfx_sprite_t *sprite_in, gfx_sprite_t *sprite_out
+) {
+    uint8_t* dst_ptr = sprite_out->data;
+    for (uint8_t y = 0; y < sprite_out->height; y++) {
+        const uint8_t* src_ptr = sprite_in->data + ((y * sprite_in->height) / sprite_in->height) * sprite_out->width;
+        for (uint8_t x = 0; x < sprite_out->width; x++) {
+            *dst_ptr = *(src_ptr + (x * sprite_out->width) / sprite_in->width);
+            dst_ptr++;
+        }
+    }
+    return sprite_out;
+}
 
 /* gfx_FloodFill */
 
@@ -2009,7 +2039,109 @@ uint8_t gfx_SetFontHeight(uint8_t height) {
 
 /* gfx_RotateScaleSprite */
 
+#include <math.h>
 
+gfx_sprite_t *gfx_RotateScaleSprite(
+    const gfx_sprite_t *sprite_in, gfx_sprite_t *sprite_out,
+    uint8_t angle, uint8_t scale
+) {
+    #if 0
+    const int24_t sin_val = gfx_Sin(angle) * 128 / scale;
+    const int24_t cos_val = gfx_Cos(angle) * 128 / scale;
+    const uint8_t size = sprite_in->width;
+
+    sprite_out->width = sprite_in->width * scale / 64;
+    sprite_out->height = sprite_in->height * scale / 64;
+
+    int24_t dxs = sin_val * -((int24_t)(size * scale / 128));
+    int24_t dxc = cos_val * -((int24_t)(size * scale / 128));
+
+    #define dys dxs
+    #define dyc dxc
+    
+    uint24_t src_index = 0;
+
+    for (uint8_t y = 0; y < sprite_in->height; y++) {
+        int24_t xs = (dxs + dyc) + (int24_t)(size * 128);
+        int24_t ys = (dxc - dys) + (int24_t)(size * 128);
+        for (uint8_t x = 0; x < sprite_in->width; x++) {
+            xs += cos_val;
+            ys -= sin_val;
+
+            uint24_t x_write = xs / 256;
+            uint24_t y_write = ys / 256;
+            if (
+                x_write < sprite_out->width && y_write < sprite_out->height &&
+                src_index < sprite_in->width * sprite_in->height
+            ) {
+                sprite_out->data[x_write + sprite_out->width * y_write] = sprite_in->data[src_index];
+            }
+            src_index++;
+        }
+        dxc += cos_val;
+        dxs += sin_val;
+    }
+    return sprite_out;
+
+    #elif 1
+
+    const uint8_t in_size = sprite_in->width;
+    uint24_t temp_size = sprite_in->width * scale / 64;
+    const uint8_t out_size = (temp_size >= 256) ? 255 : temp_size;
+    sprite_out->width = out_size;
+    sprite_out->height = out_size;
+    memset(sprite_out->data, gfx_Transparent_Color, out_size * out_size);
+
+    // const int24_t sin_val = gfx_Sin(angle) * 128 / scale;
+    // const int24_t cos_val = gfx_Cos(angle) * 128 / scale;
+
+    // const float sin_f = (float)sin_val / 256.0f;
+    // const float cos_f = (float)cos_val / 256.0f;
+    angle *= -1;
+
+    const float sin_f = (float)sinf((float)angle * 0.0245436926f);
+    const float cos_f = (float)cosf((float)angle * 0.0245436926f);
+
+    float out_center = (float)out_size / 2.0f;
+    float in_center = (float)in_size / 2.0f;
+    uint8_t* dst_ptr = sprite_out->data;
+    for (uint8_t y = 0; y < out_size; y++) {
+        float yc = ((float)y - out_center) / (float)out_size;
+        for (uint8_t x = 0; x < out_size; x++) {
+            float xc = ((float)x - out_center) / (float)out_size;
+            float x_pos = (xc * cos_f - yc * sin_f) + 0.5f;
+            float y_pos = (yc * cos_f + xc * sin_f) + 0.5f;
+            // printf("{%.2f,%.2f}", x_pos, y_pos);
+            x_pos *= (float)in_size;
+            y_pos *= (float)in_size;
+            int24_t x_write = (int24_t)x_pos;
+            int24_t y_write = (int24_t)y_pos;
+            if (
+                x_write < in_size && y_write < in_size &&
+                x_write >= 0 && y_write >= 0
+            ) {
+                *dst_ptr = sprite_in->data[x_write + y_write * in_size];
+            }
+            dst_ptr++;
+        }
+        // printf("\n");
+    }
+    // printf("\n");
+    return sprite_out;
+    #else
+    angle += 32;
+    if (angle < 64) {
+        return memcpy(sprite_out, sprite_in, sprite_in->width * sprite_in->height + sizeof(gfx_sprite_t));
+    }
+    if (angle < 128) {
+        return gfx_RotateSpriteC(sprite_in, sprite_out);
+    }
+    if (angle < 192) {
+        return gfx_RotateSpriteHalf(sprite_in, sprite_out);
+    }
+    return gfx_RotateSpriteCC(sprite_in, sprite_out);
+    #endif
+}
 
 /* gfx_RotatedScaledTransparentSprite_NoClip */
 

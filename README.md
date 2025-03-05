@@ -13,7 +13,7 @@ You may also use `#ifdef _EZ80` to exclude code from PortCE. Conversely, `#ifnde
 
 2. PortCE code
 
-You will need to include PortCE.h in your code.
+You will need to include PortCE.h as the **LAST** header in your code.
 
 `void PortCE_initialize(const char* window_title)`<br>
 Initialize PortCE at the beginning of your code. You may also pass in the name of your program.
@@ -50,6 +50,8 @@ The `RAM_ADDRESS()` macro returns a `void*` pointer to `simulated_ram[16777216]`
 *(uint8_t*)((void*)&simulated_ram[0xD40000]) = 0xFF;
 ```
 
+The `CONST_ADDRESS()` macro is similar to `RAM_ADDRESS()`, expect that it can be used at compile time to point to a specific address.
+
 The `RAM_OFFSET()` macro calculates the offset from `simulated_ram[16777216]`. Example useage:
 ```c
 // Source (Resets the LCD position to the start of lcd_Ram)
@@ -71,12 +73,13 @@ Not all C/C++ code may work as intended. Here is a list of things to watch out f
 - `sizeof(void*)` will be 4 or 8 instead of 3.
 - Integers are promoted to `int32_t` instead of `int24_t`.
 - `_BitInt(24)` (used to simulate int24_t) is exempt from integer promotion rules.
+- `double` is 32bits on the eZ80 instead of 64bits. This can be fixed by using `ti_double`.
 - Undefined behaviour may produce different results. For example: `memcpy(buf + 4, buf, 256 - 4)` (Which fills the buffer with a repeating pattern of 4 bytes).
 - Your computer will run your code *very* fast compared to the Ti84-CE, so make sure your code handles time/frame pacing correctly.
 
 6. Compiling
 
-PortCE uses `_BitInt(24)` for `int24_t`, so it's recommended that you use Clang C23. For reference, the CE C/C++ toolchain uses Clang C17.
+PortCE uses `_BitInt(24)` for `int24_t`, so it's recommended that you use Clang C23. For reference, the CE C/C++ toolchain uses Clang C17. You may also try using `_ExtInt` in Clang.
  If your compiler does not support `_BitInt`, you can try `typedef int32_t int24_t`, but this may break/crash your code. 
 
 To compile your code for PortCE, run `mkdir build`, `cd build`, and `cmake -G Ninja ..`, then run `ninja` to compile your code.
@@ -94,13 +97,15 @@ Supports:
 * Indexed Color: 1bit, 2bit, 4bit, and 8bit
 * Partial hardware cursor support
 
-Other features can be accessed through `sys/spi.h`:
+Other features can be accessed through `lcddrvce.h` and `sys/spi.h`:
 * Row-Major and Column-Major mode
 * Inverted Colors
 
 ## Extra Features
 
 You can include `PortCE_Extra.h` to add extra functionality to the PortCE version of your program, such as mouse support.
+
+Additionally, you can define `PORTCE_EXTENDED_INTEGERS`, to enable the experimental `int72_t` and `int96_t` types (requires `__int128`).
 
 # Configuration
 (Unimplemented)

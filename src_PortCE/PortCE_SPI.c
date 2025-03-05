@@ -9,9 +9,9 @@
 #include <inttypes.h>
 #include <stdarg.h>
 
-#include "PortCE.h"
 #include "PortCE_Common.h"
 #include "PortCE_Render.h"
+#include "PortCE.h"
 
 #include "PortCE_SPI.h"
 #include "PortCE_include/ce/include/sys/lcd.h"

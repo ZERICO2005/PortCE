@@ -205,9 +205,7 @@ static int24_t gfx_ClipYMin = 0;
 static int24_t gfx_ClipXMax = GFX_LCD_WIDTH;
 static int24_t gfx_ClipYMax = GFX_LCD_HEIGHT;
 
-#ifndef _EZ80
-    static uint8_t gfx_MonospaceFont = 0;
-#endif
+static uint8_t gfx_MonospaceFont = 0;
 
 // TEMP GLOBALS //
 
@@ -340,9 +338,7 @@ void gfx_Begin() {
     gfx_ClipXMax = GFX_LCD_WIDTH;
     gfx_ClipYMax = GFX_LCD_HEIGHT;
     
-    #ifndef _EZ80
-        gfx_MonospaceFont = 0;
-    #endif
+    gfx_MonospaceFont = 0;
 }
 
 /* gfx_End */

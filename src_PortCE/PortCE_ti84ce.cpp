@@ -18,6 +18,9 @@
 #include "PortCE_include/ce/include/sys/rtc.h"
 #include "PortCE_include/lcddrvce/lcddrvce.h"
 
+#include "PortCE_include/ce/include/tice.h"
+#include "PortCE_include/fileioc/fileioc.h"
+
 // #include <process.h>
 //#include <dir.h>
 // #include <conio.h>
@@ -52,14 +55,14 @@ uint32_t atomic_load_32(volatile uint32_t* p) {
 uint32_t atomic_load_increasing_32(volatile uint32_t* p) {
     uint32_t read_0 = *p;
     uint32_t read_1 = *p;
-    return MAX(read_0, read_1);
+    return std::max(read_0, read_1);
 }
 
 /** Not actually atomic */
 uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
     uint32_t read_0 = *p;
     uint32_t read_1 = *p;
-    return MIN(read_0, read_1);
+    return std::min(read_0, read_1);
 }
 
 

@@ -35,14 +35,6 @@ extern "C" {
 	/** Intended to be the same type as enum */
 	typedef int int_enum;
 
-/* Constants */
-
-	#define PI 		3.1415926535897932384626433832795
-	#define TAU 	6.2831853071795864769252867665590
-	#define EULER 	2.7182818284590452353602874713527
-
-	#define VIDEO_CHANNELS 4
-
 /* Functions */
 
 	#define ARRAY_LENGTH(x) (sizeof(x) / sizeof(x[0]))
@@ -55,9 +47,6 @@ extern "C" {
 	#define ROL(n,b) (((n) << (b)) | ((n) >> ((sizeof(n) * CHAR_BIT) - (b))))
 	// Right Circular Shift
 	#define ROR(n,b) (((n) >> (b)) | ((n) << ((sizeof(n) * CHAR_BIT) - (b))))
-
-	#define MAX(a,b) (((a) > (b)) ? (a) : (b))
-	#define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
 	#define linearInterpolation(x,x0,x1,y0,y1) ( (y0) + ( (((y1) - (y0)) * ((x) - (x0))) / ((x1) - (x0)) ) )
 	#define linearInterpolationClamp(x,x0,x1,y0,y1) ( ((x) <= (x0)) ? (y0) : ( ((x) >= (x1)) ? (y1) : linearInterpolation((x),(x0),(x1),(y0),(y1)) ) )
@@ -88,6 +77,8 @@ extern "C" {
 
 /* PortCE */
 
+	#define VIDEO_CHANNELS 4
+
 	#define LCD_RESX (320)
 	#define LCD_RESY (240)
 
@@ -102,6 +93,12 @@ extern "C" {
 	extern double Ti84CE_Clockspeed;
 
 	extern uint8_t simulated_ram[16777216];
+
+/* Function Declarations */
+
+	void PortCE_terminate_fileioc(void);
+	
+	void reset_ti84ce_registers(void);
 
 #ifdef __cplusplus
 }

@@ -178,7 +178,11 @@ extern "C" {
 	/**
 	 * @brief Calculate pointer offsets from this macro
 	 */
-	#define RAM_OFFSET(ptr) ((uint24_t)(ptr))
+	#define RAM_OFFSET(ptr) ((uintptr_t)(ptr))
+
+	#define PortCE_main main
+
+	#define PortCE_set_window_title(...)
 
 	#define PortCE_initialize(...)
 
@@ -218,12 +222,19 @@ extern "C" {
 	 */
 	#define RAM_ADDRESS_CONST(x) ((void*)(&simulated_ram[x]))
 
+	#define PortCE_main main
+
 	/**
 	 * @brief Initializes the PortCE screen, keyboard, timers, etc.
 	 * 
 	 * @param window_title your programs name (Can be NULL)
 	 */
 	void PortCE_initialize(const char* window_title);
+
+	/**
+	 * @brief Set the window title for your program (window_title can be NULL)
+	 */
+	void PortCE_set_window_title(const char* window_title);
 
 	/**
 	 * @brief Destroys the PortCE window.

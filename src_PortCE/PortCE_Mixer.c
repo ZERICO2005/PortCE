@@ -108,7 +108,7 @@ void PortCE_RewindMusic(void) {
 	Mix_RewindMusic();
 }
 bool PortCE_PlayingMusic(void) {
-	return (Mix_PlayingMusic() != 0) ? true : false;
+	return (Mix_PlayingMusic() != 0);
 }
 
 #else

@@ -779,6 +779,10 @@ void initLCDcontroller(const char* window_title, const PortCE_Config* config) {
 	PortCE_SDL2_initialized = true;
 }
 
+void PortCE_set_window_title(const char *window_title) {
+	SDL_SetWindowTitle(window, window_title);
+}
+
 // Returns True if the window was resized. Optional: Returns new window size.
 static bool resizeWindow(int32_t resX, int32_t resY, uint32_t* resizeX, uint32_t* resizeY) {
 	bool reVal = false;

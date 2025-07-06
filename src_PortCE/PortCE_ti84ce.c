@@ -286,7 +286,7 @@ static void PortCE_update_timers(void) {
     
     const nano64_t delta_nano = (current_time - last_timer_update);
     const uint32_t delta_32K = (uint32_t)((int32_t)((double)delta_nano * (32768.0 / 1.0e9) * timer_mult)); // 32 KHz
-    const uint32_t delta_CPU = (uint32_t)((int32_t)((double)delta_nano * (8.0e6 / 1.0e9) * timer_mult)); // 8 MHz
+    const uint32_t delta_CPU = (uint32_t)((int32_t)((double)delta_nano * (Ti84CE_Clockspeed / 1.0e9) * timer_mult)); // 8 MHz
     if (delta_32K == 0 || delta_CPU == 0) {
         // Prevents infinite loops if not enough time passes between updates
         return;
@@ -401,11 +401,22 @@ static void PortCE_update_RTC(void) {
     rtc_IntAcknowledge = 0;
 
     if ((rtc_Control & (1<<0)) && (rtc_Control & (RTC_UNFREEZE))) {
-        if (*RTC_Seconds != Seconds && (rtc_Control & RTC_SEC_INT_SOURCE)) { *rtc_IntStatus_ptr |= RTC_SEC_INT; }
-        if (*RTC_Minutes != Minutes && (rtc_Control & RTC_MIN_INT_SOURCE)) { *rtc_IntStatus_ptr |= RTC_MIN_INT; }
-        if (*RTC_Hours   != Hours   && (rtc_Control & RTC_HR_INT_SOURCE )) { *rtc_IntStatus_ptr |= RTC_HR_INT ; }
-        if (*RTC_Days    != Days    && (rtc_Control & RTC_DAY_INT_SOURCE)) { *rtc_IntStatus_ptr |= RTC_DAY_INT; }
-        
+        const bool change_Seconds = (*RTC_Seconds != Seconds);
+        const bool change_Minutes = (*RTC_Minutes != Minutes);
+        const bool change_Hours   = (*RTC_Hours   != Hours  );
+        const bool change_Days    = (*RTC_Days    != Days   );
+
+        if (change_Seconds && (rtc_Control & RTC_SEC_INT_SOURCE)) { *rtc_IntStatus_ptr |= RTC_SEC_INT; }
+        if (change_Minutes && (rtc_Control & RTC_MIN_INT_SOURCE)) { *rtc_IntStatus_ptr |= RTC_MIN_INT; }
+        if (change_Hours   && (rtc_Control & RTC_HR_INT_SOURCE )) { *rtc_IntStatus_ptr |= RTC_HR_INT ; }
+        if (change_Days    && (rtc_Control & RTC_DAY_INT_SOURCE)) { *rtc_IntStatus_ptr |= RTC_DAY_INT; }
+
+        if (rtc_Control & RTC_ALARM_INT_SOURCE) {
+            if (change_Seconds && *RTC_AlarmSeconds == Seconds) { *rtc_IntStatus_ptr |= RTC_ALARM_INT; }
+            if (change_Minutes && *RTC_AlarmMinutes == Minutes) { *rtc_IntStatus_ptr |= RTC_ALARM_INT; }
+            if (change_Hours   && *RTC_AlarmHours   == Hours  ) { *rtc_IntStatus_ptr |= RTC_ALARM_INT; }
+        }
+
         *RTC_Seconds = Seconds;
         *RTC_Minutes = Minutes;
         *RTC_Hours   = Hours  ;

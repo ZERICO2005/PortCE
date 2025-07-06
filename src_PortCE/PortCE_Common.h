@@ -41,6 +41,8 @@ extern "C" {
 	#define TAU 	6.2831853071795864769252867665590
 	#define EULER 	2.7182818284590452353602874713527
 
+	#define VIDEO_CHANNELS 4
+
 /* Functions */
 
 	#define ARRAY_LENGTH(x) (sizeof(x) / sizeof(x[0]))
@@ -54,10 +56,6 @@ extern "C" {
 	// Right Circular Shift
 	#define ROR(n,b) (((n) >> (b)) | ((n) << ((sizeof(n) * CHAR_BIT) - (b))))
 
-	#define valueLimit(value,minimum,maximum) { if ((value) < (minimum)) { (value) = (minimum); } else if ((value) > (maximum)) { (value) = (maximum); } }
-	#define valueMinimum(value,minimum) { if ((value) < (minimum)) { (value) = (minimum); } }
-	#define valueMaximum(value,maximum) { if ((value) > (maximum)) { (value) = (maximum); } }
-
 	#define MAX(a,b) (((a) > (b)) ? (a) : (b))
 	#define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
@@ -66,9 +64,16 @@ extern "C" {
 
 /* Time */
 
-	nano64_t getNanoTime(void);
-
-	double getDecimalTime(void);
+	static inline nano64_t getNanoTime(void) {
+		struct timespec tp;
+		if (clock_gettime(CLOCK_REALTIME, &tp) == 0) {
+			nano64_t nanoTime = (nano64_t)tp.tv_sec * (nano64_t)1000000000 + (nano64_t)tp.tv_nsec;
+			return nanoTime;
+		} else {
+			perror("clock_gettime");
+			return 0;
+		}
+	}
 
 	#define NANO_TO_SECONDS(t) ((double)(t) / 1.0e9)
 	#define NANO_TO_FRAMERATE(t) (1.0e9 / (double)(t))
@@ -76,6 +81,10 @@ extern "C" {
 	#define SECONDS_TO_FRAMERATE(s) (1.0 / (s))
 	#define FRAMERATE_TO_NANO(f) ((nano64_t)(1.0e9 / (f)))
 	#define FRAMERATE_TO_SECONDS(f) (1.0 / (f))
+
+	static inline double getDecimalTime(void) {
+		return NANO_TO_SECONDS(getNanoTime());
+	}
 
 /* PortCE */
 
@@ -89,6 +98,8 @@ extern "C" {
 		bool stretch_frames;       /**< (Unimplemented) Stretches the frames to the window size instead of displaying black borders */
 		bool linear_interpolation; /**< Use linear interpolation instead of nearest neighbor */
 	} PortCE_Config;
+
+	extern double Ti84CE_Clockspeed;
 
 	extern uint8_t simulated_ram[16777216];
 

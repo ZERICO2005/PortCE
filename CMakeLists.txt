@@ -27,8 +27,22 @@ find_package(SDL2 REQUIRED)
 
 file(GLOB_RECURSE SRC_FILES "${SRC_DIR}/*.c" "${SRC_DIR}/*.cpp" "${SRC_PORTCE_DIR}/*.c")
 
+file (GLOB REMOVE_FILES
+	"${SRC_DIR}/SoftFloat/source/8086/*.c"
+	"${SRC_DIR}/SoftFloat/source/8086-SSE/*.c"
+	"${SRC_DIR}/SoftFloat/source/ARM-VFPv2/*.c"
+	"${SRC_DIR}/SoftFloat/source/ARM-VFPv2-defaultNaN/*.c"
+	"${SRC_DIR}/SoftFloat/source/extF80*"
+	"${SRC_DIR}/SoftFloat/source/extF80*"
+)
+list(REMOVE_ITEM SRC_FILES ${REMOVE_FILES})
+
 # Create an executable
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${SRC_PORTCE_DIR})
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${SRC_DIR}
+	"${SRC_DIR}/SoftFloat/source/include"
+)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${SRC_PORTCE_DIR}
 	"${SRC_PORTCE_DIR}/PortCE_include/"
@@ -41,6 +55,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${SRC_PORTCE_DIR}
 	"${SRC_PORTCE_DIR}/PortCE_include/graphx"
 	"${SRC_PORTCE_DIR}/PortCE_include/graphy"
 	"${SRC_PORTCE_DIR}/PortCE_include/lcddrvce"
+	"${SRC_PORTCE_DIR}/PortCE_include/usbdrvce"
+	"${SRC_PORTCE_DIR}/PortCE_include/hiddrvce"
 )
 
 # Compiler Flags Debug(-g -O0) Release(-O3)
@@ -53,6 +69,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SAN_FLAG} -fcolor-diagnostics -fdiagno
 target_compile_options(
 	${PROJECT_NAME} PUBLIC ${SAN_FLAG} -fcolor-diagnostics -fdiagnostics-color=always ${OPT_FLAG}
 	-Wall -Wextra -Wshadow
+
+	-Wno-unused-const-variable
 
 # Can help spot undefined behaviour when porting code from the eZ80
 	-Wpointer-arith

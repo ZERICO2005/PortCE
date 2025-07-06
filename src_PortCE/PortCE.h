@@ -68,35 +68,35 @@ extern "C" {
 #else
 
 	#ifdef          __INT24_TYPE__
-	typedef        __INT_24_TYPE__                  int_fast24_t;
+	typedef         __INT24_TYPE__                  int_fast24_t;
 	#define      INT_FAST24_MIN                 (~__INT_FAST24_MAX__)
 	#define      INT_FAST24_MAX                   __INT_FAST24_MAX__
 	#define      INT_FAST24_WIDTH    __STDINT_WIDTH(INT_FAST24)
-	typedef       __UINT_24_TYPE__                 uint_fast24_t;
+	typedef        __UINT24_TYPE__                 uint_fast24_t;
 	#define     UINT_FAST24_MAX                  __UINT_FAST24_MAX__
 	#define     UINT_FAST24_WIDTH   __STDINT_WIDTH(UINT_FAST24)
-	typedef        __INT_24_TYPE__                 int_least24_t;
+	typedef         __INT24_TYPE__                 int_least24_t;
 	#define     INT_LEAST24_MIN                (~__INT_LEAST24_MAX__)
 	#define     INT_LEAST24_MAX                  __INT_LEAST24_MAX__
 	#define     INT_LEAST24_WIDTH   __STDINT_WIDTH(INT_LEAST24)
-	typedef       __UINT_24_TYPE__                uint_least24_t;
+	typedef        __UINT24_TYPE__                uint_least24_t;
 	#define    UINT_LEAST24_MAX                 __UINT_LEAST24_MAX__
 	#define    UINT_LEAST24_WIDTH  __STDINT_WIDTH(UINT_LEAST24)
 	#endif        /*__INT24_TYPE_*/
 	
 	#ifdef   __SIZEOF_INT48__
-	typedef        __INT_48_TYPE__                  int_fast48_t;
+	typedef         __INT48_TYPE__                  int_fast48_t;
 	#define      INT_FAST48_MIN                 (~__INT_FAST48_MAX__)
 	#define      INT_FAST48_MAX                   __INT_FAST48_MAX__
 	#define      INT_FAST48_WIDTH    __STDINT_WIDTH(INT_FAST48)
-	typedef       __UINT_48_TYPE__                 uint_fast48_t;
+	typedef        __UINT48_TYPE__                 uint_fast48_t;
 	#define     UINT_FAST48_MAX                  __UINT_FAST48_MAX__
 	#define     UINT_FAST48_WIDTH   __STDINT_WIDTH(UINT_FAST48)
-	typedef        __INT_48_TYPE__                 int_least48_t;
+	typedef         __INT48_TYPE__                 int_least48_t;
 	#define     INT_LEAST48_MIN                (~__INT_LEAST48_MAX__)
 	#define     INT_LEAST48_MAX                  __INT_LEAST48_MAX__
 	#define     INT_LEAST48_WIDTH   __STDINT_WIDTH(INT_LEAST48)
-	typedef       __UINT_48_TYPE__                uint_least48_t;
+	typedef        __UINT48_TYPE__                uint_least48_t;
 	#define    UINT_LEAST48_MAX                 __UINT_LEAST48_MAX__
 	#define    UINT_LEAST48_WIDTH  __STDINT_WIDTH(UINT_LEAST48)
 	#endif /*__SIZEOF_INT48__*/
@@ -169,6 +169,11 @@ extern "C" {
 	 * @brief Access pointers through this macro
 	 */
 	#define RAM_ADDRESS(x) ((void*)(x))
+
+	/**
+	 * @brief Access a constant address through this macro
+	 */
+	#define RAM_ADDRESS_CONST(x) ((void*)(x))
 	
 	/**
 	 * @brief Calculate pointer offsets from this macro
@@ -188,6 +193,11 @@ extern "C" {
 #else
 
 	/**
+	 * @brief Do not access this array directly
+	 */
+	extern uint8_t simulated_ram[16777216];
+
+	/**
 	 * @brief 
 	 * 
 	 * @param address 
@@ -202,6 +212,11 @@ extern "C" {
 	 * @return uint24_t 
 	 */
 	uint24_t RAM_OFFSET(const void* ptr);
+
+	/**
+	 * @brief Access a constant address through this macro
+	 */
+	#define RAM_ADDRESS_CONST(x) ((void*)(&simulated_ram[x]))
 
 	/**
 	 * @brief Initializes the PortCE screen, keyboard, timers, etc.

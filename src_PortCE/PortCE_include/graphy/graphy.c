@@ -504,7 +504,7 @@ static int24_t gfy_ClipYMax = GFY_LCD_HEIGHT;
         0x7B6F, 0x749A, 0x73E7, 0x79A7, 0x49ED, 0x79CF, 0x7BCF, 0x24A7, 0x7AAF, 0x79EF,
         0x5BEF, 0x7BC9, 0x724F, 0x7BE4, 0x72CF, 0x12CF
     };
-    __attribute__((unused)) /* static */ void printUInt(int24_t in, uint8_t len, uint8_t base, uint24_t xC, uint24_t yC) {
+    __attribute__((unused)) static void printUInt(int24_t in, uint8_t len, uint8_t base, uint24_t xC, uint24_t yC) {
         //uint8_t* off = ((uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer)) + ((xC * GFY_LCD_HEIGHT) + yC);
         uint8_t* off = ((uint8_t*)gfy_vram) + ((xC * GFY_LCD_HEIGHT) + yC);
         uint8_t* v = off + 1;
@@ -594,9 +594,9 @@ __attribute__((unused)) static uint8_t gfy_Cos(uint8_t theta) {
 /* gfy_Begin */
 void gfy_Begin() {
     lcd_Init();
-    lcd_SetColumnMajor(true);
 
     gfx_Begin();
+    lcd_SetColumnMajor(true);
     
     // Resetting temp globals
     gfy_Color = 0;

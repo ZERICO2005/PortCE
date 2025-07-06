@@ -58,6 +58,7 @@ static const PortCE_Keybind PortCE_Keybind_Default[] = { // Mixture of WASD-EQ-Z
     {SDL_SCANCODE_X,KB_Mode}, {SDL_SCANCODE_BACKSPACE, KB_Mode},
     {SDL_SCANCODE_C,KB_Clear}, {SDL_SCANCODE_ESCAPE,KB_Clear},
     {SDL_SCANCODE_P,KB_Del}, {SDL_SCANCODE_DELETE,KB_Del},
+	{SDL_SCANCODE_GRAVE,KB_Power},
 	/* Functions */
 	{SDL_SCANCODE_F1,KB_Graph}, {SDL_SCANCODE_F2,KB_Trace}, {SDL_SCANCODE_F3,KB_Zoom}, {SDL_SCANCODE_F4,KB_Window}, {SDL_SCANCODE_F5,KB_Yequ},
 };

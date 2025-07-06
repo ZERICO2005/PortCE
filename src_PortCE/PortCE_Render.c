@@ -30,20 +30,19 @@ static int_enum PortCE_scale_mode = SDL_ScaleModeNearest;
 
 static int32_t RESX_MINIMUM = LCD_RESX;
 static int32_t RESY_MINIMUM = LCD_RESY;
-static int32_t RESX_MAXIMUM = LCD_RESX * 32;
-static int32_t RESY_MAXIMUM = LCD_RESY * 32;
 
 /* 16bit to 24bit lookup tables */
-static uint8_t PreCalc_RGB1555[65536 * 3];
-static uint8_t PreCalc_BGR1555[65536 * 3];
-static uint8_t PreCalc_RGB565[65536 * 3];
-static uint8_t PreCalc_BGR565[65536 * 3];
-static uint8_t PreCalc_RGB555[65536 * 3];
-static uint8_t PreCalc_BGR555[65536 * 3];
-static uint8_t PreCalc_RGB444[65536 * 3];
-static uint8_t PreCalc_BGR444[65536 * 3];
+static uint32_t PreCalc_RGB1555[65536];
+static uint32_t PreCalc_BGR1555[65536];
+static uint32_t PreCalc_RGB565[65536];
+static uint32_t PreCalc_BGR565[65536];
+static uint32_t PreCalc_RGB555[65536];
+static uint32_t PreCalc_BGR555[65536];
+static uint32_t PreCalc_RGB444[65536];
+static uint32_t PreCalc_BGR444[65536];
 
 static void Calculate16BitColor(void) {
+	const uint8_t alpha = 0xFF;
 	{ // 1555
 		size_t z = 0;
 		for (uint32_t i = 0; i < 65536; i++) {
@@ -55,9 +54,8 @@ static void Calculate16BitColor(void) {
 			r += r / 32;
 			g += g / 64;
 			b += b / 32;
-			PreCalc_RGB1555[z] = r; PreCalc_BGR1555[z] = b; z++;
-			PreCalc_RGB1555[z] = g; PreCalc_BGR1555[z] = g; z++;
-			PreCalc_RGB1555[z] = b; PreCalc_BGR1555[z] = r; z++;
+			PreCalc_RGB1555[z] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
+			PreCalc_BGR1555[z] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
 		}
 	}
 	{ // 565
@@ -71,9 +69,8 @@ static void Calculate16BitColor(void) {
 			r += r / 32;
 			g += g / 64;
 			b += b / 32;
-			PreCalc_RGB565[z] = r; PreCalc_BGR565[z] = b; z++;
-			PreCalc_RGB565[z] = g; PreCalc_BGR565[z] = g; z++;
-			PreCalc_RGB565[z] = b; PreCalc_BGR565[z] = r; z++;
+			PreCalc_RGB565[z] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
+			PreCalc_BGR565[z] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
 		}
 	}
 	{ // 555
@@ -87,9 +84,8 @@ static void Calculate16BitColor(void) {
 			r += r / 32;
 			g += g / 32;
 			b += b / 32;
-			PreCalc_RGB555[z] = r; PreCalc_BGR555[z] = b; z++;
-			PreCalc_RGB555[z] = g; PreCalc_BGR555[z] = g; z++;
-			PreCalc_RGB555[z] = b; PreCalc_BGR555[z] = r; z++;
+			PreCalc_RGB555[z] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
+			PreCalc_BGR555[z] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
 		}
 	}
 	{ // 444
@@ -103,9 +99,8 @@ static void Calculate16BitColor(void) {
 			r += r / 16;
 			g += g / 16;
 			b += b / 16;
-			PreCalc_RGB444[z] = r; PreCalc_BGR444[z] = b; z++;
-			PreCalc_RGB444[z] = g; PreCalc_BGR444[z] = g; z++;
-			PreCalc_RGB444[z] = b; PreCalc_BGR444[z] = r; z++;
+			PreCalc_RGB444[z] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
+			PreCalc_BGR444[z] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
 		}
 	}
 }
@@ -113,7 +108,7 @@ static void Calculate16BitColor(void) {
 /* Modern Code */
 
 struct BufferBox {
-	uint8_t* vram;
+	uint32_t* vram;
 	int32_t resX;
 	int32_t resY;
 	size_t pitch;
@@ -167,13 +162,14 @@ SDL_Event* grab_SDL2_event() {
 	return &event;
 }
 
-const int32_t pitch = LCD_RESX * 3;
+const int32_t pitch = LCD_RESX * VIDEO_CHANNELS;
 
 uint8_t videoCopy[153600];
 uint16_t paletteRAM[256];
 uint8_t colorR[256];
 uint8_t colorG[256];
 uint8_t colorB[256];
+uint32_t color_LUT[256];
 
 struct bound {
     uint8_t x0;
@@ -362,8 +358,8 @@ uint8_t os_GetCSC(void) {
 	}
 }
 
-static void blit16bpp(uint8_t* dst_buf, const uint8_t* src_buf) {
-	uint8_t* PreCalc16;
+static void blit16bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
+	const uint32_t* PreCalc16;
 	uint16_t colorMode = (lcd_VideoMode & LCD_MASK_BBP);
 	switch (colorMode) {
 		case LCD_MASK_COLOR1555:
@@ -383,34 +379,27 @@ static void blit16bpp(uint8_t* dst_buf, const uint8_t* src_buf) {
 	for (uint32_t y = 0; y < LCD_RESY; y++) {
 		for (uint32_t x = 0; x < LCD_RESX; x++) {
 			uint32_t c = (uint32_t)((const uint16_t*)src_buf)[z];
-			c *= 3;
 			dst_buf[w] = PreCalc16[c]; w++;
-			dst_buf[w] = PreCalc16[c + 1]; w++;
-			dst_buf[w] = PreCalc16[c + 2]; w++;
 			z += PortCE_query_column_major() ? LCD_RESY : 1;
 		}
 		z -= PortCE_query_column_major() ? ((LCD_RESX * LCD_RESY) - 1) : 0;
-		//w += pitch - (LCD_RESX * 3);
 	}
 }
 
-static void blit8bpp(uint8_t* dst_buf, const uint8_t* src_buf) {
+static void blit8bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
 	size_t w = 0;
 	size_t z = 0;
 	for (uint32_t y = 0; y < (uint32_t)LCD_RESY; y++) {
 		for (uint32_t x = 0; x < (uint32_t)LCD_RESX; x++) {
 			uint8_t c = src_buf[z];
-			dst_buf[w] = colorR[c]; w++;
-			dst_buf[w] = colorG[c]; w++;
-			dst_buf[w] = colorB[c]; w++;
+			dst_buf[w] = color_LUT[c]; w++;
 			z += PortCE_query_column_major() ? LCD_RESY : 1;
 		}
 		z -= PortCE_query_column_major() ? ((LCD_RESX * LCD_RESY) - 1) : 0;
-		//w += pitch - (LCD_RESX * lenY * 3);
 	}
 }
 
-static void blit4bpp(uint8_t* dst_buf, const uint8_t* src_buf) {
+static void blit4bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
 	const uint32_t PixelsPerByte = 2;
 	size_t w = 0;
 	size_t z = 0;
@@ -418,36 +407,29 @@ static void blit4bpp(uint8_t* dst_buf, const uint8_t* src_buf) {
 		for (uint32_t y = 0; y < LCD_RESY; y++) {
 			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
 				uint8_t c = src_buf[z];
-				dst_buf[w] = colorR[c & 0xF]; w++;
-				dst_buf[w] = colorG[c & 0xF]; w++;
-				dst_buf[w] = colorB[c & 0xF]; w++;
-				dst_buf[w] = colorR[(c >> 4) & 0xF]; w++;
-				dst_buf[w] = colorG[(c >> 4) & 0xF]; w++;
-				dst_buf[w] = colorB[(c >> 4) & 0xF]; w++;
+				dst_buf[w] = color_LUT[c & 0xF]; w++;
+				dst_buf[w] = color_LUT[(c >> 4) & 0xF]; w++;
 				z++;
 			}
-			//w += pitch - (LCD_RESX * lenY * 3);
 		}
 	} else {
 		for (uint32_t x = 0; x < LCD_RESX; x++) {
 			for (uint32_t y = 0; y < LCD_RESY; y += PixelsPerByte) {
 				uint8_t c = src_buf[z];
 				for (uint32_t i = 0; i < PixelsPerByte; i++) {
-					dst_buf[w] = colorR[c & 0xF]; w++;
-					dst_buf[w] = colorG[c & 0xF]; w++;
-					dst_buf[w] = colorB[c & 0xF]; w++;
-					w += (pitch  - 3);
+					dst_buf[w] = color_LUT[c & 0xF]; w++;
+					w += (LCD_RESX - 1);
 					c >>= 4;
 				}
 				z++;
 			}
-			w -= pitch * LCD_RESY;
-			w += 3;
+			w -= LCD_RESX * LCD_RESY;
+			w += 1;
 		}
 	}
 }
 
-static void blit2bpp(uint8_t* dst_buf, const uint8_t* src_buf) {
+static void blit2bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
 	const uint32_t PixelsPerByte = 4;
 	size_t w = 0;
 	size_t z = 0;
@@ -455,42 +437,31 @@ static void blit2bpp(uint8_t* dst_buf, const uint8_t* src_buf) {
 		for (uint32_t y = 0; y < LCD_RESY; y++) {
 			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
 				uint8_t c = src_buf[z];
-				dst_buf[w] = colorR[c & 0x3]; w++;
-				dst_buf[w] = colorG[c & 0x3]; w++;
-				dst_buf[w] = colorB[c & 0x3]; w++;
-				dst_buf[w] = colorR[(c >> 2) & 0x3]; w++;
-				dst_buf[w] = colorG[(c >> 2) & 0x3]; w++;
-				dst_buf[w] = colorB[(c >> 2) & 0x3]; w++;
-				dst_buf[w] = colorR[(c >> 4) & 0x3]; w++;
-				dst_buf[w] = colorG[(c >> 4) & 0x3]; w++;
-				dst_buf[w] = colorB[(c >> 4) & 0x3]; w++;
-				dst_buf[w] = colorR[(c >> 6) & 0x3]; w++;
-				dst_buf[w] = colorG[(c >> 6) & 0x3]; w++;
-				dst_buf[w] = colorB[(c >> 6) & 0x3]; w++;
+				dst_buf[w] = color_LUT[c & 0x3]; w++;
+				dst_buf[w] = color_LUT[(c >> 2) & 0x3]; w++;
+				dst_buf[w] = color_LUT[(c >> 4) & 0x3]; w++;
+				dst_buf[w] = color_LUT[(c >> 6) & 0x3]; w++;
 				z++;
 			}
-			//w += pitch - (LCD_RESX * 3);
 		}
 	} else {
 		for (uint32_t x = 0; x < LCD_RESX; x++) {
 			for (uint32_t y = 0; y < LCD_RESY; y += PixelsPerByte) {
 				uint8_t c = src_buf[z];
 				for (uint32_t i = 0; i < PixelsPerByte; i++) {
-						dst_buf[w] = colorR[c & 0x3]; w++;
-						dst_buf[w] = colorG[c & 0x3]; w++;
-						dst_buf[w] = colorB[c & 0x3]; w++;
-					w += (pitch - 3);
+					dst_buf[w] = color_LUT[c & 0x3]; w++;
+					w += (LCD_RESX - 1);
 					c >>= 2;
 				}
 				z++;
 			}
-			w -= pitch * LCD_RESY;
-			w += 3;
+			w -= LCD_RESX * LCD_RESY;
+			w += 1;
 		}
 	}
 }
 
-static void blit1bpp(uint8_t* dst_buf, const uint8_t* src_buf) {
+static void blit1bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
 	const uint32_t PixelsPerByte = 8;
 	size_t w = 0;
 	size_t z = 0;
@@ -499,35 +470,49 @@ static void blit1bpp(uint8_t* dst_buf, const uint8_t* src_buf) {
 			for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
 				uint8_t c = src_buf[z];
 				for (uint8_t b = 0; b < 8; b++) {
-					dst_buf[w] = colorR[(c >> b) & 0x1]; w++;
-					dst_buf[w] = colorG[(c >> b) & 0x1]; w++;
-					dst_buf[w] = colorB[(c >> b) & 0x1]; w++;
+					dst_buf[w] = color_LUT[(c >> b) & 0x1]; w++;
 				}
 				z++;
 			}
-			//w += pitch - (LCD_RESX * 3);
 		}
 	} else {
 		for (uint32_t x = 0; x < LCD_RESX; x++) {
 			for (uint32_t y = 0; y < LCD_RESY; y += PixelsPerByte) {
 				uint8_t c = src_buf[z];
 				for (uint32_t i = 0; i < PixelsPerByte; i++) {
-						dst_buf[w] = colorR[c & 0x1]; w++;
-						dst_buf[w] = colorG[c & 0x1]; w++;
-						dst_buf[w] = colorB[c & 0x1]; w++;
-					w += (pitch - 3);
+					dst_buf[w] = color_LUT[c & 0x1]; w++;
+					w += (LCD_RESX - 1);
 					c >>= 1;
 				}
 				z++;
 			}
-			w -= pitch * LCD_RESY;
-			w += 3;
+			w -= LCD_RESX * LCD_RESY;
+			w += 1;
 		}
 	}
 }
 
+/**
+ * @brief converts the cursor from a 2bit to an 8bit image
+ * 
+ * @param dst the unpacked 8bit cursor image
+ * @param src the packed 2bit cursor image
+ */
+static void unpack_cursor(uint8_t* dst, const uint8_t* src, __attribute__((unused)) bool transpose) {
+	// const uint8_t pixelsPerByte = 4;
+	// const uint8_t bitsPerPixel = 2;
+	for (size_t i = 0; i < lcd_CrsrImageLen64; i++) {
+		uint8_t pix = src[i];
+		*dst = (pix >> 6) & 0b11; dst++;
+		*dst = (pix >> 4) & 0b11; dst++;
+		*dst = (pix >> 2) & 0b11; dst++;
+		*dst = (pix >> 0) & 0b11; dst++;
+	}
+}
+
 // Will be optimized later on
-static void renderCursor(uint8_t* data) {
+static void renderCursor(uint32_t* data) {
+	
 	if (data == NULL) { return; }
 	// srand(1234);
 	// for (size_t i = 0; i < 1024; i++) {
@@ -539,16 +524,17 @@ static void renderCursor(uint8_t* data) {
 	if (cursorEnabled == false) { return; }
 	const bool fullCursor = (lcd_CrsrConfig & 0x1) ? true : false;
 
-	const uint8_t pixelsPerByte = 4;
-	const uint8_t bitsPerPixel = 2;
-
 	const uint8_t cursorDim = fullCursor ? 64 : 32;
 
 	bool use_columnMajorCursor = PortCE_query_column_major() && false;
+
 	const uint16_t cursor_PosX  = use_columnMajorCursor ? lcd_CrsrY     : lcd_CrsrX    ;
 	const uint8_t  cursor_PosY  = use_columnMajorCursor ? lcd_CrsrX     : lcd_CrsrY    ;
 	const uint8_t  cursor_ClipX = use_columnMajorCursor ? lcd_CrsrClipY : lcd_CrsrClipX;
 	const uint8_t  cursor_ClipY = use_columnMajorCursor ? lcd_CrsrClipX : lcd_CrsrClipY;
+
+	uint8_t cursor_image[64 * 64];
+	unpack_cursor(cursor_image, lcd_CrsrImage, use_columnMajorCursor);
 
 	if (cursor_ClipX >= cursorDim || cursor_ClipY >= cursorDim) {
 		// printf("\nError: Everything is clipped");
@@ -561,73 +547,38 @@ static void renderCursor(uint8_t* data) {
 	}
 	const uint16_t limitX = (cursor_PosX + cursorDim > LCD_RESV) ? ( (uint16_t)cursorDim - ((          cursor_PosX + (uint16_t)cursorDim) - LCD_RESV) ) : cursorDim;
 	const uint16_t limitY = (cursor_PosY + cursorDim > LCD_RESY) ? ( (uint16_t)cursorDim - (((uint16_t)cursor_PosY + (uint16_t)cursorDim) - LCD_RESY) ) : cursorDim;
-	if (fullCursor) {
-		for (uint16_t y = cursor_ClipY; y < limitY; y++) {
-			for (uint16_t x = cursor_ClipX; x < limitX; x++) {
-				const size_t data_Index = 3 * ( ((size_t)((uint16_t)cursor_PosY + (uint16_t)y) * LCD_RESX) + (size_t)((uint16_t)cursor_PosX + (uint16_t)x) );
-				const size_t cursor_Index = ((size_t)y * (size_t)cursorDim) + (size_t)x;
-				const uint8_t pixel = (lcd_CrsrImage[cursor_Index / pixelsPerByte] >> ((3 - (cursor_Index % pixelsPerByte)) * bitsPerPixel)) & 0b11;
-				switch (pixel) {
-					case lcd_CrsrPixelPalette0:
-						data[data_Index + 0] = lcd_CrsrPalette0 & 0xFF;
-						data[data_Index + 1] = (lcd_CrsrPalette0 >> 8) & 0xFF;
-						data[data_Index + 2] = (lcd_CrsrPalette0 >> 16) & 0xFF;
-						break;
-					case lcd_CrsrPixelPalette1:
-						data[data_Index + 0] = lcd_CrsrPalette1 & 0xFF;
-						data[data_Index + 1] = (lcd_CrsrPalette1 >> 8) & 0xFF;
-						data[data_Index + 2] = (lcd_CrsrPalette1 >> 16) & 0xFF;
-						break;
-					case lcd_CrsrPixelTransparent:
-						/* Transparent */
-						break;
-					case lcd_CrsrPixelInvert:
-						/* Invert Colors */
-						data[data_Index + 0] = ~data[data_Index + 0];
-						data[data_Index + 1] = ~data[data_Index + 1];
-						data[data_Index + 2] = ~data[data_Index + 2];
-						break;
-				}
-			}
-		}
-	} else {
-		const size_t cursor_Offset = (size_t)((lcd_CrsrCtrl >> 4) & 0b11) * 0x100;
-		for (uint16_t y = lcd_CrsrClipY; y < limitY; y++) {
-			for (uint16_t x = lcd_CrsrClipX; x < limitX; x++) {
-				const size_t data_Index = 3 * ( ((size_t)((uint16_t)lcd_CrsrY + (uint16_t)y) * LCD_RESX) + (size_t)((uint16_t)lcd_CrsrX + (uint16_t)x) );
-				const size_t cursor_Index = ((size_t)y * (size_t)cursorDim) + (size_t)x + cursor_Offset;
-				const uint8_t pixel = (lcd_CrsrImage[cursor_Index / pixelsPerByte] >> ((cursor_Index % pixelsPerByte) * bitsPerPixel)) & 0b11;
-				switch (pixel) {
-					case lcd_CrsrPixelPalette0:
-						data[data_Index + 0] = lcd_CrsrPalette0 & 0xFF;
-						data[data_Index + 1] = (lcd_CrsrPalette0 >> 8) & 0xFF;
-						data[data_Index + 2] = (lcd_CrsrPalette0 >> 16) & 0xFF;
-						break;
-					case lcd_CrsrPixelPalette1:
-						data[data_Index + 0] = lcd_CrsrPalette1 & 0xFF;
-						data[data_Index + 1] = (lcd_CrsrPalette1 >> 8) & 0xFF;
-						data[data_Index + 2] = (lcd_CrsrPalette1 >> 16) & 0xFF;
-						break;
-					case lcd_CrsrPixelTransparent:
-						/* Transparent */
-						break;
-					case lcd_CrsrPixelInvert:
-						/* Invert Colors */
-						data[data_Index + 0] = ~data[data_Index + 0];
-						data[data_Index + 1] = ~data[data_Index + 1];
-						data[data_Index + 2] = ~data[data_Index + 2];
-						break;
-				}
+
+	const uint32_t color_Palette0 = (lcd_CrsrPalette0 & 0xFF) | ((lcd_CrsrPalette0 >> 8) & 0xFF) | ((lcd_CrsrPalette0 >> 16) & 0xFF) | (0xFF << 24);
+	const uint32_t color_palette1 = (lcd_CrsrPalette1 & 0xFF) | ((lcd_CrsrPalette1 >> 8) & 0xFF) | ((lcd_CrsrPalette1 >> 16) & 0xFF) | (0xFF << 24);
+
+	const size_t cursor_Offset = fullCursor ? 0 : ((size_t)((lcd_CrsrCtrl >> 4) & 0b11) * 0x100);
+	for (uint16_t y = cursor_ClipY; y < limitY; y++) {
+		for (uint16_t x = cursor_ClipX; x < limitX; x++) {
+			const size_t data_Index = ((size_t)((uint16_t)cursor_PosY + (uint16_t)y) * LCD_RESX) + (size_t)((uint16_t)cursor_PosX + (uint16_t)x);
+			const size_t cursor_Index = ((size_t)y * (size_t)cursorDim) + (size_t)x + cursor_Offset;
+			const uint8_t pixel = cursor_image[cursor_Index];
+			switch (pixel) {
+				case lcd_CrsrPixelPalette0:
+					data[data_Index] = color_Palette0;
+					break;
+				case lcd_CrsrPixelPalette1:
+					data[data_Index] = color_palette1;
+					break;
+				case lcd_CrsrPixelTransparent:
+					/* Transparent */
+					break;
+				case lcd_CrsrPixelInvert:
+					/* Invert Colors */
+					data[data_Index] = ~data[data_Index];
+					break;
 			}
 		}
 	}
 }
 
-static void render_color_idle_mode(uint8_t* data) {
-	for (size_t i = 0; i < LCD_RESX * LCD_RESY * 3; i += 3) {
-		data[i + 0] = (data[i + 0] >= 128) ? 128 : 0;
-		data[i + 1] = (data[i + 1] >= 128) ? 128 : 0;
-		data[i + 2] = (data[i + 2] >= 128) ? 128 : 0;
+static void render_color_idle_mode(uint32_t* data) {
+	for (size_t i = 0; i < LCD_RESX * LCD_RESY; i++) {
+		data[i] &= 0xFF808080;
 	}
 }
 
@@ -653,11 +604,11 @@ static void render_color_idle_mode(uint8_t* data) {
  * 
  * @param data buffer to write a LCD_RESX * LCD_RESY image to
  */
-void copyFrame(uint8_t* data) {
+void copyFrame(uint32_t* data) {
 	#ifdef Debug_Print_LCD_Registers
 		internal_print_LCD_registers();
 	#endif
-	memcpy(paletteRAM,lcd_Palette,256 * sizeof(uint16_t));
+	memcpy(paletteRAM, lcd_Palette, 256 * sizeof(uint16_t));
 	size_t copyAmount = 0;
 	uint16_t colorMode = (lcd_VideoMode & LCD_MASK_BBP);
 	switch (colorMode) {
@@ -732,6 +683,9 @@ void copyFrame(uint8_t* data) {
             colorR[i] = ~colorR[i];
         }
     }
+	for (uint32_t i = 0; i < 256; i++) {
+		color_LUT[i] = (colorR[i] << 0) | (colorG[i] << 8) | (colorB[i] << 16) | (0xFF << 24);
+	}
 	switch (colorMode) {
 		case LCD_MASK_INDEXED1:
 			blit1bpp(data, videoCopy);
@@ -787,7 +741,7 @@ void initLCDcontroller(const char* window_title, const PortCE_Config* config) {
 	uint8_t init_scale = (config == NULL) ? 2 : config->window_scale;
 	if (init_scale < 1) {
 		init_scale = 1;
-	} else if(init_scale > 8) {
+	} else if (init_scale > 8) {
 		init_scale = 8;
 	}
 
@@ -796,8 +750,8 @@ void initLCDcontroller(const char* window_title, const PortCE_Config* config) {
 	Master.resX = LCD_RESX;
 	Master.resY = LCD_RESY;
 	Master.vram = NULL;
-	Master.pitch = Master.resX * 3;
-	Master.vram = calloc((size_t)Master.resY * Master.pitch, sizeof(uint8_t));
+	Master.pitch = Master.resX * VIDEO_CHANNELS;
+	Master.vram = (uint32_t*)calloc((size_t)Master.resY * Master.pitch, sizeof(uint8_t));
 	if (Master.vram == NULL) { printf("\nFailed to calloc Master.vram"); fflush(stdout); return; }
 	SDL_Init(SDL_INIT_VIDEO);
 
@@ -809,13 +763,12 @@ void initLCDcontroller(const char* window_title, const PortCE_Config* config) {
 	);
 
 	SDL_SetWindowMinimumSize(window, RESX_MINIMUM, RESY_MINIMUM);
-	SDL_SetWindowMaximumSize(window, RESX_MAXIMUM, RESY_MAXIMUM);
 	
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 	SDL_RenderClear(renderer);
 	texture = SDL_CreateTexture(
-		renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING,
+		renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING,
 		LCD_RESX * init_scale, LCD_RESY * init_scale
 	);
 	SDL_SetTextureScaleMode(texture, PortCE_scale_mode);
@@ -831,11 +784,8 @@ static bool resizeWindow(int32_t resX, int32_t resY, uint32_t* resizeX, uint32_t
 	bool reVal = false;
 	static int32_t rX = 0, rY = 0;
 	if (rX != resX || rY != resY) {
-		valueLimit(resX,RESX_MINIMUM,RESX_MAXIMUM);
-		valueLimit(resY,RESY_MINIMUM,RESY_MAXIMUM);
-
-		// Rounds resX down to the nearest multiple of 4 to eliminate padding
-		if (resX & 0x3) { resX = resX & ~0x3; }
+		resX = resX < RESX_MINIMUM ? RESX_MINIMUM : resX;
+		resY = resY < RESY_MINIMUM ? RESY_MINIMUM : resY;
 
 		if (Master.vram == NULL) {
 			if (texture == NULL) {
@@ -857,7 +807,7 @@ static bool resizeWindow(int32_t resX, int32_t resY, uint32_t* resizeX, uint32_t
 			SDL_DestroyTexture(texture);
 		}
 		
-		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, (int)Master.resX, (int)Master.resY);
+		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, (int)Master.resX, (int)Master.resY);
 		SDL_SetTextureScaleMode(texture, PortCE_scale_mode);
 		if (texture == NULL) {
 			printf("\nError: SDL_CreateTexture failed while resizing window");
@@ -865,7 +815,7 @@ static bool resizeWindow(int32_t resX, int32_t resY, uint32_t* resizeX, uint32_t
 			return true;
 		}
 
-		memset(Master.vram,0,Master.pitch * Master.resY);
+		memset(Master.vram, 0, Master.pitch * Master.resY);
 		reVal = true;
 	}
 	rX = resX;
@@ -880,12 +830,24 @@ static bool windowResizingCode(uint32_t* resX, uint32_t* resY) {
 	return resizeWindow(x, y, resX, resY);
 }
 
+// #define PORTCE_DEBUG_ALWAYS_PACE_FRAME
+
 static void pace_frame(nano64_t pace_time) {
-	static nano64_t last_frame_time = 0;
-
 	const nano64_t yield_threshold = SECONDS_TO_NANO(1.0e-4);
-
+	
+	static nano64_t last_frame_time = 0;
 	nano64_t current_time = getNanoTime();
+
+#if 1
+	struct timespec ts;
+    ts.tv_sec = 0;
+    ts.tv_nsec = pace_time - (current_time - last_frame_time);
+
+	if (ts.tv_nsec >= yield_threshold) {
+		nanosleep(&ts, NULL);
+	}
+
+#else
 	while (current_time - pace_time + yield_threshold < last_frame_time) {
 		if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
 			terminateLCDcontroller();
@@ -894,9 +856,12 @@ static void pace_frame(nano64_t pace_time) {
 		sched_yield();
 		current_time = getNanoTime();
 	}
+#endif
+
 	while (current_time - pace_time < last_frame_time) {
 		current_time = getNanoTime();
 	}
+	// printf(" | Sleep: %.3lfms\n", NANO_TO_SECONDS(current_time - sleep_time) * 1.0e3);
 	last_frame_time = current_time;
 }
 
@@ -945,9 +910,14 @@ void PortCE_new_frame(void) {
 
 	// nano64_t endTime = getNanoTime();
 	// printf("\nTime: %.3lfms | %.3lffps %lld", NANO_TO_SECONDS(endTime - startTime) * 1.0e3, NANO_TO_FRAMERATE(endTime - startTime), getNanoTime());
+	#ifdef PORTCE_DEBUG_ALWAYS_PACE_FRAME
+		pace_frame(FRAMERATE_TO_NANO((double)60.0));
+	#endif
 }
 
 void PortCE_pace_frame(float frame_rate) {
 	PortCE_new_frame();
-	pace_frame(FRAMERATE_TO_NANO((double)frame_rate));
+	#ifndef PORTCE_DEBUG_ALWAYS_PACE_FRAME
+		pace_frame(FRAMERATE_TO_NANO((double)frame_rate));
+	#endif
 }

@@ -21,9 +21,9 @@ extern "C" {
 
 /* @cond */
 #ifdef _EZ80
-	#define tiflags __attribute__((__tiflags__))
+    #define tiflags __attribute__((__tiflags__))
 #else
-	#define tiflags
+    #define tiflags
 #endif
 /* @endcond */
 

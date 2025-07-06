@@ -64,7 +64,7 @@
     #define Crsr_Color_Transparent  (0x2)
     #define Crsr_Color_Inverted     (0x3)
 
-	void crsr_gfx_SetFillColor(uint8_t fill_color);
+    void crsr_gfx_SetFillColor(uint8_t fill_color);
 
     void crsr_gfx_SetPrimaryColor(uint16_t color);
 
@@ -74,9 +74,9 @@
 
     void crsr_gfx_SetPixel(uint8_t x, uint8_t y);
 
-	/**
-	 *  Returns 0xFF on out of bounds
-	 */
+    /**
+     *  Returns 0xFF on out of bounds
+     */
     uint8_t crsr_gfx_GetPixel(uint8_t x, uint8_t y);
 
     void crsr_gfx_FillScreen(void);
@@ -102,7 +102,7 @@
         int8_t y,
         int8_t length
     );
-    
+
     void crsr_gfx_VertLine(
         int8_t x,
         int8_t y,

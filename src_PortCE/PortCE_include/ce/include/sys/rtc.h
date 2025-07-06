@@ -138,7 +138,7 @@ do { \
     rtc_Hours = hr; \
     rtc_Days = day; \
     rtc_Control |= RTC_LOAD; \
-	PortCE_update_registers(); \
+    PortCE_update_registers(); \
 } while (0)
 
 /**

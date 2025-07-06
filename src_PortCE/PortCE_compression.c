@@ -67,11 +67,11 @@ static void write_byte(int value) {
 
 static void write_bytes(int offset, int length) {
     if ((size_t)offset > output_size + output_index) {
-		#ifndef _EZ80
+        #ifndef _EZ80
         // fprintf(stderr, "Error: Invalid data in input file %s\n", input_name);
         // exit(1);
-		printf("zx7_Decompress Error: Invalid data in input file\n");
-		#endif
+        printf("zx7_Decompress Error: Invalid data in input file\n");
+        #endif
     }
     while (length-- > 0) {
         write_byte(output_data[output_index-offset]);
@@ -79,8 +79,8 @@ static void write_bytes(int offset, int length) {
 }
 
 static void decompress(void) {
-	int length;
-	__attribute__((unused)) int i;
+    int length;
+    __attribute__((unused)) int i;
 
     input_index = 0;
     partial_counter = 0;
@@ -102,7 +102,7 @@ static void decompress(void) {
 }
 
 void zx7_Decompress(void *dst, const void *src) {
-	output_data = (unsigned char*)dst;
-	input_data = (unsigned char*)src;
-	decompress();
+    output_data = (unsigned char*)dst;
+    input_data = (unsigned char*)src;
+    decompress();
 }

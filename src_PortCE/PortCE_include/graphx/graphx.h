@@ -45,16 +45,16 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-	#ifdef _EZ80
-		#ifndef RAM_ADDRESS
-			#define RAM_ADDRESS(x) ((void*)(x))
-		#endif
-		#ifndef RAM_OFFSET
-			#define RAM_OFFSET(ptr) ((uint24_t)(ptr))
-		#endif
-	#else
-		#include <PortCE.h>
-	#endif
+    #ifdef _EZ80
+        #ifndef RAM_ADDRESS
+            #define RAM_ADDRESS(x) ((void*)(x))
+        #endif
+        #ifndef RAM_OFFSET
+            #define RAM_OFFSET(ptr) ((uint24_t)(ptr))
+        #endif
+    #else
+        #include <PortCE.h>
+    #endif
 
 #ifdef __cplusplus
 extern "C" {

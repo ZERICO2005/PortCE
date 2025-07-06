@@ -9,12 +9,12 @@
     #define Crsr_Fill_Transparent  (0xAA)
     #define Crsr_Fill_Inverted     (0xFF)
 
-	static uint8_t crsr_gfx_fill_color = Crsr_Fill_Transparent;
+    static uint8_t crsr_gfx_fill_color = Crsr_Fill_Transparent;
 
 /* Library Setup */
 
     void crsr_gfx_Begin(void) {
-		crsr_gfx_fill_color = Crsr_Fill_Transparent;
+        crsr_gfx_fill_color = Crsr_Fill_Transparent;
         crsr_gfx_Hide();
         crsr_gfx_SetCursorSize(Crsr_Size_32x32);
         crsr_gfx_SetCursorIndex(0);
@@ -87,9 +87,9 @@
 
 /* Colors/Palette */
 
-	void crsr_gfx_SetFillColor(uint8_t fill_color) {
-		fill_color &= 0x3;
-		fill_color |= (fill_color << 6) | (fill_color << 4) | (fill_color << 2);
+    void crsr_gfx_SetFillColor(uint8_t fill_color) {
+        fill_color &= 0x3;
+        fill_color |= (fill_color << 6) | (fill_color << 4) | (fill_color << 2);
     }
 
     void crsr_gfx_SetPrimaryColor(uint16_t color) {
@@ -140,7 +140,7 @@
             case 0x3:
                 return *pixel & 0x03;
         }
-		return 0xFF; // Unreachable
+        return 0xFF; // Unreachable
     }
 
     void crsr_gfx_FillScreen(void) {
@@ -166,9 +166,9 @@
             y -= height;
             height = -height;
         }
-        
+
         const uint8_t clip = crsr_gfx_GetCursorSize();
-        
+
         if (x >= clip || y >= clip) {
             return;
         }
@@ -236,7 +236,7 @@
             x++;
         }
     }
-    
+
     void crsr_gfx_VertLine(
         int8_t x,
         int8_t y,

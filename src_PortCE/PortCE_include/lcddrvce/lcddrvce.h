@@ -106,75 +106,75 @@ void lcd_SetDefaultGamma(void);
 
 // #ifdef _EZ80
 #if 1
-	#define lcd_SendSizedCommandRaw(cmd, size, params) lcd_SendCommandRaw(LCD_SIZEDCMD(cmd, size), params)
-	#define lcd_SendSizedCommandBytes(cmd, size, ...) lcd_SendCommandBytes(LCD_SIZEDCMD(cmd, size), __VA_ARGS__)
-	#define lcd_SendSizedCommandWords(cmd, size, ...) lcd_SendCommandWords(LCD_SIZEDCMD(cmd, size), __VA_ARGS__)
+    #define lcd_SendSizedCommandRaw(cmd, size, params) lcd_SendCommandRaw(LCD_SIZEDCMD(cmd, size), params)
+    #define lcd_SendSizedCommandBytes(cmd, size, ...) lcd_SendCommandBytes(LCD_SIZEDCMD(cmd, size), __VA_ARGS__)
+    #define lcd_SendSizedCommandWords(cmd, size, ...) lcd_SendCommandWords(LCD_SIZEDCMD(cmd, size), __VA_ARGS__)
 
-	#define lcd_SetSleepMode(on) lcd_SendCommand((on) ? LCD_CMD_SLPIN : LCD_CMD_SLPOUT)
-	#define lcd_SetPartialMode(on) lcd_SendCommand((on) ? LCD_CMD_PTLON : LCD_CMD_NORON)
-	#define lcd_SetInvertedMode(on) lcd_SendCommand((on) ? LCD_CMD_INVON : LCD_CMD_INVOFF)
-	#define lcd_SetIdleMode(on) lcd_SendCommand((on) ? LCD_CMD_IDMON : LCD_CMD_IDMOFF)
-	#define lcd_SetInterlacedMode(on) lcd_SendSizedCommandBytes(GATECTRL, 3, LCD_GATECTRL_NL_DEFAULT, LCD_GATECTRL_SCN_DEFAULT, LCD_TMG | ((on) ? LCD_SM : 0))
+    #define lcd_SetSleepMode(on) lcd_SendCommand((on) ? LCD_CMD_SLPIN : LCD_CMD_SLPOUT)
+    #define lcd_SetPartialMode(on) lcd_SendCommand((on) ? LCD_CMD_PTLON : LCD_CMD_NORON)
+    #define lcd_SetInvertedMode(on) lcd_SendCommand((on) ? LCD_CMD_INVON : LCD_CMD_INVOFF)
+    #define lcd_SetIdleMode(on) lcd_SendCommand((on) ? LCD_CMD_IDMON : LCD_CMD_IDMOFF)
+    #define lcd_SetInterlacedMode(on) lcd_SendSizedCommandBytes(GATECTRL, 3, LCD_GATECTRL_NL_DEFAULT, LCD_GATECTRL_SCN_DEFAULT, LCD_TMG | ((on) ? LCD_SM : 0))
 
-	#define lcd_SetColumnAddress(XS, XE) lcd_SendSizedCommandWords(CASET, 2, XS, XE)
-	#define lcd_SetRowAddress(YS, YE) lcd_SendSizedCommandWords(RASET, 2, YS, YE)
-	#define lcd_SetColumnMajor(on) do {\
-		lcd_SendCommand1(LCD_CMD_MADCTL, on ? 0b00001000 : 0b00101000);\
-		lcd_SendSizedCommandWords(CASET, 2, 0, on ? 239 : 319);\
-		lcd_SendSizedCommandWords(RASET, 2, 0, on ? 319 : 239);\
-	} while(0)
+    #define lcd_SetColumnAddress(XS, XE) lcd_SendSizedCommandWords(CASET, 2, XS, XE)
+    #define lcd_SetRowAddress(YS, YE) lcd_SendSizedCommandWords(RASET, 2, YS, YE)
+    #define lcd_SetColumnMajor(on) do {\
+        lcd_SendCommand1(LCD_CMD_MADCTL, on ? 0b00001000 : 0b00101000);\
+        lcd_SendSizedCommandWords(CASET, 2, 0, on ? 239 : 319);\
+        lcd_SendSizedCommandWords(RASET, 2, 0, on ? 319 : 239);\
+    } while(0)
 
-	#define lcd_StartPixelWrite() lcd_SendCommand(LCD_CMD_RAMWR)
-	#define lcd_ContinuePixelWrite() lcd_SendCommand(LCD_CMD_RAMWRC)
+    #define lcd_StartPixelWrite() lcd_SendCommand(LCD_CMD_RAMWR)
+    #define lcd_ContinuePixelWrite() lcd_SendCommand(LCD_CMD_RAMWRC)
 
-	#define lcd_SetPartialArea(PSL, PEL) lcd_SendSizedCommandWords(PTLAR, 2, PSL, PEL)
-	#define lcd_SetScrollArea(TFA, VSA, BFA) lcd_SendSizedCommandWords(VSCRDEF, 3, TFA, VSA, BFA)
-	#define lcd_SetScrollAddress(addr) lcd_SendSizedCommandWords(VSCSAD, 1, addr)
+    #define lcd_SetPartialArea(PSL, PEL) lcd_SendSizedCommandWords(PTLAR, 2, PSL, PEL)
+    #define lcd_SetScrollArea(TFA, VSA, BFA) lcd_SendSizedCommandWords(VSCRDEF, 3, TFA, VSA, BFA)
+    #define lcd_SetScrollAddress(addr) lcd_SendSizedCommandWords(VSCSAD, 1, addr)
 
-	#define lcd_SetRamAccessOrder(param) lcd_SendCommand1(LCD_CMD_MADCTL, param)
-	#define lcd_SetPixelFormat(param) lcd_SendCommand1(LCD_CMD_COLMOD, param)
+    #define lcd_SetRamAccessOrder(param) lcd_SendCommand1(LCD_CMD_MADCTL, param)
+    #define lcd_SetPixelFormat(param) lcd_SendCommand1(LCD_CMD_COLMOD, param)
 
-	#define lcd_SetRamInterface(param) lcd_SendCommand1(LCD_CMD_RAMCTRL, param)
-	#define lcd_SetRamControl(param1, param2) lcd_SendCommand2(LCD_CMD_RAMCTRL, param1, param2)
+    #define lcd_SetRamInterface(param) lcd_SendCommand1(LCD_CMD_RAMCTRL, param)
+    #define lcd_SetRamControl(param1, param2) lcd_SendCommand2(LCD_CMD_RAMCTRL, param1, param2)
 
-	#define lcd_SetNormalPorchControl(BPA, FPA) lcd_SendCommand2(LCD_CMD_PORCTRL, BPA, FPA)
-	#define lcd_SetNormalFrameRateControl(RTNA) lcd_SendCommand1(LCD_CMD_FRCTRL2, RTNA)
+    #define lcd_SetNormalPorchControl(BPA, FPA) lcd_SendCommand2(LCD_CMD_PORCTRL, BPA, FPA)
+    #define lcd_SetNormalFrameRateControl(RTNA) lcd_SendCommand1(LCD_CMD_FRCTRL2, RTNA)
 
-	#define lcd_SetDigitalGamma(on) lcd_SendCommand1(LCD_CMD_DGMEN, (on) ? LCD_DGMEN : 0)
+    #define lcd_SetDigitalGamma(on) lcd_SendCommand1(LCD_CMD_DGMEN, (on) ? LCD_DGMEN : 0)
 
 #else
 
-	#define lcd_SendSizedCommandRaw(cmd, size, params)
-	#define lcd_SendSizedCommandBytes(cmd, size, ...)
-	#define lcd_SendSizedCommandWords(cmd, size, ...)
+    #define lcd_SendSizedCommandRaw(cmd, size, params)
+    #define lcd_SendSizedCommandBytes(cmd, size, ...)
+    #define lcd_SendSizedCommandWords(cmd, size, ...)
 
-	#define lcd_SetSleepMode(on) lcd_SendCommand((on) ? LCD_CMD_SLPIN : LCD_CMD_SLPOUT)
-	#define lcd_SetPartialMode(on) lcd_SendCommand((on) ? LCD_CMD_PTLON : LCD_CMD_NORON)
-	void lcd_SetInvertedMode(bool on);
-	void lcd_SetIdleMode(bool on);
-	#define lcd_SetInterlacedMode(on)
+    #define lcd_SetSleepMode(on) lcd_SendCommand((on) ? LCD_CMD_SLPIN : LCD_CMD_SLPOUT)
+    #define lcd_SetPartialMode(on) lcd_SendCommand((on) ? LCD_CMD_PTLON : LCD_CMD_NORON)
+    void lcd_SetInvertedMode(bool on);
+    void lcd_SetIdleMode(bool on);
+    #define lcd_SetInterlacedMode(on)
 
-	void lcd_SetColumnAddress(uint16_t XS, uint16_t XE);
-	void lcd_SetRowAddress(uint16_t YS, uint16_t YE);
-	void lcd_SetColumnMajor(bool on);
+    void lcd_SetColumnAddress(uint16_t XS, uint16_t XE);
+    void lcd_SetRowAddress(uint16_t YS, uint16_t YE);
+    void lcd_SetColumnMajor(bool on);
 
-	#define lcd_StartPixelWrite() lcd_SendCommand(LCD_CMD_RAMWR)
-	#define lcd_ContinuePixelWrite() lcd_SendCommand(LCD_CMD_RAMWRC)
+    #define lcd_StartPixelWrite() lcd_SendCommand(LCD_CMD_RAMWR)
+    #define lcd_ContinuePixelWrite() lcd_SendCommand(LCD_CMD_RAMWRC)
 
-	void lcd_SetPartialArea(uint16_t PSL, uint16_t PEL);
-	void lcd_SetScrollArea(uint16_t TFA, uint16_t VSA, uint16_t BFA);
-	void lcd_SetScrollAddress(uint16_t VSP_addr);
+    void lcd_SetPartialArea(uint16_t PSL, uint16_t PEL);
+    void lcd_SetScrollArea(uint16_t TFA, uint16_t VSA, uint16_t BFA);
+    void lcd_SetScrollAddress(uint16_t VSP_addr);
 
-	#define lcd_SetRamAccessOrder(param) lcd_SendCommand1(LCD_CMD_MADCTL, param)
-	#define lcd_SetPixelFormat(param) lcd_SendCommand1(LCD_CMD_COLMOD, param)
+    #define lcd_SetRamAccessOrder(param) lcd_SendCommand1(LCD_CMD_MADCTL, param)
+    #define lcd_SetPixelFormat(param) lcd_SendCommand1(LCD_CMD_COLMOD, param)
 
-	#define lcd_SetRamInterface(param) lcd_SendCommand1(LCD_CMD_RAMCTRL, param)
-	#define lcd_SetRamControl(param1, param2) lcd_SendCommand2(LCD_CMD_RAMCTRL, param1, param2)
+    #define lcd_SetRamInterface(param) lcd_SendCommand1(LCD_CMD_RAMCTRL, param)
+    #define lcd_SetRamControl(param1, param2) lcd_SendCommand2(LCD_CMD_RAMCTRL, param1, param2)
 
-	#define lcd_SetNormalPorchControl(BPA, FPA) lcd_SendCommand2(LCD_CMD_PORCTRL, BPA, FPA)
-	#define lcd_SetNormalFrameRateControl(RTNA) lcd_SendCommand1(LCD_CMD_FRCTRL2, RTNA)
+    #define lcd_SetNormalPorchControl(BPA, FPA) lcd_SendCommand2(LCD_CMD_PORCTRL, BPA, FPA)
+    #define lcd_SetNormalFrameRateControl(RTNA) lcd_SendCommand1(LCD_CMD_FRCTRL2, RTNA)
 
-	#define lcd_SetDigitalGamma(on) lcd_SendCommand1(LCD_CMD_DGMEN, (on) ? LCD_DGMEN : 0)
+    #define lcd_SetDigitalGamma(on) lcd_SendCommand1(LCD_CMD_DGMEN, (on) ? LCD_DGMEN : 0)
 
 #endif
 
@@ -212,14 +212,14 @@ typedef struct lcd_gamset {
 //#define LCD_CMD_RAMRD       0x2E /**< Memory read */
 #define LCD_CMD_PTLAR       0x30 /**< Partial area */
 typedef struct lcd_ptlar {
-	uint16_t PSL;
-	uint16_t PEL;
+    uint16_t PSL;
+    uint16_t PEL;
 } lcd_ptlar_t;
 #define LCD_CMD_VSCRDEF     0x33 /**< Vertical scrolling definition */
 typedef struct lcd_vscrdef {
-	uint16_t TFA;
-	uint16_t VSA;
-	uint16_t BFA;
+    uint16_t TFA;
+    uint16_t VSA;
+    uint16_t BFA;
 } lcd_vscrdef_t;
 #define LCD_CMD_TEOFF       0x34 /**< Tearing effect line off */
 #define LCD_CMD_TEON        0x35 /**< Tearing effect line on */
@@ -243,7 +243,7 @@ typedef struct lcd_madctl {
 
 #define LCD_CMD_VSCSAD      0x37 /**< Vertical scroll start address of RAM */
 typedef struct lcd_vscsad {
-	uint16_t VSP;
+    uint16_t VSP;
 } lcd_vscsad_t;
 #define LCD_CMD_IDMOFF      0x38 /**< Idle mode off */
 #define LCD_CMD_IDMON       0x39 /**< Idle mode on */
@@ -289,7 +289,7 @@ typedef struct lcd_ramctrl {
     uint8_t ENDIAN : 1;
     uint8_t EPF : 2;
     uint8_t WEMODE0 : 1;
-	uint8_t WEMODE1 : 1;
+    uint8_t WEMODE1 : 1;
 } lcd_ramctrl_t;
 #define LCD_DM_MCU 0
 #define LCD_DM_RGB 1
@@ -473,23 +473,23 @@ typedef struct lcd_gamctrl {
     uint8_t V63 : 4;
 
     uint8_t V1 : 6;
-	uint8_t : 2;
+    uint8_t : 2;
 
     uint8_t V2 : 6;
-	uint8_t : 2;
+    uint8_t : 2;
 
     uint8_t V4 : 5;
-	uint8_t : 3;
+    uint8_t : 3;
 
     uint8_t V6 : 5;
-	uint8_t : 3;
+    uint8_t : 3;
 
     uint8_t V13 : 4;
     uint8_t J0 : 2;
     uint8_t : 2;
 
     uint8_t V20 : 7;
-	uint8_t : 1;
+    uint8_t : 1;
 
     uint8_t V27 : 3;
     uint8_t : 1;
@@ -497,23 +497,23 @@ typedef struct lcd_gamctrl {
     uint8_t : 1;
 
     uint8_t V43 : 7;
-	uint8_t : 1;
+    uint8_t : 1;
 
     uint8_t V50 : 4;
     uint8_t J1 : 2;
     uint8_t : 2;
 
     uint8_t V57 : 5;
-	uint8_t : 3;
+    uint8_t : 3;
 
     uint8_t V59 : 5;
-	uint8_t : 3;
+    uint8_t : 3;
 
     uint8_t V61 : 6;
-	uint8_t : 2;
+    uint8_t : 2;
 
     uint8_t V62 : 6;
-	uint8_t : 2;
+    uint8_t : 2;
 } lcd_gamctrl_t;
 #define LCD_CMD_DGMLUTR     0xE2 /**< Digital gamma lookup table for red */
 #define LCD_CMD_DGMLUTB     0xE3 /**< Digital gamma lookup table for blue */

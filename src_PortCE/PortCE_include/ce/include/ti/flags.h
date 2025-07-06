@@ -67,9 +67,9 @@ bool os_TestFlagBitsFast(uint16_t offset_pattern);
 /**
  * Converts a flag group name and member ID to a literal.
  * The `flag_` prefix is automatically taken care of.
- * 
- * For example, `OS_FLAG_ID(INDIC, ENABLE)` 
- * 
+ *
+ * For example, `OS_FLAG_ID(INDIC, ENABLE)`
+ *
  * @param[in] GROUP Flag group name without the `OS_FLAG_` prefix
  * @param[in] MEMBER Flag item name without the `OS_FLAG_GROUP_` prefix
  */
@@ -77,32 +77,32 @@ bool os_TestFlagBitsFast(uint16_t offset_pattern);
 
 /**
  * Sets an OS flag to 1.  The `OS_FLAGS_` prefix and group prefix are added automatically for you.
- * 
+ *
  * For example, instead of:
- * 
+ *
  * @code{.cpp}
  * os_SetFlagByte(OS_FLAGS_INDIC, OS_FLAGS_INDIC_ENABLE);
  * @endcode
- * 
+ *
  * you can do:
- * 
+ *
  * @code{.cpp}
  * os_SetFlag(INDIC, ENABLE);
  * @endcode
- * 
+ *
  */
 #define os_SetFlag(GROUP, MEMBER) os_SetFlagBits(OS_FLAG_ID(GROUP, MEMBER))
 
 /**
  * Clears an OS flag to 0.
- * 
+ *
  * @see os_SetFlag
  */
 #define os_ResetFlag(GROUP, MEMBER) os_ResetFlagBits(OS_FLAG_ID(GROUP, MEMBER))
 
 /**
  * Checks if an OS flag is set.
- * 
+ *
  * @see os_SetFlag
  */
 #define os_TestFlag(GROUP, MEMBER) (0 < os_TestFlagBits(OS_FLAG_ID(GROUP, MEMBER)))
@@ -211,13 +211,13 @@ bool os_TestFlagBitsFast(uint16_t offset_pattern);
 #define OS_FLAGS_INDIC_ENABLE              0 /**< Set to enable run indicator.  The C runtime resets this automatically. */
 /**
  * indicator save area in use=1, free=0
- * 
+ *
  * resetting will disable 2nd while in _getkey
  */
 #define OS_FLAGS_INDIC_INUSE               1
 /**
  * GROUP: [2nd] and [ALPHA]
- * 
+ *
  * @see os_GetKey
  * @see sys/getkey.h
  */
@@ -243,7 +243,7 @@ bool os_TestFlagBitsFast(uint16_t offset_pattern);
 #define OS_FLAGS_ASM1                      0x21 /**< GROUP: Intentionally unused by TI, available for programs! */
 #define OS_FLAGS_ASM2                      0x22 /**< GROUP: Intentionally unused by TI, available for programs! */
 #define OS_FLAGS_ARCHIVE                   0x24 /**< GROUP: Archive stuff */
-#define OS_FLAGS_ARCHIVE_CHECKBATTERY	    0 /**< 1 = check battery levels in Arc_Unarc first and throw error if low */
+#define OS_FLAGS_ARCHIVE_CHECKBATTERY      0 /**< 1 = check battery levels in Arc_Unarc first and throw error if low */
 #define OS_FLAGS_GETSEND                   0x24 /**< FLAGS */
 #define OS_FLAGS_GETSEND_COMFAILED         1 /**< 1 = Get/Send Communication Failed */
 #define OS_FLAGS_SELFTEST                  0x24 /**< GROUP: Self-test screen */
@@ -274,7 +274,7 @@ bool os_TestFlagBitsFast(uint16_t offset_pattern);
 #define OS_FLAGS_FONT_CUSTOMFONT           7
 /**
  * GROUP: OS hooks, also scriptFlag, rclFlag2, backGroundLink
- * 
+ *
  * You should generally not touch these.
  * The SDK does not have any explicit OS hook support.
  */

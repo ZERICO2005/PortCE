@@ -21,7 +21,7 @@ typedef enum PortCE_Keycode {
     KB_DecPnt       , KB_2      , KB_5      , KB_8      , KB_LParen , KB_Cos    , KB_Prgm   , KB_Stat       ,
     KB_Chs          , KB_3      , KB_6      , KB_9      , KB_RParen , KB_Tan    , KB_Vars   ,
     KB_Enter = 40   , KB_Add    , KB_Sub    , KB_Mul    , KB_Div    , KB_Power  , KB_Clear  ,
-    KB_Down = 48    , KB_Left   , KB_Right  , KB_Up    
+    KB_Down = 48    , KB_Left   , KB_Right  , KB_Up
 } PortCE_Keycode;
 
 /**
@@ -36,32 +36,32 @@ typedef enum PortCE_Keycode {
 
 static const PortCE_Keybind PortCE_Keybind_Custom[] = {
 
-};  
+};
 
 static const PortCE_Keybind PortCE_Keybind_Default[] = { // Mixture of WASD-EQ-ZXC and CEmu keybinds.
     /* Keypad Numbers */
     {SDL_SCANCODE_KP_0,KB_0},{SDL_SCANCODE_KP_1,KB_1},{SDL_SCANCODE_KP_2,KB_2},{SDL_SCANCODE_KP_3,KB_3},{SDL_SCANCODE_KP_4,KB_4},
     {SDL_SCANCODE_KP_5,KB_5},{SDL_SCANCODE_KP_6,KB_6},{SDL_SCANCODE_KP_7,KB_7},{SDL_SCANCODE_KP_8,KB_8},{SDL_SCANCODE_KP_9,KB_9},
-	{SDL_SCANCODE_0,KB_0},{SDL_SCANCODE_1,KB_1},{SDL_SCANCODE_2,KB_2},{SDL_SCANCODE_3,KB_3},{SDL_SCANCODE_4,KB_4},
+    {SDL_SCANCODE_0,KB_0},{SDL_SCANCODE_1,KB_1},{SDL_SCANCODE_2,KB_2},{SDL_SCANCODE_3,KB_3},{SDL_SCANCODE_4,KB_4},
     {SDL_SCANCODE_5,KB_5},{SDL_SCANCODE_6,KB_6},{SDL_SCANCODE_7,KB_7},{SDL_SCANCODE_8,KB_8},{SDL_SCANCODE_9,KB_9},
-	/* Keypad Symbols */
-	{SDL_SCANCODE_KP_PLUS,KB_Add},{SDL_SCANCODE_KP_MINUS,KB_Sub},{SDL_SCANCODE_KP_MULTIPLY,KB_Mul},{SDL_SCANCODE_KP_DIVIDE,KB_Div},{SDL_SCANCODE_KP_PERIOD,KB_DecPnt},
+    /* Keypad Symbols */
+    {SDL_SCANCODE_KP_PLUS,KB_Add},{SDL_SCANCODE_KP_MINUS,KB_Sub},{SDL_SCANCODE_KP_MULTIPLY,KB_Mul},{SDL_SCANCODE_KP_DIVIDE,KB_Div},{SDL_SCANCODE_KP_PERIOD,KB_DecPnt},
     /* Arrows */
     {SDL_SCANCODE_W,KB_Up},{SDL_SCANCODE_S,KB_Down},{SDL_SCANCODE_A,KB_Left},{SDL_SCANCODE_D,KB_Right},
     {SDL_SCANCODE_UP,KB_Up},{SDL_SCANCODE_DOWN,KB_Down},{SDL_SCANCODE_LEFT,KB_Left},{SDL_SCANCODE_RIGHT,KB_Right},
     /* Primary */
     {SDL_SCANCODE_E,KB_Alpha}, {SDL_SCANCODE_APOSTROPHE,KB_Alpha},
-	{SDL_SCANCODE_Q,KB_2nd}, {SDL_SCANCODE_SEMICOLON,KB_2nd},
-	{SDL_SCANCODE_RETURN, KB_Enter}, {SDL_SCANCODE_KP_ENTER, KB_Enter},
+    {SDL_SCANCODE_Q,KB_2nd}, {SDL_SCANCODE_SEMICOLON,KB_2nd},
+    {SDL_SCANCODE_RETURN, KB_Enter}, {SDL_SCANCODE_KP_ENTER, KB_Enter},
     /* Other */
     {SDL_SCANCODE_Z,KB_Yequ},
     {SDL_SCANCODE_LSHIFT,KB_GraphVar}, {SDL_SCANCODE_RSHIFT,KB_GraphVar},
     {SDL_SCANCODE_X,KB_Mode}, {SDL_SCANCODE_BACKSPACE, KB_Mode},
     {SDL_SCANCODE_C,KB_Clear}, {SDL_SCANCODE_ESCAPE,KB_Clear},
     {SDL_SCANCODE_P,KB_Del}, {SDL_SCANCODE_DELETE,KB_Del},
-	{SDL_SCANCODE_GRAVE,KB_Power},
-	/* Functions */
-	{SDL_SCANCODE_F1,KB_Graph}, {SDL_SCANCODE_F2,KB_Trace}, {SDL_SCANCODE_F3,KB_Zoom}, {SDL_SCANCODE_F4,KB_Window}, {SDL_SCANCODE_F5,KB_Yequ},
+    {SDL_SCANCODE_GRAVE,KB_Power},
+    /* Functions */
+    {SDL_SCANCODE_F1,KB_Graph}, {SDL_SCANCODE_F2,KB_Trace}, {SDL_SCANCODE_F3,KB_Zoom}, {SDL_SCANCODE_F4,KB_Window}, {SDL_SCANCODE_F5,KB_Yequ},
 };
 
 #ifdef __cplusplus

@@ -15,7 +15,7 @@ void PortCE_initialize_sound(void);
 void PortCE_terminate_sound(void);
 
 int TiOS_vprintf(
-	const char *__restrict format, va_list va
+    const char *__restrict format, va_list va
 ) __attribute__((format(__printf__, 1, 0)));
 
 #ifdef __cplusplus

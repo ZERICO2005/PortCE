@@ -15,7 +15,7 @@
  * to cancel all transfers and disable all devices.
  */
 usb_error_t usb_Init(
-	usb_event_callback_t handler, usb_callback_data_t *data,
+    usb_event_callback_t handler, usb_callback_data_t *data,
     const usb_standard_descriptors_t *device_descriptors,
     usb_init_flags_t flags
 );
@@ -163,7 +163,7 @@ usb_device_flags_t usb_GetDeviceFlags(usb_device_t device);
  * \p flags or \c NULL if none.
  */
 usb_device_t usb_FindDevice(
-	usb_device_t root, usb_device_t from,
+    usb_device_t root, usb_device_t from,
     usb_find_device_flags_t flags
 );
 
@@ -207,7 +207,7 @@ int8_t usb_GetDeviceSpeed(usb_device_t device);
  * 0 on error.
  */
 size_t usb_GetConfigurationDescriptorTotalLength(
-	usb_device_t device, uint8_t index
+    usb_device_t device, uint8_t index
 );
 
 /**
@@ -223,7 +223,7 @@ size_t usb_GetConfigurationDescriptorTotalLength(
  * @return USB_SUCCESS if the transfer succeeded or an error.
  */
 usb_error_t usb_GetDescriptor(
-	usb_device_t device, usb_descriptor_type_t type,
+    usb_device_t device, usb_descriptor_type_t type,
     uint8_t index, void *descriptor, size_t length,
     size_t *transferred
 );
@@ -241,7 +241,7 @@ usb_error_t usb_GetDescriptor(
  * @return USB_SUCCESS if the transfer succeeded or an error.
  */
 usb_error_t usb_SetDescriptor(
-	usb_device_t device, usb_descriptor_type_t type,
+    usb_device_t device, usb_descriptor_type_t type,
     uint8_t index, const void *descriptor,
     size_t length
 );
@@ -259,7 +259,7 @@ usb_error_t usb_SetDescriptor(
  * @return USB_SUCCESS if the transfer succeeded or an error.
  */
 usb_error_t usb_GetStringDescriptor(
-	usb_device_t device, uint8_t index,
+    usb_device_t device, uint8_t index,
     uint16_t langid,
     usb_string_descriptor_t *descriptor,
     size_t length, size_t *transferred
@@ -278,9 +278,9 @@ usb_error_t usb_GetStringDescriptor(
  * @return USB_SUCCESS if the transfer succeeded or an error.
  */
 usb_error_t usb_SetStringDescriptor(
-	usb_device_t device, uint8_t index,
+    usb_device_t device, uint8_t index,
     uint16_t langid,
-	const usb_string_descriptor_t *descriptor,
+    const usb_string_descriptor_t *descriptor,
     size_t length
 );
 
@@ -305,7 +305,7 @@ usb_error_t usb_GetConfiguration(usb_device_t device, uint8_t *index);
  * @return USB_SUCCESS if the transfer succeeded or an error.
  */
 usb_error_t usb_SetConfiguration(
-	usb_device_t device,
+    usb_device_t device,
     const usb_configuration_descriptor_t *descriptor,
     size_t length
 );
@@ -318,7 +318,7 @@ usb_error_t usb_SetConfiguration(
  * @return USB_SUCCESS if the transfer succeeded or an error.
  */
 usb_error_t usb_GetInterface(
-	usb_device_t device, uint8_t interface,
+    usb_device_t device, uint8_t interface,
     uint8_t *alternate_setting
 );
 
@@ -334,7 +334,7 @@ usb_error_t usb_GetInterface(
  * @return USB_SUCCESS if the transfer succeeded or an error.
  */
 usb_error_t usb_SetInterface(
-	usb_device_t device,
+    usb_device_t device,
     const usb_interface_descriptor_t *descriptor,
     size_t length
 );
@@ -472,7 +472,7 @@ unsigned usb_GetFrameNumber(void);
  * @return USB_SUCCESS if the transfer succeeded or an error.
  */
 usb_error_t usb_ControlTransfer(
-	usb_endpoint_t endpoint, const usb_control_setup_t *setup,
+    usb_endpoint_t endpoint, const usb_control_setup_t *setup,
     void *buffer, unsigned retries, size_t *transferred
 );
 
@@ -497,7 +497,7 @@ usb_error_t usb_ControlTransfer(
  * @return USB_SUCCESS if the transfer succeeded or an error.
  */
 usb_error_t usb_Transfer(
-	usb_endpoint_t endpoint, void *buffer, size_t length,
+    usb_endpoint_t endpoint, void *buffer, size_t length,
     unsigned retries, size_t *transferred
 );
 
@@ -519,7 +519,7 @@ usb_error_t usb_Transfer(
  * @return USB_SUCCESS if the transfer was scheduled or an error.
  */
 usb_error_t usb_ScheduleControlTransfer(
-	usb_endpoint_t endpoint,
+    usb_endpoint_t endpoint,
     const usb_control_setup_t *setup, void *buffer,
     usb_transfer_callback_t handler,
     usb_transfer_data_t *data
@@ -544,7 +544,7 @@ usb_error_t usb_ScheduleControlTransfer(
  * @return USB_SUCCESS if the transfer was scheduled or an error.
  */
 usb_error_t usb_ScheduleTransfer(
-	usb_endpoint_t endpoint, void *buffer, size_t length,
+    usb_endpoint_t endpoint, void *buffer, size_t length,
     usb_transfer_callback_t handler, usb_transfer_data_t *data
 );
 
@@ -580,12 +580,12 @@ void usb_RepeatTimerCycles(usb_timer_t *timer, uint32_t interval_cycles);
  * @return Cpu cycle counter.
  */
 uint32_t usb_GetCycleCounter(void) {
-	double time = getDecimalTime();
-	// time *= Ti84CE_Clockspeed;
-	time *= 48.0e6; // 48Mhz
-	// mod 2^32 for casting
-	time = fmod(time, 4294967296.0);
-	return (uint32_t)time;
+    double time = getDecimalTime();
+    // time *= Ti84CE_Clockspeed;
+    time *= 48.0e6; // 48Mhz
+    // mod 2^32 for casting
+    time = fmod(time, 4294967296.0);
+    return (uint32_t)time;
 }
 
 /**
@@ -595,5 +595,5 @@ uint32_t usb_GetCycleCounter(void) {
  * @return Cpu cycle counter >> 8.
  */
 uint24_t usb_GetCounter(void) {
-	return (uint24_t)(usb_GetCycleCounter() >> 8);
+    return (uint24_t)(usb_GetCycleCounter() >> 8);
 }

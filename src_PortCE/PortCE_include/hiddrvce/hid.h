@@ -7,7 +7,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
 typedef enum {
     HID_SUCCESS,
     HID_IGNORE,
@@ -91,7 +91,7 @@ typedef struct HID_State hid_state_t;
  * @param callback_data Opaque pointer passed to \c hid_SetEventCallback
  */
 typedef void (*hid_callback_t)(
-	hid_state_t *hid, hid_event_t event, uint8_t code, void *callback_data
+    hid_state_t *hid, hid_event_t event, uint8_t code, void *callback_data
 );
 
 struct HID_State {

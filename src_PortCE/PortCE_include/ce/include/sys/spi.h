@@ -29,88 +29,88 @@ extern "C" {
 
 #ifdef _EZ80
 
-	/**
-	 * In order to reliably use the LCD interface, the
-	 * boot_InitializeHardware routine should be called at the start of a program
-	 * to select the LCD interface and reset its configuration to the default.
-	 */
-	#define boot_InitializeHardware()  ((void(*)(void))0x384)()
+    /**
+     * In order to reliably use the LCD interface, the
+     * boot_InitializeHardware routine should be called at the start of a program
+     * to select the LCD interface and reset its configuration to the default.
+     */
+    #define boot_InitializeHardware()  ((void(*)(void))0x384)()
 
-	/**
-	 * Sends a Command to the SPI controller using the 9bit FIFO protocol.
-	 *
-	 * @param[in] x 8bit command.
-	 */
-	#define SPI_COMMAND(x) \
-	do { \
-		*(volatile uint8_t*)spi_FIFO = ((x) >> 6) & 0b111; \
-		*(volatile uint8_t*)spi_FIFO = ((x) >> 3) & 0b111; \
-		*(volatile uint8_t*)spi_FIFO = (x) & 0b111; \
-		*(volatile uint8_t*)spi_ControlRegister2 = 0x1; \
-		while ( ((const volatile uint8_t*)spi_StatusBits)[1] & 0xF0) {}; \
-		while ( ((const volatile uint8_t*)spi_StatusBits)[0] & (1 << 2)) {}; \
-		*(volatile uint8_t*)spi_ControlRegister2 = 0x0; \
-	} while(0)
+    /**
+     * Sends a Command to the SPI controller using the 9bit FIFO protocol.
+     *
+     * @param[in] x 8bit command.
+     */
+    #define SPI_COMMAND(x) \
+    do { \
+        *(volatile uint8_t*)spi_FIFO = ((x) >> 6) & 0b111; \
+        *(volatile uint8_t*)spi_FIFO = ((x) >> 3) & 0b111; \
+        *(volatile uint8_t*)spi_FIFO = (x) & 0b111; \
+        *(volatile uint8_t*)spi_ControlRegister2 = 0x1; \
+        while ( ((const volatile uint8_t*)spi_StatusBits)[1] & 0xF0) {}; \
+        while ( ((const volatile uint8_t*)spi_StatusBits)[0] & (1 << 2)) {}; \
+        *(volatile uint8_t*)spi_ControlRegister2 = 0x0; \
+    } while(0)
 
-	/**
-	 * Sends a Parameter to the SPI controller using the 9bit FIFO protocol.
-	 *
-	 * @param[in] x 8bit parameter.
-	 */
-	#define SPI_PARAMETER(x) \
-	do { \
-		*(volatile uint8_t*)spi_FIFO = (((x) >> 6) & 0b111) | 0b100; \
-		*(volatile uint8_t*)spi_FIFO = ((x) >> 3) & 0b111; \
-		*(volatile uint8_t*)spi_FIFO = (x) & 0b111; \
-		*(volatile uint8_t*)spi_ControlRegister2 = 0x1; \
-		while ( ((const volatile uint8_t*)spi_StatusBits)[1] & 0xF0) {}; \
-		while ( ((const volatile uint8_t*)spi_StatusBits)[0] & (1 << 2)) {}; \
-		*(volatile uint8_t*)spi_ControlRegister2 = 0x0; \
-	} while(0)
+    /**
+     * Sends a Parameter to the SPI controller using the 9bit FIFO protocol.
+     *
+     * @param[in] x 8bit parameter.
+     */
+    #define SPI_PARAMETER(x) \
+    do { \
+        *(volatile uint8_t*)spi_FIFO = (((x) >> 6) & 0b111) | 0b100; \
+        *(volatile uint8_t*)spi_FIFO = ((x) >> 3) & 0b111; \
+        *(volatile uint8_t*)spi_FIFO = (x) & 0b111; \
+        *(volatile uint8_t*)spi_ControlRegister2 = 0x1; \
+        while ( ((const volatile uint8_t*)spi_StatusBits)[1] & 0xF0) {}; \
+        while ( ((const volatile uint8_t*)spi_StatusBits)[0] & (1 << 2)) {}; \
+        *(volatile uint8_t*)spi_ControlRegister2 = 0x0; \
+    } while(0)
 
-	/** @todo Implement vsync */
-	#define SPI_UNINVERT_COLORS() SPI_COMMAND(0x20)
+    /** @todo Implement vsync */
+    #define SPI_UNINVERT_COLORS() SPI_COMMAND(0x20)
 
-	/** @todo Implement vsync */
-	#define SPI_INVERT_COLORS() SPI_COMMAND(0x21)
+    /** @todo Implement vsync */
+    #define SPI_INVERT_COLORS() SPI_COMMAND(0x21)
 
-	/** Sets the LCD to BGR Row-Major mode (TI-OS default) */
-	#define SPI_ROW_MAJOR() \
-	do { \
-		SPI_COMMAND(0x36); \
-		SPI_PARAMETER(0b00001000); \
-		SPI_COMMAND(0x2A); \
-		SPI_PARAMETER(0x00); SPI_PARAMETER(0x00); \
-		SPI_PARAMETER(0x01); SPI_PARAMETER(0x3F); \
-		SPI_COMMAND(0x2B); \
-		SPI_PARAMETER(0x00); SPI_PARAMETER(0x00); \
-		SPI_PARAMETER(0x00); SPI_PARAMETER(0xEF); \
-	} while(0)
+    /** Sets the LCD to BGR Row-Major mode (TI-OS default) */
+    #define SPI_ROW_MAJOR() \
+    do { \
+        SPI_COMMAND(0x36); \
+        SPI_PARAMETER(0b00001000); \
+        SPI_COMMAND(0x2A); \
+        SPI_PARAMETER(0x00); SPI_PARAMETER(0x00); \
+        SPI_PARAMETER(0x01); SPI_PARAMETER(0x3F); \
+        SPI_COMMAND(0x2B); \
+        SPI_PARAMETER(0x00); SPI_PARAMETER(0x00); \
+        SPI_PARAMETER(0x00); SPI_PARAMETER(0xEF); \
+    } while(0)
 
-	/** Sets the LCD to BGR Column-Major mode */
-	#define SPI_COLUMN_MAJOR() \
-	do { \
-		SPI_COMMAND(0x36); \
-		SPI_PARAMETER(0b00101000); \
-		SPI_COMMAND(0x2A); \
-		SPI_PARAMETER(0x00); SPI_PARAMETER(0x00); \
-		SPI_PARAMETER(0x00); SPI_PARAMETER(0xEF); \
-		SPI_COMMAND(0x2B); \
-		SPI_PARAMETER(0x00); SPI_PARAMETER(0x00); \
-		SPI_PARAMETER(0x01); SPI_PARAMETER(0x3F); \
-	} while(0)
+    /** Sets the LCD to BGR Column-Major mode */
+    #define SPI_COLUMN_MAJOR() \
+    do { \
+        SPI_COMMAND(0x36); \
+        SPI_PARAMETER(0b00101000); \
+        SPI_COMMAND(0x2A); \
+        SPI_PARAMETER(0x00); SPI_PARAMETER(0x00); \
+        SPI_PARAMETER(0x00); SPI_PARAMETER(0xEF); \
+        SPI_COMMAND(0x2B); \
+        SPI_PARAMETER(0x00); SPI_PARAMETER(0x00); \
+        SPI_PARAMETER(0x01); SPI_PARAMETER(0x3F); \
+    } while(0)
 
 #else
 
-	#define boot_InitializeHardware()
-	#define SPI_COMMAND(...)
-	#define SPI_PARAMETER(...)
+    #define boot_InitializeHardware()
+    #define SPI_COMMAND(...)
+    #define SPI_PARAMETER(...)
 
-	void SPI_UNINVERT_COLORS(void);
-	void SPI_INVERT_COLORS(void);
-	void SPI_ROW_MAJOR(void);
-	void SPI_COLUMN_MAJOR(void);
-	
+    void SPI_UNINVERT_COLORS(void);
+    void SPI_INVERT_COLORS(void);
+    void SPI_ROW_MAJOR(void);
+    void SPI_COLUMN_MAJOR(void);
+
 #endif
 
 #ifdef __cplusplus

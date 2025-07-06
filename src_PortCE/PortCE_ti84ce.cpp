@@ -5,8 +5,8 @@
  */
 
 /*
-**	PortCE_ti84ce.h simulates libraries and functions from the CE Programming Toolchain.
-**	Some functions may not be completely accurate or fully implemented.
+**  PortCE_ti84ce.h simulates libraries and functions from the CE Programming Toolchain.
+**  Some functions may not be completely accurate or fully implemented.
 */
 
 #include "PortCE_Common.h"
@@ -126,43 +126,43 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
 /* <sys/timers.h> */
 
     // struct Simulated_Timer {
-    // 	uint8_t enabled;
-    // 	uint8_t rate;
-    // 	uint8_t inter;
-    // 	uint8_t dir;
+    //     uint8_t enabled;
+    //     uint8_t rate;
+    //     uint8_t inter;
+    //     uint8_t dir;
     // }; typedef struct Simulated_Timer Simulated_Timer;
-    
+
     // static Simulated_Timer simulated_timer[3] = {
-    // 	{0,1,0,1},{1,1,0,1},{1,1,0,1}
+    //     {0,1,0,1},{1,1,0,1},{1,1,0,1}
     // };
 
     // void timer_Enable(uint8_t n, uint8_t rate, uint8_t inter, uint8_t dir) {
-    // 	if (n < 1 || n > 3) { return; }
-    // 	simulated_timer[n - 1].enabled = 1;
-    // 	simulated_timer[n - 1].rate = rate;
-    // 	simulated_timer[n - 1].inter = inter;
-    // 	simulated_timer[n - 1].dir = dir;
+    //     if (n < 1 || n > 3) { return; }
+    //     simulated_timer[n - 1].enabled = 1;
+    //     simulated_timer[n - 1].rate = rate;
+    //     simulated_timer[n - 1].inter = inter;
+    //     simulated_timer[n - 1].dir = dir;
     // }
-    
+
     // void timer_Disable(uint8_t n) {
-    // 	if (n < 1 || n > 3) { return; }
-    // 	simulated_timer[n - 1].enabled = 0;
+    //     if (n < 1 || n > 3) { return; }
+    //     simulated_timer[n - 1].enabled = 0;
     // }
 
     // // n is supposed to be a value between 1 and 3
     // uint32_t timer_Get(uint8_t n) {
-    // 	if (n < 1 || n > 3) { return 0; }
-    // 	if (simulated_timer[n - 1].enabled == 0) {
-    // 		return 0;
-    // 	}
-    // 	if (simulated_timer[n - 1].rate == 0) {
-    // 		double timerCPU = getDecimalTime(); //Time in seconds
-    // 		timerCPU *= 15000000.0;
-    // 		return (uint32_t)timerCPU;
-    // 	}
-    // 	double timer32K = getDecimalTime(); //Time in seconds
-    // 	timer32K *= 32768.0;
-    // 	return (uint32_t)timer32K;
+    //     if (n < 1 || n > 3) { return 0; }
+    //     if (simulated_timer[n - 1].enabled == 0) {
+    //         return 0;
+    //     }
+    //     if (simulated_timer[n - 1].rate == 0) {
+    //         double timerCPU = getDecimalTime(); //Time in seconds
+    //         timerCPU *= 15000000.0;
+    //         return (uint32_t)timerCPU;
+    //     }
+    //     double timer32K = getDecimalTime(); //Time in seconds
+    //     timer32K *= 32768.0;
+    //     return (uint32_t)timer32K;
     // }
 
     /* Sleep and Delays */
@@ -175,7 +175,7 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
                 /* Wait */
             }
         }
-        
+
         void msleep(uint16_t msec) {
             nano64_t dur = (nano64_t)msec * 1000000;
             nano64_t startTime = getNanoTime();
@@ -220,10 +220,10 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
 /* Update */
 
 // typedef struct Ti_Timer {
-// 	uint32_t Counter;
-// 	uint32_t ReloadValue;
-// 	uint32_t MatchValue_1;
-// 	uint32_t MatchValue_2;
+//     uint32_t Counter;
+//     uint32_t ReloadValue;
+//     uint32_t MatchValue_1;
+//     uint32_t MatchValue_2;
 // } Ti_Timer;
 
 // static Ti_Timer* const timer_list = (Ti_Timer*)((void*)&simulated_ram[0xF20000]);
@@ -293,7 +293,7 @@ static void PortCE_update_timers(void) {
         last_timer_update = getNanoTime();
     }
     const nano64_t current_time = getNanoTime();
-    
+
     const nano64_t delta_nano = (current_time - last_timer_update);
     const uint32_t delta_32K = (uint32_t)((int32_t)((double)delta_nano * (32768.0 / 1.0e9) * timer_mult)); // 32 KHz
     const uint32_t delta_CPU = (uint32_t)((int32_t)((double)delta_nano * (Ti84CE_Clockspeed / 1.0e9) * timer_mult)); // 8 MHz

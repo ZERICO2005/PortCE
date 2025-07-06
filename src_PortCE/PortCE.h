@@ -198,18 +198,18 @@ extern "C" {
 	extern uint8_t simulated_ram[16777216];
 
 	/**
-	 * @brief 
-	 * 
-	 * @param address 
-	 * @return void* 
+	 * @brief
+	 *
+	 * @param address
+	 * @return void*
 	 */
 	void* RAM_ADDRESS(uint24_t address);
 	
 	/**
-	 * @brief 
-	 * 
-	 * @param ptr 
-	 * @return uint24_t 
+	 * @brief
+	 *
+	 * @param ptr
+	 * @return uint24_t
 	 */
 	uint24_t RAM_OFFSET(const void* ptr);
 
@@ -220,7 +220,7 @@ extern "C" {
 
 	/**
 	 * @brief Initializes the PortCE screen, keyboard, timers, etc.
-	 * 
+	 *
 	 * @param window_title your programs name (Can be NULL)
 	 */
 	void PortCE_initialize(const char* window_title);
@@ -242,7 +242,7 @@ extern "C" {
 
 	/**
 	 * @brief Used to update registers
-	 * 
+	 *
 	 * @return This function always returns 0
 	 */
 	ti_int PortCE_update_registers(void);

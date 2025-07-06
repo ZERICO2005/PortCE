@@ -41,7 +41,7 @@ typedef enum PortCE_Mouse_State {
 
 	/**
 	 * @brief Returns the position of the cursor relative to the calculator screen.
-	 * 
+	 *
 	 * @param[out] posX position or `INT_MIN` for out of bounds
 	 * @param[out] posY position or `INT_MIN` for out of bounds
 	 * @return `uint32_t` mask of `PortCE_Mouse_State`

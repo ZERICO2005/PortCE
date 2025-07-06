@@ -12,7 +12,7 @@
 
 /**
  * @todo Implement TiOS functions
- * 
+ *
  */
 
 /* TiOS Colors */
@@ -59,7 +59,7 @@ enum TiOS_Colors {
 			*fill = gColor;
 		}
 	}
-	__attribute__((unused)) static void fillScreen() { 
+	__attribute__((unused)) static void fillScreen() {
 		memset(lcd_Ram,gColor,LCD_RESX * LCD_RESY);
 	}
 	static void text6x8(uint24_t xW, uint24_t yW, uint8_t lexicon) { //x position, y position, letter index

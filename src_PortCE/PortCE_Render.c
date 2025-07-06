@@ -494,7 +494,7 @@ static void blit1bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
 
 /**
  * @brief converts the cursor from a 2bit to an 8bit image
- * 
+ *
  * @param dst the unpacked 8bit cursor image
  * @param src the packed 2bit cursor image
  */
@@ -601,7 +601,7 @@ static void render_color_idle_mode(uint32_t* data) {
 
 /**
  * @brief Writes the contents of the ti84ce screen to a buffer
- * 
+ *
  * @param data buffer to write a LCD_RESX * LCD_RESY image to
  */
 void copyFrame(uint32_t* data) {

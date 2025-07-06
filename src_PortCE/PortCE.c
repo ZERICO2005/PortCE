@@ -26,12 +26,6 @@ uint24_t RAM_OFFSET(const void* const ptr) {
 	return offset;
 }
 
-/* Function Declarations */
-
-	void PortCE_terminate_fileioc(void);
-	
-	void reset_ti84ce_registers(void);
-
 void PortCE_initialize(const char* window_title) {
 	// memset(simulated_ram, 0, sizeof(simulated_ram));
 	reset_ti84ce_registers();

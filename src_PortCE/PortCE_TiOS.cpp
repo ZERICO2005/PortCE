@@ -10,6 +10,8 @@
 #include "./PortCE_include/ce/include/ti/screen.h"
 #include "./PortCE_include/ce/include/sys/lcd.h"
 
+#include "PortCE_include/ce/include/tice.h"
+
 /**
  * @todo Implement TiOS functions
  * 

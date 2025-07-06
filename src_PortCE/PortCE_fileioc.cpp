@@ -4,8 +4,12 @@
  * @author "zerico2005"
  */
 
+#include <algorithm>
 #include "PortCE.h"
 #include "PortCE_Common.h"
+
+#include "PortCE_include/ce/include/tice.h"
+#include "PortCE_include/fileioc/fileioc.h"
 
 #define NameSize (8)
 #define RamFolderPath "./Ti-Ram"
@@ -269,7 +273,7 @@ uint16_t ti_Tell(uint8_t handle) {
 		printf("ftell error: %ld", position);
 		return 0;
 	}
-	return MAX((uint16_t)position, INT16_MAX);
+	return std::max<uint16_t>((uint16_t)position, INT16_MAX);
 }
 
 uint16_t ti_GetSize(uint8_t handle) {
@@ -285,7 +289,7 @@ uint16_t ti_GetSize(uint8_t handle) {
 		printf("ftell error: %ld", fileSize);
 		return 0;
 	}
-	return MAX((uint16_t)fileSize, INT16_MAX);
+	return std::max<uint16_t>((uint16_t)fileSize, INT16_MAX);
 }
 
 static size_t internal_ti_GetSize(uint8_t handle) {

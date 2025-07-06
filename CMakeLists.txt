@@ -55,6 +55,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SAN_FLAG} -fcolor-diagnostics -fdiagno
 target_compile_options(
 	${PROJECT_NAME} PUBLIC ${SAN_FLAG} -fcolor-diagnostics -fdiagnostics-color=always ${OPT_FLAG}
 	-Wall -Wextra -Wshadow
+	-Wmissing-prototypes
 
 	-Wno-unused-const-variable
 

@@ -20,29 +20,15 @@ set(CMAKE_CXX_COMPILER clang++)
 
 # Set C and C++ standards
 set(CMAKE_C_STANDARD 23)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # Packages
 find_package(SDL2 REQUIRED)
 
-file(GLOB_RECURSE SRC_FILES "${SRC_DIR}/*.c" "${SRC_DIR}/*.cpp" "${SRC_PORTCE_DIR}/*.c")
-
-file (GLOB REMOVE_FILES
-	"${SRC_DIR}/SoftFloat/source/8086/*.c"
-	"${SRC_DIR}/SoftFloat/source/8086-SSE/*.c"
-	"${SRC_DIR}/SoftFloat/source/ARM-VFPv2/*.c"
-	"${SRC_DIR}/SoftFloat/source/ARM-VFPv2-defaultNaN/*.c"
-	"${SRC_DIR}/SoftFloat/source/extF80*"
-	"${SRC_DIR}/SoftFloat/source/extF80*"
-)
-list(REMOVE_ITEM SRC_FILES ${REMOVE_FILES})
+file(GLOB_RECURSE SRC_FILES "${SRC_DIR}/*.c" "${SRC_DIR}/*.cpp" "${SRC_PORTCE_DIR}/*.c" "${SRC_PORTCE_DIR}/*.cpp")
 
 # Create an executable
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${SRC_PORTCE_DIR})
-
-target_include_directories(${PROJECT_NAME} PUBLIC ${SRC_DIR}
-	"${SRC_DIR}/SoftFloat/source/include"
-)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${SRC_PORTCE_DIR}
 	"${SRC_PORTCE_DIR}/PortCE_include/"

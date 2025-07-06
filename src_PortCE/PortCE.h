@@ -246,7 +246,7 @@ extern "C" {
 	 * @return This function always returns 0
 	 */
 	ti_int PortCE_update_registers(void);
-	
+
 #endif
 
 /* Clock */

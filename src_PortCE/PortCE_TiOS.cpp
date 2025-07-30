@@ -10,6 +10,8 @@
 #include "./PortCE_include/ce/include/ti/screen.h"
 #include "./PortCE_include/ce/include/sys/lcd.h"
 
+#include "PortCE_TiOS_Font.h"
+
 #include "PortCE_include/ce/include/tice.h"
 #include <ctype.h>
 
@@ -50,10 +52,7 @@ enum TiOS_Colors {
 };
 
 /* Temporary Graphics */
-    static const uint8_t char6x8[1536] = {
-        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,223,223,6,0,7,3,0,0,7,3,228,60,39,228,60,39,36,110,202,83,118,36,66,37,18,72,164,66,118,255,153,127,230,176,0,0,7,3,0,0,0,126,195,129,129,0,0,129,129,195,126,0,17,10,4,4,10,17,48,48,252,252,48,48,0,0,160,96,0,0,16,16,16,16,16,16,0,0,192,192,0,0,224,240,24,12,7,3,126,255,145,137,255,126,0,132,254,255,128,0,198,231,177,153,207,198,98,235,137,137,255,118,48,44,35,255,255,32,111,239,137,137,251,115,126,255,137,137,251,114,3,3,225,249,31,7,118,255,137,137,255,118,78,223,145,145,255,126,0,0,102,102,0,0,0,0,86,54,0,0,8,8,20,20,34,34,20,20,20,20,20,20,34,34,20,20,8,8,6,7,209,217,15,6,126,129,181,189,161,30,240,252,39,39,252,240,255,255,137,137,255,118,126,255,129,129,230,103,255,255,129,129,255,126,255,255,137,137,235,227,255,255,9,9,11,3,126,255,129,145,118,247,255,255,8,8,255,255,0,129,255,255,129,0,96,224,128,128,255,127,255,255,24,60,231,195,255,255,128,128,224,224,255,14,28,28,14,255,255,14,28,56,112,255,126,255,129,129,255,126,255,255,17,17,31,14,30,63,97,225,191,158,255,255,49,113,223,142,102,239,137,137,251,114,3,1,255,255,1,3,127,255,128,128,255,127,15,63,224,224,63,15,255,112,56,56,112,255,227,247,28,28,247,227,3,15,248,248,15,3,227,243,153,141,231,227,0,255,129,129,129,0,3,7,12,24,240,224,0,129,129,129,255,0,4,6,3,3,6,4,128,128,128,128,128,128,0,1,3,2,0,0,96,244,148,148,124,248,255,127,132,132,252,120,120,252,132,132,204,72,120,252,132,132,127,255,120,252,148,148,220,88,16,254,255,17,19,2,24,188,164,164,248,124,255,255,8,8,248,240,0,136,251,251,128,0,128,136,251,123,0,0,255,255,16,56,236,196,0,129,255,255,128,0,252,248,4,248,4,248,252,248,4,4,252,248,120,252,132,132,252,120,252,248,36,36,60,24,24,60,36,36,248,252,252,248,4,4,28,24,72,220,148,164,236,72,0,4,126,255,132,64,124,252,128,128,124,252,28,124,192,192,124,28,60,124,128,124,128,124,196,236,56,56,236,196,140,188,224,96,60,12,204,236,164,148,220,204,8,8,126,247,129,129,0,0,255,255,0,0,129,129,247,126,8,8,16,8,24,24,16,8,63,32,32,168,112,32
-    };
-    static uint16_t gColor = 0;
+    static uint16_t gColor = TiOS_BLACK;
 
     static void fillRect(uint24_t x1, uint24_t y1, uint24_t x2, uint24_t y2) { //x start, y start, x length, y length
         uint16_t* fill = (uint16_t*)lcd_Ram + (int24_t)(x1 + (y1 * LCD_RESX));
@@ -73,7 +72,9 @@ enum TiOS_Colors {
         }
     }
     __attribute__((unused)) static void fillScreen() {
-        memset(lcd_Ram, gColor, LCD_RESX * LCD_RESY);
+        for (size_t i = 0; i < LCD_RESX * LCD_RESY; i++) {
+            reinterpret_cast<uint16_t*>(lcd_Ram)[i] = gColor;
+        }
     }
 
     static bool out_of_screen_bounds(void* ptr) {
@@ -86,22 +87,25 @@ enum TiOS_Colors {
         return false;
     }
 
-    static void text6x8(uint24_t xW, uint24_t yW, uint8_t lexicon) { //x position, y position, letter index
-        uint8_t* bitImage = (uint8_t*)char6x8 + (lexicon * 6);
-        uint16_t* fill = (uint16_t*)lcd_Ram + (yW * LCD_RESX + xW);
-        uint8_t b = 0x1;
-        for (uint8_t y = 0; y < 8; y++) {
-            for (uint8_t x = 0; x < 6; x++) {
-                if (out_of_screen_bounds(fill)) {
+    static void TiOS_large_font(uint24_t x, uint24_t y, uint8_t lexicon) { //x position, y position, letter index
+        __attribute__((unused)) constexpr uint8_t data_width  = 12;
+        constexpr uint8_t data_height = 16;
+        constexpr uint8_t font_width  = 10;
+        constexpr uint8_t font_height = 14;
+        uint16_t const * src = TiOS_font_16x12 + (lexicon * data_height);
+        uint16_t * dst = reinterpret_cast<uint16_t*>(lcd_Ram) + (y * LCD_RESX + x);
+        for (uint8_t h = 0; h < font_height; h++) {
+            uint16_t data = *src;
+            for (uint8_t w = 0; w < font_width; w++) {
+                if (out_of_screen_bounds(dst)) {
                     return;
                 }
-                *fill = *bitImage & b ? gColor : TiOS_WHITE;
-                bitImage++;
-                fill++;
+                *dst = (data & 1) ? gColor : TiOS_WHITE;
+                data >>= 1;
+                dst++;
             }
-            bitImage -= 6;
-            fill += (LCD_RESX - 6);
-            b <<= 1;
+            src++;
+            dst += (LCD_RESX - font_width);
         }
     }
 
@@ -113,7 +117,7 @@ enum TiOS_Colors {
             }
             uint24_t posX = os_CurCol * CRSR_COL_WIDTH + CRSR_COL_OFFSET;
             uint24_t posY = os_CurRow * CRSR_ROW_HEIGHT + CRSR_ROW_OFFSET + STATUS_BAR_HEIGHT;
-            text6x8(posX, posY, (uint8_t)c);
+            TiOS_large_font(posX, posY, (uint8_t)c);
             os_CurCol++;
             return 0;
         }
@@ -316,13 +320,12 @@ font_t *os_FontGetID(void) {
     return NULL;
 }
 
-
-uint24_t os_FontGetWidth(__attribute__((unused)) const char *string) {
-    return 16;
+uint24_t os_FontGetWidth(const char *string) {
+    return strlen(string) * 10;
 }
 
 uint24_t os_FontGetHeight(void) {
-    return 10;
+    return 16;
 }
 
 uint24_t os_FontDrawText(const char *str, uint16_t col, uint8_t row) {
@@ -355,10 +358,6 @@ void os_SetDrawBGColor(uint24_t color) {
 
 uint24_t os_GetDrawBGColor(void) {
     return os_DrawBGColor;
-}
-
-int24_t os_RealToInt24(__attribute__((unused)) const real_t *arg) {
-    return 0;
 }
 
 void *os_GetAnsData(__attribute__((unused)) uint8_t *type) {

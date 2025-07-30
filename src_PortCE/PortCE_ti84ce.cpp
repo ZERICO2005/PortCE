@@ -49,7 +49,7 @@ uint32_t random(void) {
     return ret;
 }
 
-void ti_srandom(uint32_t seed) {
+void srandom(uint32_t seed) {
     srand(seed);
 }
 

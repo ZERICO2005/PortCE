@@ -46,7 +46,6 @@ static uint32_t PreCalc_BGR444[65536];
 static void Calculate16BitColor(void) {
     const uint8_t alpha = 0xFF;
     { // 1555
-        size_t z = 0;
         for (uint32_t i = 0; i < 65536; i++) {
             uint16_t c = (uint16_t)i;
             uint8_t r = (uint8_t)(c & 0x1F);
@@ -56,12 +55,11 @@ static void Calculate16BitColor(void) {
             r += r / 32;
             g += g / 64;
             b += b / 32;
-            PreCalc_RGB1555[z] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
-            PreCalc_BGR1555[z] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
+            PreCalc_RGB1555[i] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
+            PreCalc_BGR1555[i] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
         }
     }
     { // 565
-        size_t z = 0;
         for (uint32_t i = 0; i < 65536; i++) {
             union {
                 uint16_t bin;
@@ -79,12 +77,11 @@ static void Calculate16BitColor(void) {
             r += r / 32;
             g += g / 64;
             b += b / 32;
-            PreCalc_RGB565[z] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
-            PreCalc_BGR565[z] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
+            PreCalc_RGB565[i] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
+            PreCalc_BGR565[i] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
         }
     }
     { // 555
-        size_t z = 0;
         for (uint32_t i = 0; i < 65536; i++) {
             uint16_t c = (uint16_t)i;
             uint8_t r = (uint8_t)(c & 0x1F);
@@ -94,12 +91,11 @@ static void Calculate16BitColor(void) {
             r += r / 32;
             g += g / 32;
             b += b / 32;
-            PreCalc_RGB555[z] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
-            PreCalc_BGR555[z] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
+            PreCalc_RGB555[i] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
+            PreCalc_BGR555[i] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
         }
     }
     { // 444
-        size_t z = 0;
         for (uint32_t i = 0; i < 65536; i++) {
             uint16_t c = (uint16_t)i;
             uint8_t r = (uint8_t)(c & 0xF);
@@ -109,8 +105,8 @@ static void Calculate16BitColor(void) {
             r += r / 16;
             g += g / 16;
             b += b / 16;
-            PreCalc_RGB444[z] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
-            PreCalc_BGR444[z] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
+            PreCalc_RGB444[i] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
+            PreCalc_BGR444[i] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
         }
     }
 }

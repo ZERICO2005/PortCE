@@ -4,13 +4,15 @@
  * @author "zerico2005"
  */
 
-#include "PortCE.h"
 #include "PortCE_Common.h"
 #include "PortCE_Render.h"
+#include "PortCE.h"
 
+#include "PortCE_Extra.h"
 #include "PortCE_include/ce/include/sys/lcd.h"
 #include "PortCE_include/keypadc/keypadc.h"
 #include "PortCE_include/ce/include/ti/getcsc.h"
+#include "PortCE_include/ce/include/ti/getkey.h"
 #include "PortCE_config/PortCE_Keybinds.h"
 #include "PortCE_include/lcddrvce/lcddrvce.h"
 #include "PortCE_SPI.h"
@@ -61,10 +63,18 @@ static void Calculate16BitColor(void) {
 	{ // 565
 		size_t z = 0;
 		for (uint32_t i = 0; i < 65536; i++) {
-			uint16_t c = (uint16_t)i;
-			uint8_t r = (uint8_t)(c & 0x1F);
-			uint8_t g = (uint8_t)((c & 0x7E0) >> 4);
-			uint8_t b = (uint8_t)((c & 0xF800) >> 11);
+			union {
+				uint16_t bin;
+				struct {
+					uint16_t r : 5;
+					uint16_t g : 6;
+					uint16_t b : 5;
+				} comp;
+			} c;
+			c.bin = (uint16_t)i;
+			uint8_t r = c.comp.r;
+			uint8_t g = c.comp.g;
+			uint8_t b = c.comp.b;
 			r *= 8; g *= 4; b *= 8;
 			r += r / 32;
 			g += g / 64;
@@ -158,6 +168,7 @@ uint32_t PortCE_get_mouse_state(int32_t* posX, int32_t* posY) {
 
 /* Pointers */
 
+SDL_Event* grab_SDL2_event();
 SDL_Event* grab_SDL2_event() {
 	return &event;
 }
@@ -304,6 +315,7 @@ static uint8_t internal_CSC_Scan(void) {
 
 uint8_t os_GetCSC(void) {
 	uint8_t key = internal_CSC_Scan();
+	PortCE_new_frame();
 	switch(key) {
 		case KB_Down    : return sk_Down    ;
 		case KB_Left    : return sk_Left    ;
@@ -354,12 +366,75 @@ uint8_t os_GetCSC(void) {
 		case KB_Tan     : return sk_Tan     ;
 		case KB_Vars    : return sk_Vars    ;
 		case KB_Power   : return sk_Power   ;
+		case KB_None:
 		default: return 0;
 	}
 }
 
+uint16_t os_GetKey(void) {
+	uint8_t key = KB_None;
+	
+	while (key == KB_None) {
+		key = internal_CSC_Scan();
+		PortCE_new_frame();
+	}
+	switch(key) {
+		case KB_Down    : os_KbdGetKy = k_Down    ;
+		case KB_Left    : os_KbdGetKy = k_Left    ;
+		case KB_Right   : os_KbdGetKy = k_Right   ;
+		case KB_Up      : os_KbdGetKy = k_Up      ;
+		case KB_Enter   : os_KbdGetKy = k_Enter   ;
+		// case KB_2nd     : os_KbdGetKy = k_2nd     ;
+		case KB_Clear   : os_KbdGetKy = k_Clear   ;
+		// case KB_Alpha   : os_KbdGetKy = k_Alpha   ;
+		case KB_Add     : os_KbdGetKy = k_Add     ;
+		case KB_Sub     : os_KbdGetKy = k_Sub     ;
+		case KB_Mul     : os_KbdGetKy = k_Mul     ;
+		case KB_Div     : os_KbdGetKy = k_Div     ;
+		case KB_Graph   : os_KbdGetKy = k_Graph   ;
+		case KB_Trace   : os_KbdGetKy = k_Trace   ;
+		case KB_Zoom    : os_KbdGetKy = k_Zoom    ;
+		case KB_Window  : os_KbdGetKy = k_Window  ;
+		case KB_Yequ    : os_KbdGetKy = k_Yequ    ;
+		case KB_Mode    : os_KbdGetKy = k_Mode    ;
+		case KB_Del     : os_KbdGetKy = k_Del     ;
+		case KB_Sto     : os_KbdGetKy = k_Store   ;
+		case KB_Ln      : os_KbdGetKy = k_Ln      ;
+		case KB_Log     : os_KbdGetKy = k_Log     ;
+		case KB_Square  : os_KbdGetKy = k_Square  ;
+		// case KB_Recip   : os_KbdGetKy = k_Recip   ;
+		case KB_Math    : os_KbdGetKy = k_Math    ;
+		case KB_0       : os_KbdGetKy = k_0       ;
+		case KB_1       : os_KbdGetKy = k_1       ;
+		case KB_4       : os_KbdGetKy = k_4       ;
+		case KB_7       : os_KbdGetKy = k_7       ;
+		case KB_2       : os_KbdGetKy = k_2       ;
+		case KB_5       : os_KbdGetKy = k_5       ;
+		case KB_8       : os_KbdGetKy = k_8       ;
+		case KB_3       : os_KbdGetKy = k_3       ;
+		case KB_6       : os_KbdGetKy = k_6       ;
+		case KB_9       : os_KbdGetKy = k_9       ;
+		case KB_Comma   : os_KbdGetKy = k_Comma   ;
+		case KB_Sin     : os_KbdGetKy = k_Sin     ;
+		// case KB_Apps    : os_KbdGetKy = k_Apps    ;
+		// case KB_GraphVar: os_KbdGetKy = k_GraphVar;
+		case KB_DecPnt  : os_KbdGetKy = k_DecPnt  ;
+		case KB_LParen  : os_KbdGetKy = k_LParen  ;
+		case KB_Cos     : os_KbdGetKy = k_Cos     ;
+		case KB_Prgm    : os_KbdGetKy = k_Prgm    ;
+		case KB_Stat    : os_KbdGetKy = k_Stat    ;
+		case KB_Chs     : os_KbdGetKy = k_Chs     ;
+		case KB_RParen  : os_KbdGetKy = k_RParen  ;
+		case KB_Tan     : os_KbdGetKy = k_Tan     ;
+		case KB_Vars    : os_KbdGetKy = k_Vars    ;
+		// case KB_Power   : os_KbdGetKy = k_Power   ;
+		default: os_KbdGetKy = 0;
+	}
+	return ((uint16_t)os_KbdGetKy | ((uint16_t)os_KeyExtend << 8));
+}
+
 static void blit16bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
-	const uint32_t* PreCalc16;
+	uint32_t* PreCalc16;
 	uint16_t colorMode = (lcd_VideoMode & LCD_MASK_BBP);
 	switch (colorMode) {
 		case LCD_MASK_COLOR1555:
@@ -604,6 +679,7 @@ static void render_color_idle_mode(uint32_t* data) {
  * 
  * @param data buffer to write a LCD_RESX * LCD_RESY image to
  */
+void copyFrame(uint32_t* data);
 void copyFrame(uint32_t* data) {
 	#ifdef Debug_Print_LCD_Registers
 		internal_print_LCD_registers();

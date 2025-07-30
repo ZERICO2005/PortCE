@@ -5,11 +5,12 @@
  */
 
 #include <algorithm>
-#include "PortCE.h"
 #include "PortCE_Common.h"
 
 #include "PortCE_include/ce/include/tice.h"
 #include "PortCE_include/fileioc/fileioc.h"
+
+#include "PortCE.h"
 
 #define NameSize (8)
 #define RamFolderPath "./Ti-Ram"
@@ -351,6 +352,14 @@ void PortCE_terminate_fileioc(void) {
 }
 
 char *ti_Detect(__attribute__((unused)) void **vat_ptr, __attribute__((unused)) const char *detect_string) {
+	return NULL;
+}
+
+char *ti_DetectVar(__attribute__((unused)) void **vat_ptr, __attribute__((unused)) const char *detect_string, __attribute__((unused)) uint8_t var_type) {
+	return NULL;
+}
+
+char *ti_DetectAny(__attribute__((unused)) void **vat_ptr, __attribute__((unused)) const char *detect_string, __attribute__((unused)) uint8_t *var_type) {
 	return NULL;
 }
 

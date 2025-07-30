@@ -58,6 +58,7 @@ target_compile_options(
 	-Wmissing-prototypes
 
 	-Wno-unused-const-variable
+	-Wno-empty-body
 
 # Can help spot undefined behaviour when porting code from the eZ80
 	-Wpointer-arith
@@ -80,4 +81,8 @@ target_compile_options(
 	-Wconversion-null
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC SDL2 SDL2_mixer -lm)
+target_link_libraries(
+	${PROJECT_NAME} PUBLIC SDL2
+	SDL2_mixer
+	-lm
+)

@@ -20,14 +20,14 @@ extern "C" {
  * Returns a pseudo-random integer in the range of \p min to \p max (inclusive).
  */
 #define randInt(min, max) \
-    ((ti_unsigned_int)ti_random() % ((max) - (min) + 1) + (min))
+    ((ti_unsigned_int)random() % ((max) - (min) + 1) + (min))
 
 /**
  * Returns a pseudo-random 32-bit integer.
  *
  * @return the random integer
  */
-uint32_t ti_random(void);
+uint32_t random(void);
 
 /**
  * Seeds the pseudo-random number generator used by random() and rand() with the
@@ -35,7 +35,7 @@ uint32_t ti_random(void);
  *
  * @param[in] seed the seed value
  */
-void ti_srandom(uint32_t seed);
+void srandom(uint32_t seed);
 
 /**
  * "Atomically" loads from a volatile 32-bit value.

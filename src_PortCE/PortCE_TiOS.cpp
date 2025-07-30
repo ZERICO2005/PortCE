@@ -11,13 +11,24 @@
 #include "./PortCE_include/ce/include/sys/lcd.h"
 
 #include "PortCE_include/ce/include/tice.h"
+#include <ctype.h>
 
 /**
  * @todo Implement TiOS functions
- * 
+ *
  */
 
 /* TiOS Colors */
+
+#define STATUS_BAR_HEIGHT 30
+#define CRSR_COL_OFFSET 2
+#define CRSR_ROW_OFFSET 7
+#define CRSR_WIDTH 10
+#define CRSR_HEIGHT 14
+#define CRSR_COL_WIDTH 11
+#define CRSR_ROW_HEIGHT 20
+#define MAX_ROWS 10
+#define MAX_COLS 25
 
 enum TiOS_Colors {
 	TiOS_BLUE      = 0x001F,
@@ -61,16 +72,30 @@ enum TiOS_Colors {
 			*fill = gColor;
 		}
 	}
-	__attribute__((unused)) static void fillScreen() { 
-		memset(lcd_Ram,gColor,LCD_RESX * LCD_RESY);
+	__attribute__((unused)) static void fillScreen() {
+		memset(lcd_Ram, gColor, LCD_RESX * LCD_RESY);
 	}
+
+	static bool out_of_screen_bounds(void* ptr) {
+		if (ptr < RAM_ADDRESS(0xD40000)) {
+			return true;
+		}
+		if (ptr >= RAM_ADDRESS(0xD65800)) {
+			return true;
+		}
+		return false;
+	}
+
 	static void text6x8(uint24_t xW, uint24_t yW, uint8_t lexicon) { //x position, y position, letter index
 		uint8_t* bitImage = (uint8_t*)char6x8 + (lexicon * 6);
 		uint16_t* fill = (uint16_t*)lcd_Ram + (yW * LCD_RESX + xW);
 		uint8_t b = 0x1;
 		for (uint8_t y = 0; y < 8; y++) {
 			for (uint8_t x = 0; x < 6; x++) {
-				*fill = *bitImage & b ? gColor : *fill;
+				if (out_of_screen_bounds(fill)) {
+					return;
+				}
+				*fill = *bitImage & b ? gColor : TiOS_WHITE;
 				bitImage++;
 				fill++;
 			}
@@ -79,39 +104,49 @@ enum TiOS_Colors {
 			b <<= 1;
 		}
 	}
-	static void str6x8(const char* str) {
-		if (str == NULL) {
-			return;
-		}
+
+	static int TiOS_putchar(int c) {
 		gColor = TiOS_BLACK;
-		uint24_t posX = os_CurCol * 10;
-		uint24_t posY = os_CurRow * 16;
-		while (*str != '\0') {
-			if (posX < LCD_RESX - 16 && posY < LCD_RESY - 10) {
-				text6x8(posX, posY, *str);
-				posX += 16;
-				os_CurRow++;
-			} else {
-				return;
+		if (isprint(c)) {
+			if (os_CurCol >= MAX_COLS) {
+				os_NewLine();
 			}
+			uint24_t posX = os_CurCol * CRSR_COL_WIDTH + CRSR_COL_OFFSET;
+			uint24_t posY = os_CurRow * CRSR_ROW_HEIGHT + CRSR_ROW_OFFSET + STATUS_BAR_HEIGHT;
+			text6x8(posX, posY, (uint8_t)c);
+			os_CurCol++;
+			return 0;
 		}
+		switch (c) {
+			case '\n': os_NewLine(); break;
+		}
+		return 0;
 	}
 
-	static void strPos6x8(const char* str, uint8_t curRow, uint8_t curCol) {
-		if (str == NULL) {
-			return;
-		}
-		gColor = TiOS_BLACK;
-		uint24_t posX = curCol * 10;
-		uint24_t posY = curRow * 16;
+	__attribute__((unused))
+	static int TiOS_puts(const char *str) {
 		while (*str != '\0') {
-			if (posX < LCD_RESX - 16 && posY < LCD_RESY - 10) {
-				text6x8(posX, posY, *str);
-				posX += 16;
-			}
+			TiOS_putchar(*str);
+			str++;
 		}
+		TiOS_putchar('\n');
+		return 0;
 	}
 
+	__attribute__((unused))
+	static int TiOS_vprintf(
+		const char *__restrict format, va_list va
+	) {
+		char buf[1024];
+		memset(buf, '\0', sizeof(buf));
+		vsnprintf(buf, sizeof(buf), format, va);
+		size_t i = 0;
+		while (buf[i] != '\0' && i < sizeof(buf)) {
+			TiOS_putchar(buf[i]);
+			i++;
+		}
+		return 0;
+	}
 
 /* <ti/ui.h> */
 	void boot_ClearVRAM(void) {
@@ -129,7 +164,7 @@ enum TiOS_Colors {
 	void os_DrawStatusBar(void) {
 		os_FillRectColor = TiOS_DARKGRAY;
 		gColor = os_FillRectColor;
-		fillRect(0,0,LCD_RESX,30);
+		fillRect(0, 0, LCD_RESX, STATUS_BAR_HEIGHT);
 	}
 	void os_ForceCmdNoChar(void) {
 		// Not sure what this function does
@@ -140,11 +175,19 @@ enum TiOS_Colors {
 void boot_NewLine(void) {
 	os_CurCol = 0;
 	os_CurRow++;
+	if (os_CurRow >= MAX_ROWS) {
+		os_CurRow--;
+		os_MoveUp();
+	}
 }
 
 void os_NewLine(void) {
 	os_CurCol = 0;
 	os_CurRow++;
+	if (os_CurRow >= MAX_ROWS) {
+		os_CurRow--;
+		os_MoveUp();
+	}
 }
 
 void os_DisableCursor(void) {
@@ -158,6 +201,12 @@ void os_EnableCursor(void) {
 void os_SetCursorPos(uint8_t curRow, uint8_t curCol) {
 	os_CurRow = curRow;
 	os_CurCol = curCol;
+	if (os_CurRow >= MAX_ROWS) {
+		os_CurRow = 0;
+	}
+	if (os_CurCol >= MAX_COLS) {
+		os_CurCol = 0;
+	}
 }
 
 void os_GetCursorPos(uint24_t *curRow, uint24_t *curCol) {
@@ -165,35 +214,53 @@ void os_GetCursorPos(uint24_t *curRow, uint24_t *curCol) {
 	if (curCol != NULL) { *curCol = os_CurCol; }
 }
 
-uint24_t os_PutStrFull(const char *string) {
-	str6x8(string);
+uint24_t os_PutStrFull(const char *str) {
+	while (*str != '\0') {
+		TiOS_putchar(*str);
+		str++;
+	}
 	return 1;
 }
 
-uint24_t os_PutStrLine(const char *string) {
-	str6x8(string);
+uint24_t os_PutStrLine(const char *str) {
+	while (*str != '\0') {
+		TiOS_putchar(*str);
+		str++;
+	}
 	os_NewLine();
 	return 1;
 }
 
 void os_MoveUp(void) {
-	uint16_t* dst = (uint16_t*)lcd_Ram + (30 * LCD_RESX);
-	const uint16_t* src = (uint16_t*)lcd_Ram + ((30 + 16) * LCD_RESX);
-	for (uint8_t i = 0; i < LCD_RESY - 30 - 16; i++) {
-		memcpy(dst,src,LCD_RESX * sizeof(uint16_t));
-		src += LCD_RESX * sizeof(uint16_t);
-		dst += LCD_RESX * sizeof(uint16_t);
-	}
+	uint16_t* const vram = (uint16_t*)lcd_Ram;
+	uint16_t* dst;
+	const uint16_t* src;
+	dst = vram + (STATUS_BAR_HEIGHT * LCD_RESX);
+	src = vram + ((STATUS_BAR_HEIGHT + CRSR_ROW_HEIGHT) * LCD_RESX);
+	memmove(
+		dst, src,
+		LCD_RESX * (LCD_RESY - STATUS_BAR_HEIGHT - CRSR_ROW_HEIGHT) * sizeof(uint16_t)
+	);
+	memset(
+		vram + LCD_RESX * (LCD_RESY - CRSR_ROW_HEIGHT), 0xFF,
+		LCD_RESX * (STATUS_BAR_HEIGHT + CRSR_ROW_HEIGHT) * sizeof(uint16_t)
+	);
 }
 
 void os_MoveDown(void) {
-	uint16_t* dst = (uint16_t*)lcd_Ram + (LCD_RESY * LCD_RESX);
-	const uint16_t* src = (uint16_t*)lcd_Ram + ((LCD_RESY - 16) * LCD_RESX);
-	for (uint8_t i = 0; i < LCD_RESY - 30 - 16; i++) {
-		memcpy(dst,src,LCD_RESX * sizeof(uint16_t));
-		src -= LCD_RESX * sizeof(uint16_t);
-		dst -= LCD_RESX * sizeof(uint16_t);
-	}
+	uint16_t* const vram = (uint16_t*)lcd_Ram;
+	uint16_t* dst;
+	const uint16_t* src;
+	dst = vram + ((STATUS_BAR_HEIGHT + CRSR_ROW_HEIGHT) * LCD_RESX);
+	src = vram + (STATUS_BAR_HEIGHT * LCD_RESX);
+	memmove(
+		dst, src,
+		LCD_RESX * (LCD_RESY - STATUS_BAR_HEIGHT - CRSR_ROW_HEIGHT) * sizeof(uint16_t)
+	);
+	memset(
+		vram + LCD_RESX * (STATUS_BAR_HEIGHT), 0xFF,
+		LCD_RESX * (STATUS_BAR_HEIGHT + CRSR_ROW_HEIGHT) * sizeof(uint16_t)
+	);
 }
 
 void os_HomeUp(void) {
@@ -203,12 +270,14 @@ void os_HomeUp(void) {
 
 void os_ClrLCDFull(void) {
 	gColor = TiOS_WHITE;
-	fillRect(0,30,LCD_RESX, LCD_RESY - 30);
+	fillRect(0, STATUS_BAR_HEIGHT, LCD_RESX, LCD_RESY - STATUS_BAR_HEIGHT);
+	PortCE_new_frame();
 }
 
 void os_ClrLCD(void) {
 	gColor = TiOS_WHITE;
-	fillRect(0,30,LCD_RESX, LCD_RESY - 30);
+	fillRect(0, STATUS_BAR_HEIGHT, LCD_RESX, LCD_RESY - STATUS_BAR_HEIGHT);
+	PortCE_new_frame();
 }
 
 void os_ClrTxtShd(void) {
@@ -226,12 +295,15 @@ void os_EnableHomeTextBuffer(void) {
 }
 
 void os_GetStringInput(const char *prompt, __attribute__((unused)) char *buf, __attribute__((unused)) size_t bufsize) {
-	str6x8(prompt);
+	os_PutStrFull(prompt);
+	if (buf != NULL && bufsize > 0) {
+		*buf = '\0';
+	}
 	return;
 }
 
 size_t os_GetTokenInput(const char *prompt, __attribute__((unused)) void *buf, __attribute__((unused)) size_t bufsize) {
-	str6x8(prompt);
+	os_PutStrFull(prompt);
 	return 0;
 }
 
@@ -253,13 +325,19 @@ uint24_t os_FontGetHeight(void) {
 	return 10;
 }
 
-uint24_t os_FontDrawText(const char *string, uint16_t col, uint8_t row) {
-	strPos6x8(string, row, col);
+uint24_t os_FontDrawText(const char *str, uint16_t col, uint8_t row) {
+	os_SetCursorPos(row, col);
+	while (*str != '\0') {
+		TiOS_putchar(*str);
+	}
 	return row;
 }
 
-uint24_t os_FontDrawTransText(const char *string, uint16_t col, uint8_t row) {
-	strPos6x8(string, row, col);
+uint24_t os_FontDrawTransText(const char *str, uint16_t col, uint8_t row) {
+	os_SetCursorPos(row, col);
+	while (*str != '\0') {
+		TiOS_putchar(*str);
+	}
 	return row;
 }
 

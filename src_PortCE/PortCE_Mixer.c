@@ -4,6 +4,10 @@
  * @author "zerico2005"
  */
 
+#include "PortCE_internal.h"
+
+#include "PortCE_Extra.h"
+
 #include "PortCE_config/PortCE_Audio.h"
 
 #ifdef PortCE_Enable_Audio

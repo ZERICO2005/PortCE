@@ -2003,10 +2003,6 @@ uint8_t *gfy_TilePtrMapped(const gfy_tilemap_t *tilemap, uint8_t col, uint8_t ro
     return &(tilemap->map[map_index]);
 }
 
-/* gfy_Reserved */
-
-
-
 /* gfy_AllocSprite */
 
 gfy_sprite_t *gfy_AllocSprite(
@@ -2743,12 +2739,6 @@ void gfy_FillTriangle_NoClip(
 //------------------------------------------------------------------------------
 // v2 functions
 //------------------------------------------------------------------------------
-
-/* gfy_Deprecated */
-
-void gfy_Deprecated(void) {
-    return; // ret
-}
 
 /* gfy_SetTextScale */
 

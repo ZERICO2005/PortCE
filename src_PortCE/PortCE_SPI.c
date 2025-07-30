@@ -9,13 +9,14 @@
 #include <inttypes.h>
 #include <stdarg.h>
 
-#include "PortCE.h"
 #include "PortCE_Common.h"
 #include "PortCE_Render.h"
 
 #include "PortCE_SPI.h"
 #include "PortCE_include/ce/include/sys/lcd.h"
 #include "PortCE_include/lcddrvce/lcddrvce.h"
+
+#include "PortCE.h"
 
 SPI_State PortCE_SPI_State;
 
@@ -308,10 +309,11 @@ void PortCE_reset_SPI_state(const bool TiOS_defaults) {
 /* Query SPI */
 
 bool PortCE_query_column_major(void) {
-	return (
-		PortCE_SPI_State.memory_data_access.page_column_order !=
-		PortCE_SPI_State.LCM_control.invert_page_column_order
-	);
+	return false;
+	// (
+	// 	PortCE_SPI_State.memory_data_access.page_column_order !=
+	// 	PortCE_SPI_State.LCM_control.invert_page_column_order
+	// );
 }
 
 /* <lcddrvce.h> */

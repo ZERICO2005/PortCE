@@ -7,7 +7,13 @@
 #ifndef PORTCE_COMMON_H
 #define PORTCE_COMMON_H
 
-#include "PortCE.h"
+#ifdef PORTCE_H
+#error "#include <PortCE.h> must be done last"
+#endif
+
+#ifndef PORTCE_INTERNAL
+#define PORTCE_INTERNAL
+#endif
 
 #include <stddef.h>
 #include <stdint.h>
@@ -18,6 +24,8 @@
 
 #include <stdio.h>
 #include <time.h>
+
+#include "PortCE.h"
 
 #ifdef __cplusplus
 extern "C" {

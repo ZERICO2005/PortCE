@@ -14,6 +14,7 @@ typedef struct PortCE_Keybind {
 } PortCE_Keybind;
 
 typedef enum PortCE_Keycode {
+    KB_None,
     KB_Graph        , KB_Trace  , KB_Zoom   , KB_Window , KB_Yequ   , KB_2nd    , KB_Mode   , KB_Del        ,
                       KB_Sto = 9, KB_Ln     , KB_Log    , KB_Square , KB_Recip  , KB_Math   , KB_Alpha      ,
     KB_0            , KB_1      , KB_4      , KB_7      , KB_Comma  , KB_Sin    , KB_Apps   , KB_GraphVar   ,

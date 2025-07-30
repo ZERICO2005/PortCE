@@ -38,8 +38,15 @@ static uint8_t* const rtc_IntStatus_ptr = (uint8_t*)((void*)&simulated_ram[0xF30
 
 /* <sys/util.h> */
 
-uint32_t ti_random(void) {
-    return (uint32_t)rand();
+uint32_t random(void) {
+    uint32_t ret = 0;
+    ret <<= 15;
+    ret ^= rand();
+    ret <<= 15;
+    ret ^= rand();
+    ret <<= 15;
+    ret ^= rand();
+    return ret;
 }
 
 void ti_srandom(uint32_t seed) {

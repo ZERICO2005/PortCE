@@ -5,14 +5,14 @@
  */
 
 #include "PortCE_Common.h"
-#include "./PortCE_include/ce/include/ti/ui.h"
-#include "./PortCE_include/ce/include/ti/vars.h"
-#include "./PortCE_include/ce/include/ti/screen.h"
-#include "./PortCE_include/ce/include/sys/lcd.h"
+#include <ti/ui.h>
+#include <ti/vars.h>
+#include <ti/screen.h>
+#include <sys/lcd.h>
 
 #include "PortCE_TiOS_Font.h"
 
-#include "PortCE_include/ce/include/tice.h"
+#include <tice.h>
 #include <ctype.h>
 
 /**

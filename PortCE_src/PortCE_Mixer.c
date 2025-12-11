@@ -6,13 +6,13 @@
 
 #include "PortCE_internal.h"
 
-#include "PortCE_Extra.h"
+#include <PortCE_Extra.h>
 
-#include "PortCE_config/PortCE_Audio.h"
+#include <PortCE_Audio.h>
 
 #ifdef PortCE_Enable_Audio
 
-#include <PortCE_Common.h>
+#include "PortCE_Common.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 

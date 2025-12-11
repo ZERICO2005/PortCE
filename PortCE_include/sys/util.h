@@ -27,7 +27,8 @@ extern "C" {
  *
  * @return the random integer
  */
-uint32_t random(void);
+uint32_t ti_random(void);
+
 
 /**
  * Seeds the pseudo-random number generator used by random() and rand() with the
@@ -35,7 +36,7 @@ uint32_t random(void);
  *
  * @param[in] seed the seed value
  */
-void srandom(uint32_t seed);
+void ti_srandom(uint32_t seed);
 
 /**
  * "Atomically" loads from a volatile 32-bit value.

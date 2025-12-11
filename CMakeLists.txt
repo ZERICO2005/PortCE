@@ -8,7 +8,7 @@ set(PROJECT_NAME "PortCE-Project")
 project(${PROJECT_NAME})
 
 set(SRC_DIR "./src")
-set(SRC_PORTCE_DIR "./src_PortCE")
+set(SRC_PORTCE_DIR "./PortCE_src")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 
@@ -20,7 +20,9 @@ set(CMAKE_CXX_COMPILER clang++)
 
 # Set C and C++ standards
 set(CMAKE_C_STANDARD 23)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Packages
 find_package(SDL2 REQUIRED)
@@ -30,19 +32,9 @@ file(GLOB_RECURSE SRC_FILES "${SRC_DIR}/*.c" "${SRC_DIR}/*.cpp" "${SRC_PORTCE_DI
 # Create an executable
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${SRC_PORTCE_DIR})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${SRC_PORTCE_DIR}
-	"${SRC_PORTCE_DIR}/PortCE_include/"
-	"${SRC_PORTCE_DIR}/PortCE_include/ce"
-	"${SRC_PORTCE_DIR}/PortCE_include/ce/include/sys"
-	"${SRC_PORTCE_DIR}/PortCE_include/keypadc"
-	"${SRC_PORTCE_DIR}/PortCE_include/fileioc"
-	"${SRC_PORTCE_DIR}/PortCE_include/ce/include"
-	"${SRC_PORTCE_DIR}/PortCE_include/ce/include/ti"
-	"${SRC_PORTCE_DIR}/PortCE_include/graphx"
-	"${SRC_PORTCE_DIR}/PortCE_include/graphy"
-	"${SRC_PORTCE_DIR}/PortCE_include/lcddrvce"
-	"${SRC_PORTCE_DIR}/PortCE_include/usbdrvce"
-	"${SRC_PORTCE_DIR}/PortCE_include/hiddrvce"
+target_include_directories(${PROJECT_NAME} PUBLIC
+	${PROJECT_SOURCE_DIR}/PortCE_include
+	${PROJECT_SOURCE_DIR}/PortCE_config
 )
 
 # Compiler Flags Debug(-g -O0) Release(-O3)
@@ -55,10 +47,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SAN_FLAG} -fcolor-diagnostics -fdiagno
 target_compile_options(
 	${PROJECT_NAME} PUBLIC ${SAN_FLAG} -fcolor-diagnostics -fdiagnostics-color=always ${OPT_FLAG}
 	-Wall -Wextra -Wshadow
-	-Wmissing-prototypes
-
-	-Wno-unused-const-variable
-	-Wno-empty-body
 
 # Can help spot undefined behaviour when porting code from the eZ80
 	-Wpointer-arith
@@ -81,8 +69,4 @@ target_compile_options(
 	-Wconversion-null
 )
 
-target_link_libraries(
-	${PROJECT_NAME} PUBLIC SDL2
-	SDL2_mixer
-	-lm
-)
+target_link_libraries(${PROJECT_NAME} PUBLIC SDL2 SDL2_mixer -lm)

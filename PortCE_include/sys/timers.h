@@ -60,7 +60,7 @@ void ticksleep(ti_unsigned_long ticks);
  *
  * @see usleep
  */
-typedef ti_unsigned_int useconds_t;
+typedef ti_unsigned_int ti_useconds_t;
 
 /**
  * Suspends execution of the calling thread for (at least) @p usec microseconds.
@@ -74,7 +74,7 @@ typedef ti_unsigned_int useconds_t;
  * @param[in] usec number of microseconds
  * @return 0 on success, or -1 on error, with \c errno set to indicate the error
  */
-ti_int usleep(useconds_t usec);
+ti_int usleep(ti_useconds_t usec);
 
 /**
  * Waits for ~10 ms. In most cases it is better to use the delay() function.

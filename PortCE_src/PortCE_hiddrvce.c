@@ -1,6 +1,6 @@
-#include <PortCE_Common.h>
-#include "PortCE_include/hiddrvce/hiddrvce.h"
-#include "PortCE_include/usbdrvce/usbdrvce.h"
+#include "PortCE_Common.h"
+#include <hiddrvce.h>
+#include <usbdrvce.h>
 
 #include <string.h>
 #include <debug.h>

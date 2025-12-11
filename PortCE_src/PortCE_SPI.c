@@ -13,8 +13,8 @@
 #include "PortCE_Render.h"
 
 #include "PortCE_SPI.h"
-#include "PortCE_include/ce/include/sys/lcd.h"
-#include "PortCE_include/lcddrvce/lcddrvce.h"
+#include <sys/lcd.h>
+#include <lcddrvce.h>
 
 #include "PortCE.h"
 

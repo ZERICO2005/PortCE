@@ -9,12 +9,12 @@
 #include "PortCE.h"
 
 #include "PortCE_Extra.h"
-#include "PortCE_include/ce/include/sys/lcd.h"
-#include "PortCE_include/keypadc/keypadc.h"
-#include "PortCE_include/ce/include/ti/getcsc.h"
-#include "PortCE_include/ce/include/ti/getkey.h"
-#include "PortCE_config/PortCE_Keybinds.h"
-#include "PortCE_include/lcddrvce/lcddrvce.h"
+#include <sys/lcd.h>
+#include <keypadc.h>
+#include <ti/getcsc.h>
+#include <ti/getkey.h>
+#include <PortCE_Keybinds.h>
+#include <lcddrvce.h>
 #include "PortCE_SPI.h"
 #include <stdio.h>
 

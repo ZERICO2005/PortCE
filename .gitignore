@@ -14,3 +14,4 @@ desktop.ini
 .vscode
 *.code-workspace
 archive_src
+.cache

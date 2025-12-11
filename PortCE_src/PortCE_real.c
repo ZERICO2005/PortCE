@@ -1,5 +1,5 @@
 #include "PortCE_internal.h"
-#include "PortCE_include/ce/include/ti/real.h"
+#include <ti/real.h>
 
 #include <string.h>
 

@@ -7,8 +7,8 @@
 #include <algorithm>
 #include "PortCE_Common.h"
 
-#include "PortCE_include/ce/include/tice.h"
-#include "PortCE_include/fileioc/fileioc.h"
+#include <tice.h>
+#include <fileioc.h>
 
 #include "PortCE.h"
 

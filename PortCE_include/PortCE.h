@@ -9,12 +9,7 @@
 
 #include <stdint.h>
 
-#ifndef _EZ80
-    // For debugging purposes
-    #include <stdio.h>
-#endif
-
-#include <PortCE_type.h>
+#include "PortCE_type.h"
 
 #ifdef __cplusplus
 extern "C" {

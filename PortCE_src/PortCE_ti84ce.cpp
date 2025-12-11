@@ -12,14 +12,14 @@
 #include "PortCE_Common.h"
 
 #include "PortCE_Render.h"
-#include "PortCE_include/ce/include/sys/lcd.h"
-#include "PortCE_include/ce/include/sys/util.h"
-#include "PortCE_include/ce/include/sys/timers.h"
-#include "PortCE_include/ce/include/sys/rtc.h"
-#include "PortCE_include/lcddrvce/lcddrvce.h"
+#include <sys/lcd.h>
+#include <sys/util.h>
+#include <sys/timers.h>
+#include <sys/rtc.h>
+#include <lcddrvce.h>
 
-#include "PortCE_include/ce/include/tice.h"
-#include "PortCE_include/fileioc/fileioc.h"
+#include <tice.h>
+#include <fileioc.h>
 
 // #include <process.h>
 //#include <dir.h>
@@ -38,7 +38,7 @@ static uint8_t* const rtc_IntStatus_ptr = (uint8_t*)((void*)&simulated_ram[0xF30
 
 /* <sys/util.h> */
 
-uint32_t random(void) {
+uint32_t ti_random(void) {
     uint32_t ret = 0;
     ret <<= 15;
     ret ^= rand();
@@ -49,7 +49,7 @@ uint32_t random(void) {
     return ret;
 }
 
-void srandom(uint32_t seed) {
+void ti_srandom(uint32_t seed) {
     srand(seed);
 }
 
@@ -203,7 +203,7 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
             }
         }
 
-        ti_int usleep(useconds_t usec) {
+        ti_int usleep(ti_useconds_t usec) {
             nano64_t dur = (nano64_t)usec * 1000;
             nano64_t startTime = getNanoTime();
             PortCE_new_frame();

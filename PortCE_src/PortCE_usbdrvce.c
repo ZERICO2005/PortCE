@@ -1,5 +1,5 @@
-#include <PortCE_Common.h>
-#include "PortCE_include/usbdrvce/usbdrvce.h"
+#include "PortCE_Common.h"
+#include <usbdrvce.h>
 
 #if 0
 

@@ -8,7 +8,7 @@
 #include "PortCE_Render.h"
 #include "PortCE_SPI.h"
 
-#include "PortCE.h"
+#include <PortCE.h>
 
 void* RAM_ADDRESS(const uint24_t address) {
     // if (address >= 0xE00000 && update_ram == false) {

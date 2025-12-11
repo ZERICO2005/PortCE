@@ -71,7 +71,7 @@ enum TiOS_Colors {
 			*fill = gColor;
 		}
 	}
-	__attribute__((unused)) static void fillScreen() { 
+	__attribute__((unused)) static void fillScreen() {
 		for (size_t i = 0; i < LCD_RESX * LCD_RESY; i++) {
 			reinterpret_cast<uint16_t*>(lcd_Ram)[i] = gColor;
 		}
@@ -126,7 +126,7 @@ enum TiOS_Colors {
 		}
 		return 0;
 	}
-	
+
 	__attribute__((unused))
 	static int TiOS_puts(const char *str) {
 		while (*str != '\0') {

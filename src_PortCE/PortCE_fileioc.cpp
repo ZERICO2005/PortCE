@@ -163,7 +163,7 @@ static FILE* open_File(const char* name, const char* mode) {
 		memset(path, '\0', sizeof(path));
 		static char mode_temp[16];
 		memset(mode_temp, '\0', sizeof(mode_temp));
-	
+
 	for (size_t i = 0; i < ARRAY_LENGTH(PortCE_FilePaths); i++) {
 		memset(path, '\0', sizeof(path));
 		snprintf(path,sizeof(path),"%s%s.8xv", PortCE_FilePaths[i], name);

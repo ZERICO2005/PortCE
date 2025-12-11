@@ -18,7 +18,7 @@
 #include <lcddrvce.h>
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 #endif
 
 #if 1
@@ -44,7 +44,7 @@ extern "C"
         * to select the LCD interface and reset its configuration to the default.
         */
         #define boot_InitializeHardware()  ((void(*)(void))0x384)();
-    
+
         /**
         * Sends a Command to the SPI controller using the 9bit FIFO protocol.
         *
@@ -115,7 +115,7 @@ extern "C"
 
 /**
 * @brief (Out of date) GraphY function implementation status
-* 
+*
 * Labels:
 * Wrap     > Wraps a graphx function
 * Bad Wrap > Wraps a graphx function, but sets global variables outside of graphx.asm
@@ -125,7 +125,7 @@ extern "C"
 * Minimal  > Function ignores parameters or safety checks
 * Broken   > Function does not work
 * None     > Unimplemented
-* 
+*
 * ------------
 * v1 functions
 * ------------
@@ -268,31 +268,31 @@ extern "C"
 
 /**
 * @brief (Out of date) examples/library_examples/graphx status
-* 
-* background           > 
-* hello_world          > 
+*
+* background           >
+* hello_world          >
 * sprites              > Passed - Casts to (gfy_sprite_t*)
 * sprites_rotate_flip  > Passed - Casts to (gfy_sprite_t*)
-* text_flipped         > 
-* background_appvar    > 
-* lighten_darken       > 
-* sprites_appvar       > 
-* sprites_rotate_scale > 
+* text_flipped         >
+* background_appvar    >
+* lighten_darken       >
+* sprites_appvar       >
+* sprites_rotate_scale >
 * tilemap              > Okay - Runs slow - Casts to (gfy_sprite_t*)
 * blitting             > Passed
 * scaled_text          > Okay - Text transparency unimplemented
-* sprites_compress     > 
+* sprites_compress     >
 * sprites_scaled       > Passed - Took ~4 frames in CEmu - Casts to (gfy_sprite_t*)
-* tilemap_appvar       > 
+* tilemap_appvar       >
 * buffered_cube        > Passed - Line algorithm is slow
 * screen_shift         > Passed
 * sprites_moving       > Passed - Sprite clipping is too extreme - Casts to (gfy_sprite_t*)
 * text_clipped         > Okay - Text clipping is too extreme - Text transparency unimplemented
-* tilemap_compressed   > 
-* floodfill            > 
+* tilemap_compressed   >
+* floodfill            >
 * shapes               > Bad - Incorrect Clipping - Missing Shapes
 * sprites_rlet         > Passed - Could be faster
-* text_custom          > 
+* text_custom          >
 */
 
 // TEMP DATA //
@@ -560,7 +560,7 @@ static const int8_t gfy_SinTable[65] = {
 
 /**
  * @brief Calculates sin(x) from a lookup table.
- * 
+ *
  * @param theta angle 0-255
  * @return sin(x) * 128
  */
@@ -579,7 +579,7 @@ __attribute__((unused)) static uint8_t gfy_Sin(uint8_t theta) {
 
 /**
  * @brief Calculates cos(x) from a lookup table.
- * 
+ *
  * @param theta angle 0-255
  * @return cos(x) * 128
  */
@@ -597,7 +597,7 @@ void gfy_Begin() {
 
     gfx_Begin();
     lcd_SetColumnMajor(true);
-    
+
     // Resetting temp globals
     gfy_Color = 0;
     gfy_Transparent_Color = 0;
@@ -622,7 +622,7 @@ void gfy_Begin() {
     gfy_ClipYMin = 0;
     gfy_ClipXMax = GFY_LCD_WIDTH;
     gfy_ClipYMax = GFY_LCD_HEIGHT;
-    
+
     #ifndef _EZ80
         gfy_MonospaceFont = 0;
     #endif
@@ -685,7 +685,7 @@ void gfy_SetDefaultPalette(__attribute__((unused)) gfy_mode_t mode) {
             for (size_t i = 0; i < 256; i++) {
                 //uint8_t carry = 0;
                 uint8_t a = b;
-                
+
                 a = (a >> 1) | ((a & 1) << 7); // rrca
                 a ^= b;
                 a &= 224;
@@ -706,7 +706,7 @@ void gfy_SetDefaultPalette(__attribute__((unused)) gfy_mode_t mode) {
 
                 b++;
             }
-        
+
         /* Data */
             //memcpy(gfy_palette, gfy_internal_default_palette, sizeof(uint16_t) * 256);
     #endif
@@ -908,7 +908,7 @@ static void gfy_internal_PrintChar_NoClip(const char c, const uint8_t charWidth)
                 const uint8_t fillColor = *bitImage & b ? gfy_Text_FG_Color : gfy_Text_BG_Color;
                 bitImage++;
                 if (fillColor == gfy_Text_TP_Color) {
-                    
+
                     fillPtr += gfy_TextHeightScale;
                     continue;
                 }
@@ -928,7 +928,7 @@ static void gfy_internal_PrintChar_NoClip(const char c, const uint8_t charWidth)
 
 void gfy_PrintChar(const char c) {
     GFY_CLIPPING_ASSUMPTIONS();
-    
+
     const uint8_t charWidth = gfy_GetCharWidth(c);
     const uint8_t textSizeX = charWidth * gfy_TextWidthScale;
     const uint8_t textSizeY = GFY_MAXIMUM_FONT_HEIGHT * gfy_TextHeightScale;
@@ -961,7 +961,7 @@ void gfy_PrintChar(const char c) {
                         fillPtr >= (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) &&
                         fillPtr < (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer + GFY_LCD_WIDTH * GFY_LCD_HEIGHT)
                     ) {
-                        *fillPtr = fillColor;   
+                        *fillPtr = fillColor;
                     }
                     fillPtr++;
                 }
@@ -1657,7 +1657,7 @@ void gfy_ShiftRight(uint24_t pixels) {
     static void gfy_Sprite_NoClip_Size2(const gfy_sprite_t *restrict sprite, uint24_t x, uint8_t y) {
         const uint8_t* src_buf = sprite->data;
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
-        
+
         for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
             memcpy(dst_buf, src_buf, 2);
             src_buf += 2;
@@ -1667,7 +1667,7 @@ void gfy_ShiftRight(uint24_t pixels) {
     static void gfy_Sprite_NoClip_Size4(const gfy_sprite_t *restrict sprite, uint24_t x, uint8_t y) {
         const uint8_t* src_buf = sprite->data;
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
-        
+
         for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
             memcpy(dst_buf, src_buf, 4);
             src_buf += 4;
@@ -1677,7 +1677,7 @@ void gfy_ShiftRight(uint24_t pixels) {
     static void gfy_Sprite_NoClip_Size8(const gfy_sprite_t *restrict sprite, uint24_t x, uint8_t y) {
         const uint8_t* src_buf = sprite->data;
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
-        
+
         for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
             memcpy(dst_buf, src_buf, 8);
             src_buf += 8;
@@ -1687,7 +1687,7 @@ void gfy_ShiftRight(uint24_t pixels) {
     static void gfy_Sprite_NoClip_Size16(const gfy_sprite_t *restrict sprite, uint24_t x, uint8_t y) {
         const uint8_t* src_buf = sprite->data;
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
-        
+
         for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
             memcpy(dst_buf, src_buf, 16);
             src_buf += 16;
@@ -1697,7 +1697,7 @@ void gfy_ShiftRight(uint24_t pixels) {
     static void gfy_Sprite_NoClip_Size32(const gfy_sprite_t *restrict sprite, uint24_t x, uint8_t y) {
         const uint8_t* src_buf = sprite->data;
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
-        
+
         for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
             memcpy(dst_buf, src_buf, 32);
             src_buf += 32;
@@ -1707,7 +1707,7 @@ void gfy_ShiftRight(uint24_t pixels) {
     static void gfy_Sprite_NoClip_Size64(const gfy_sprite_t *restrict sprite, uint24_t x, uint8_t y) {
         const uint8_t* src_buf = sprite->data;
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
-        
+
         for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
             memcpy(dst_buf, src_buf, 64);
             src_buf += 64;
@@ -1717,7 +1717,7 @@ void gfy_ShiftRight(uint24_t pixels) {
     static void gfy_Sprite_NoClip_Size128(const gfy_sprite_t *restrict sprite, uint24_t x, uint8_t y) {
         const uint8_t* src_buf = sprite->data;
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
-        
+
         for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
             memcpy(dst_buf, src_buf, 128);
             src_buf += 128;
@@ -1733,7 +1733,7 @@ void gfy_Tilemap(const gfy_tilemap_t* tilemap, uint24_t x_offset, uint24_t y_off
     // Unoptimized and overclips a bit
     uint24_t map_row = x_offset / tilemap->tile_width;
     uint24_t map_col = y_offset / tilemap->tile_height;
-    
+
     const uint8_t posX_offset = x_offset % tilemap->tile_width;
     const uint8_t posY_offset = y_offset % tilemap->tile_height;
 
@@ -1743,7 +1743,7 @@ void gfy_Tilemap(const gfy_tilemap_t* tilemap, uint24_t x_offset, uint24_t y_off
     uint24_t posY = tilemap->y_loc - ((posY_offset == 0) ?
         0 : tilemap->tile_height + posY_offset);
     // posY = (posY < 0) ? 0 : posY;
-    
+
     uint8_t draw_sizeX = tilemap->draw_width;
     uint8_t draw_sizeY = tilemap->draw_height;
     if (x_offset % tilemap->tile_width != 0) {
@@ -1753,7 +1753,7 @@ void gfy_Tilemap(const gfy_tilemap_t* tilemap, uint24_t x_offset, uint24_t y_off
         } else if (posX_offset != 0) {
             posX0 += tilemap->tile_width;
         }
-        
+
     }
     if (y_offset % tilemap->tile_height != 0) {
         if (map_col > 0) {
@@ -1767,7 +1767,7 @@ void gfy_Tilemap(const gfy_tilemap_t* tilemap, uint24_t x_offset, uint24_t y_off
     if (draw_sizeX == 0 || draw_sizeY == 0) {
         return;
     }
-    
+
     /* Debugging */ const uint24_t map_size = tilemap->width * tilemap->height;
 
     uint24_t map_index = map_row + (map_col * tilemap->width);
@@ -1799,7 +1799,7 @@ void gfy_Tilemap(const gfy_tilemap_t* tilemap, uint24_t x_offset, uint24_t y_off
                 break;
         }
     #endif
-    
+
     const uint24_t limitX = gfy_ClipXMax - tilemap->tile_width;
     const uint24_t limitY = gfy_ClipYMax - tilemap->tile_height;
     for (uint8_t draw_y = 0; draw_y < draw_sizeY; draw_y++) {
@@ -1838,7 +1838,7 @@ void gfy_Tilemap(const gfy_tilemap_t* tilemap, uint24_t x_offset, uint24_t y_off
 void gfy_Tilemap_NoClip(const gfy_tilemap_t *tilemap, uint24_t x_offset, uint24_t y_offset) {
     uint24_t map_row = x_offset / tilemap->tile_width;
     uint24_t map_col = y_offset / tilemap->tile_height;
-    
+
     uint24_t map_index = map_row + (map_col * tilemap->width);
     const uint24_t map_jump = (tilemap->width - tilemap->draw_width);
 
@@ -1894,7 +1894,7 @@ void gfy_TransparentTilemap(const gfy_tilemap_t* tilemap, uint24_t x_offset, uin
     // Unoptimized and overclips a bit
     uint24_t map_row = x_offset / tilemap->tile_width;
     uint24_t map_col = y_offset / tilemap->tile_height;
-    
+
     const uint8_t posX_offset = x_offset % tilemap->tile_width;
     const uint8_t posY_offset = y_offset % tilemap->tile_height;
 
@@ -1904,7 +1904,7 @@ void gfy_TransparentTilemap(const gfy_tilemap_t* tilemap, uint24_t x_offset, uin
     uint24_t posY = tilemap->y_loc - ((posY_offset == 0) ?
         0 : tilemap->tile_height + posY_offset);
     // posY = (posY < 0) ? 0 : posY;
-    
+
     uint8_t draw_sizeX = tilemap->draw_width;
     uint8_t draw_sizeY = tilemap->draw_height;
     if (x_offset % tilemap->tile_width != 0) {
@@ -1914,7 +1914,7 @@ void gfy_TransparentTilemap(const gfy_tilemap_t* tilemap, uint24_t x_offset, uin
         } else if (posX_offset != 0) {
             posX0 += tilemap->tile_width;
         }
-        
+
     }
     if (y_offset % tilemap->tile_height != 0) {
         if (map_col > 0) {
@@ -1991,7 +1991,7 @@ void gfy_TransparentTilemap_NoClip(const gfy_tilemap_t *tilemap, uint24_t x_offs
 uint8_t *gfy_TilePtr(const gfy_tilemap_t *tilemap, uint24_t x_offset, uint24_t y_offset) {
     uint24_t map_row = x_offset / tilemap->tile_width;
     uint24_t map_col = y_offset / tilemap->tile_height;
-    
+
     uint24_t map_index = map_row + (map_col * tilemap->width);
     return &(tilemap->map[map_index]);
 }
@@ -2051,7 +2051,7 @@ gfy_sprite_t *gfy_AllocSprite(
 
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (y + min_clipY) + ((x + min_clipX) * GFY_LCD_HEIGHT);
         const uint24_t dst_jump = (GFY_LCD_HEIGHT * (sprite->width - clip_jumpX)) - 1;
-        
+
         for (uint8_t y_cord = 0; y_cord < sizeY; y_cord++) {
             for (uint8_t x_cord = 0; x_cord < sizeX; x_cord++) {
                 *dst_buf = *src_buf;
@@ -2089,11 +2089,11 @@ gfy_sprite_t *gfy_AllocSprite(
 
         uint8_t sizeX = sprite->width - (min_clipX + max_clipX);
         uint8_t sizeY = sprite->height - (min_clipY + max_clipY);
-        
+
         const uint8_t* src_buf = sprite->data + min_clipY + (min_clipX * sprite->height);
-        
+
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (y + min_clipY) + ((x + min_clipX) * GFY_LCD_HEIGHT);
-        
+
         for (uint8_t x_cord = 0; x_cord < sizeX; x_cord++) {
             memcpy(dst_buf, src_buf, sizeY);
             src_buf += sprite->height;
@@ -2199,7 +2199,7 @@ gfy_sprite_t *gfy_AllocSprite(
         const uint8_t* src_buf = sprite->data;
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
         const uint24_t dst_jump = (GFY_LCD_HEIGHT * sprite->width) - 1;
-        
+
         for (uint8_t y_cord = 0; y_cord < sprite->height; y_cord++) {
             for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
                 *dst_buf = *src_buf;
@@ -2210,16 +2210,16 @@ gfy_sprite_t *gfy_AllocSprite(
         }
     }
 #else
-    
+
     void gfy_Sprite_NoClip(const gfy_sprite_t *restrict sprite, uint24_t x, uint8_t y) {
-        
+
         // Compare speed
         #define gfy_Sprite_NoClip_memcpy
 
         #ifdef gfy_Sprite_NoClip_memcpy
             const uint8_t* src_buf = sprite->data;
             uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
-            
+
             for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
                 memcpy(dst_buf, src_buf, sprite->height);
                 src_buf += sprite->height;
@@ -2229,7 +2229,7 @@ gfy_sprite_t *gfy_AllocSprite(
             const uint8_t* src_buf = sprite->data;
             uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
             const uint24_t dst_jump = GFY_LCD_HEIGHT - sprite->height;
-            
+
             for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
                 for (uint8_t y_cord = 0; y_cord < sprite->height; y_cord++) {
                     // Reduces size??
@@ -2253,7 +2253,7 @@ gfy_sprite_t *gfy_AllocSprite(
         const uint8_t* src_buf = sprite->data;
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
         const uint24_t dst_jump = (GFY_LCD_HEIGHT * sprite->width) - 1;
-        
+
         for (uint8_t y_cord = 0; y_cord < sprite->height; y_cord++) {
             for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
                 *dst_buf = (*src_buf != gfy_Transparent_Color) ? *src_buf : *dst_buf;
@@ -2268,7 +2268,7 @@ gfy_sprite_t *gfy_AllocSprite(
         const uint8_t* src_buf = sprite->data;
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
         const uint24_t dst_jump = GFY_LCD_HEIGHT - sprite->height;
-        
+
         for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
             for (uint8_t y_cord = 0; y_cord < sprite->height; y_cord++) {
                 *dst_buf = (*src_buf != gfy_Transparent_Color) ? *src_buf : *dst_buf;
@@ -2287,7 +2287,7 @@ gfy_sprite_t *gfy_AllocSprite(
         uint8_t* dst_buf = sprite_buffer->data;
         const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
         const uint24_t src_jump = (GFY_LCD_HEIGHT * sprite_buffer->width) - 1;
-        
+
         for (uint8_t y_cord = 0; y_cord < sprite_buffer->height; y_cord++) {
             for (uint8_t x_cord = 0; x_cord < sprite_buffer->width; x_cord++) {
                 *dst_buf = *src_buf;
@@ -2302,7 +2302,7 @@ gfy_sprite_t *gfy_AllocSprite(
     gfy_sprite_t *gfy_GetSprite(gfy_sprite_t *sprite_buffer, int24_t x, int24_t y) {
         uint8_t* dst_buf = sprite_buffer->data;
         const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
-        
+
         for (uint8_t x_cord = 0; x_cord < sprite_buffer->width; x_cord++) {
             memcpy(dst_buf, src_buf, sprite_buffer->height);
             src_buf += GFY_LCD_HEIGHT;
@@ -2329,7 +2329,7 @@ gfy_sprite_t *gfy_AllocSprite(
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
         const uint24_t dst_jumpY = (GFY_LCD_HEIGHT * (sprite->width * width_scale)) - 1;
         const uint24_t dst_jumpX = GFY_LCD_HEIGHT * width_scale;
-            
+
         for (uint8_t y_cord = 0; y_cord < sprite->height; y_cord++) {
             const uint8_t* src_buf_line = src_buf;
             for (uint8_t v = 0; v < height_scale; v++) {
@@ -2342,7 +2342,7 @@ gfy_sprite_t *gfy_AllocSprite(
                 dst_buf -= dst_jumpY;
             }
         }
-        
+
         if (width_scale == 1) {
             return;
         }
@@ -2374,7 +2374,7 @@ gfy_sprite_t *gfy_AllocSprite(
         uint8_t* buf_start = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
         uint8_t* dst_buf = buf_start;
         const uint24_t dst_jump = (GFY_LCD_HEIGHT * width_scale) - (sprite->height * height_scale);
-        
+
         for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
             for (uint8_t y_cord = 0; y_cord < sprite->height; y_cord++) {
                 const uint8_t color = *src_buf;
@@ -2386,7 +2386,7 @@ gfy_sprite_t *gfy_AllocSprite(
             }
             dst_buf += dst_jump;
         }
-        
+
         if (width_scale == 1) {
             return;
         }
@@ -2423,7 +2423,7 @@ gfy_sprite_t *gfy_AllocSprite(
         uint8_t* dst_buf = buf_start;
         const uint24_t dst_jumpY = (GFY_LCD_HEIGHT * (sprite->width * width_scale)) - 1;
         const uint24_t dst_jumpX = GFY_LCD_HEIGHT * width_scale;
-        
+
         for (uint8_t y_cord = 0; y_cord < sprite->height; y_cord++) {
             const uint8_t* src_buf_line = src_buf;
             for (uint8_t v = 0; v < height_scale; v++) {
@@ -2459,7 +2459,7 @@ gfy_sprite_t *gfy_AllocSprite(
         uint8_t* buf_start = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + y + (x * GFY_LCD_HEIGHT);
         uint8_t* dst_buf = buf_start;
         const uint24_t dst_jump = GFY_LCD_HEIGHT - (sprite->height * height_scale);
-        
+
         for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
             for (uint8_t u = 0; u < width_scale; u++) {
                 for (uint8_t y_cord = 0; y_cord < sprite->height; y_cord++) {
@@ -2791,9 +2791,9 @@ gfy_sprite_t *gfy_GetSpriteChar(__attribute__((unused)) char c) {
     #else
         const uint8_t *bitImage = gfy_TextData + GFY_MAXIMUM_FONT_HEIGHT * (uint24_t)((unsigned char)c);
         uint8_t *fillPtr = gfy_TmpCharSprite.data;
-        
+
         const uint8_t CharWidth = gfy_GetCharWidth(c);
-        
+
         for (uint8_t y = 0; y < gfy_FontHeight; y++) {
             uint8_t b = 1;
             uint8_t x = 0;
@@ -2806,7 +2806,7 @@ gfy_sprite_t *gfy_GetSpriteChar(__attribute__((unused)) char c) {
                 *fillPtr = gfy_Text_BG_Color;
                 fillPtr++;
             }
-            bitImage++;	
+            bitImage++;
         }
         memset(fillPtr, gfy_Text_BG_Color,
             (GFY_MAXIMUM_FONT_HEIGHT - gfy_FontHeight) * GFY_MAXIMUM_FONT_WIDTH
@@ -3172,7 +3172,7 @@ gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprit
                     posX += jump_TP;
                     dst_buf += jump_TP * GFY_LCD_HEIGHT;
                     src_buf++;
-                    
+
                     if (posX >= sprite->width) {
                         break;
                     }
@@ -3201,7 +3201,7 @@ gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprit
                 while (posX < sprite->width) {
                     posX += *src_buf;
                     src_buf++;
-                    
+
                     if (posX >= sprite->width) {
                         break;
                     }
@@ -3251,7 +3251,7 @@ gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprit
                     posX += jump_TP;
                     dst_buf += jump_TP;
                     src_buf++;
-                    
+
                     if (posX >= sprite->width) {
                         break;
                     }
@@ -3280,7 +3280,7 @@ gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprit
                 while (posX < sprite->width) {
                     posX += *src_buf;
                     src_buf++;
-                    
+
                     if (posX >= sprite->width) {
                         break;
                     }
@@ -3302,7 +3302,7 @@ gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprit
         const uint8_t* src_buf = sprite->data;
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (y + (GFY_LCD_HEIGHT * x));
         const uint24_t dst_jump = (sprite->width * GFY_LCD_HEIGHT) - 1;
-        
+
         for (uint8_t posY = 0; posY < sprite->height; posY++) {
             uint8_t posX = 0;
             while (posX < sprite->width) {
@@ -3310,7 +3310,7 @@ gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprit
                 posX += jump_TP;
                 dst_buf += jump_TP * GFY_LCD_HEIGHT;
                 src_buf++;
-                
+
                 if (posX >= sprite->width) {
                     break;
                 }
@@ -3332,7 +3332,7 @@ gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprit
         const uint8_t* src_buf = sprite->data;
         uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfy_CurrentBuffer) + (y + (GFY_LCD_HEIGHT * x));
         const uint24_t dst_jump = GFY_LCD_HEIGHT - sprite->width;
-        
+
         for (uint8_t posY = 0; posY < sprite->height; posY++) {
             uint8_t posX = 0;
             while (posX < sprite->width) {
@@ -3340,7 +3340,7 @@ gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprit
                 posX += jump_TP;
                 dst_buf += jump_TP;
                 src_buf++;
-                
+
                 if (posX >= sprite->width) {
                     break;
                 }
@@ -3371,7 +3371,7 @@ gfy_sprite_t *gfy_ConvertFromRLETSprite(const gfy_rletsprite_t *sprite_in, gfy_s
         const uint8_t* src_buf = sprite_in->data;
         uint8_t* dst_buf = sprite_out->data;
         const uint24_t dst_jump = sprite_in->width - 1;
-        
+
         for (uint8_t posY = 0; posY < sprite_in->height; posY++) {
             uint8_t posX = 0;
             while (posX < sprite_in->width) {
@@ -3413,7 +3413,7 @@ gfy_rletsprite_t *gfy_ConvertToRLETSprite(const gfy_sprite_t *sprite_in, gfy_rle
 
         for (uint8_t y = 0; y < sprite_in->height; y++) {
             uint8_t x = 0;
-            
+
             while (x < sprite_in->width) {
                 uint8_t transparent_run_length = 0;
                 while (x < sprite_in->width && *src_ptr == gfy_Transparent_Color) {
@@ -3427,7 +3427,7 @@ gfy_rletsprite_t *gfy_ConvertToRLETSprite(const gfy_sprite_t *sprite_in, gfy_rle
                 if (x >= sprite_in->width) {
                     break;
                 }
-                
+
                 uint8_t* const opaque_element = dst_ptr;
                 dst_ptr++;
                 uint8_t opaque_run_length = 0;
@@ -3459,7 +3459,7 @@ gfy_rletsprite_t *gfy_ConvertToNewRLETSprite(const gfy_sprite_t *sprite_in, void
         // Calculates rlet_size
         for (uint8_t y = 0; y < sprite_in->height; y++) {
             uint8_t x = 0;
-            
+
             while (x < sprite_in->width) {
                 while (x < sprite_in->width && *src_ptr == gfy_Transparent_Color) {
                     x++;
@@ -3470,7 +3470,7 @@ gfy_rletsprite_t *gfy_ConvertToNewRLETSprite(const gfy_sprite_t *sprite_in, void
                 if (x >= sprite_in->width) {
                     break;
                 }
-                
+
                 rlet_size++;
                 while (x < sprite_in->width && *src_ptr != gfy_Transparent_Color) {
                     x++;
@@ -3631,7 +3631,7 @@ static void gfy_internal_Ellipse_dual_line_NoClip(
 static void gfy_internal_Ellipse(
     int24_t x, int24_t y, uint24_t a, uint24_t b,
     void (*plot_function)(int24_t, int24_t, int24_t, int24_t)
-) {	
+) {
     int24_t a2 = a * a;
     int24_t fa2 = 4 * a2;
     if (a == 0 || b == 0) {
@@ -3671,7 +3671,7 @@ static void gfy_internal_Ellipse(
 
         sigma += a2 * (4 * yc + 6);
         yc++;
-    } 
+    }
 }
 
 /* gfy_Ellipse */

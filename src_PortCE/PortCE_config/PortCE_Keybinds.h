@@ -21,7 +21,7 @@ typedef enum PortCE_Keycode {
     KB_DecPnt       , KB_2      , KB_5      , KB_8      , KB_LParen , KB_Cos    , KB_Prgm   , KB_Stat       ,
     KB_Chs          , KB_3      , KB_6      , KB_9      , KB_RParen , KB_Tan    , KB_Vars   ,
     KB_Enter = 40   , KB_Add    , KB_Sub    , KB_Mul    , KB_Div    , KB_Power  , KB_Clear  ,
-    KB_Down = 48    , KB_Left   , KB_Right  , KB_Up    
+    KB_Down = 48    , KB_Left   , KB_Right  , KB_Up
 } PortCE_Keycode;
 
 /**
@@ -36,7 +36,7 @@ typedef enum PortCE_Keycode {
 
 static const PortCE_Keybind PortCE_Keybind_Custom[] = {
 
-};  
+};
 
 static const PortCE_Keybind PortCE_Keybind_Default[] = { // Mixture of WASD-EQ-ZXC and CEmu keybinds.
     /* Keypad Numbers */

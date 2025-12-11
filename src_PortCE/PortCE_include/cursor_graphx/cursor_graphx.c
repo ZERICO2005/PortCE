@@ -166,9 +166,9 @@
             y -= height;
             height = -height;
         }
-        
+
         const uint8_t clip = crsr_gfx_GetCursorSize();
-        
+
         if (x >= clip || y >= clip) {
             return;
         }
@@ -236,7 +236,7 @@
             x++;
         }
     }
-    
+
     void crsr_gfx_VertLine(
         int8_t x,
         int8_t y,

@@ -7,7 +7,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
 typedef enum {
     HID_SUCCESS,
     HID_IGNORE,

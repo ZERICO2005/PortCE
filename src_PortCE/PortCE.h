@@ -35,7 +35,7 @@ extern "C" {
 	 * @brief Access pointers through this macro at compile time
 	 */
 	#define CONST_ADDRESS(x) ((void*)x)
-	
+
 	/**
 	 * @brief Calculate pointer offsets from this macro
 	 */

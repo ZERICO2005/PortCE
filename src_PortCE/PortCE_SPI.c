@@ -248,7 +248,7 @@ void PortCE_reset_SPI_state(const bool TiOS_defaults) {
 	PortCE_SPI_State.memory_data_access.page_column_order        = 0;
 	PortCE_SPI_State.memory_data_access.column_addr_order        = 0;
 	PortCE_SPI_State.memory_data_access.page_addr_order          = 0;
-	
+
 	PortCE_SPI_State.vertical_scroll_start_addr = 0;
 
 	PortCE_SPI_State.interface_pixel_format.SPI_format = 0x6;
@@ -262,7 +262,7 @@ void PortCE_reset_SPI_state(const bool TiOS_defaults) {
 	PortCE_SPI_State.RAM_control.expanded_pixel_format          = 0x3;
 	PortCE_SPI_State.RAM_control.SPI_interface_wrap_at_end_mode = 1;
 	PortCE_SPI_State.RAM_control.RGB_interface_wrap_at_end_mode = 1;
-	
+
 	PortCE_SPI_State.RGB_interface.enable_polarity  = 1;
 	PortCE_SPI_State.RGB_interface.dotclk_polarity  = 0;
 	PortCE_SPI_State.RGB_interface.hsync_polarity   = 0;

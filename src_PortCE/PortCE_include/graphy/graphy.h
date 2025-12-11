@@ -54,7 +54,7 @@
      * to run slower.
      */
     // #define USE_GRAPHX_SPRITE_DATA
-    
+
     /**
      * graphy will call additional graphx functions to ensure that internal
      * variables will be in sync. Leaving this disabled can marginally improve

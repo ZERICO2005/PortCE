@@ -110,7 +110,7 @@ extern "C" {
 	void SPI_INVERT_COLORS(void);
 	void SPI_ROW_MAJOR(void);
 	void SPI_COLUMN_MAJOR(void);
-	
+
 #endif
 
 #ifdef __cplusplus

@@ -17,7 +17,7 @@
 
 	typedef signed _BitInt(24) int24_t; /** @note Remember to account for integer promotion */
 	typedef unsigned _BitInt(24) uint24_t; /** @note Remember to account for integer promotion */
-	
+
 	typedef signed _BitInt(48) int48_t;
 	typedef unsigned _BitInt(48) uint48_t;
 
@@ -75,7 +75,7 @@
 	#define    UINT_LEAST24_MAX                 __UINT_LEAST24_MAX__
 	#define    UINT_LEAST24_WIDTH  __STDINT_WIDTH(UINT_LEAST24)
 	#endif        /*__INT24_TYPE_*/
-	
+
 	#ifdef   __SIZEOF_INT48__
 	typedef        __INT_48_TYPE__                  int_fast48_t;
 	#define      INT_FAST48_MIN                 (~__INT_FAST48_MAX__)
@@ -168,7 +168,7 @@
 
 		typedef signed _BitInt(72) int72_t;
 		typedef unsigned _BitInt(72) uint72_t;
-		
+
 		typedef signed _BitInt(96) int96_t;
 		typedef unsigned _BitInt(96) uint96_t;
 
@@ -226,7 +226,7 @@
 		#define    UINT_LEAST72_MAX                 __UINT_LEAST72_MAX__
 		#define    UINT_LEAST72_WIDTH  __STDINT_WIDTH(UINT_LEAST72)
 		#endif        /*__INT72_TYPE_*/
-		
+
 		#ifdef   __SIZEOF_INT96__
 		typedef        __INT_96_TYPE__                  int_fast96_t;
 		#define      INT_FAST96_MIN                 (~__INT_FAST96_MAX__)
@@ -251,7 +251,7 @@
 		typedef int72_t packed_int72_t;
 		typedef uint96_t packed_uint96_t;
 		typedef int96_t packed_int96_t;
-		
+
 	#else
 		typedef struct packed_uint72_t {
 			uint8_t do_not_access_these_bytes_directly[9];

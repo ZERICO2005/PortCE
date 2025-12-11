@@ -102,7 +102,7 @@
         int8_t y,
         int8_t length
     );
-    
+
     void crsr_gfx_VertLine(
         int8_t x,
         int8_t y,

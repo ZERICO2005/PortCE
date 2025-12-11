@@ -80,7 +80,7 @@ Not all C/C++ code may work as intended. Here is a list of things to watch out f
 6. Compiling
 
 PortCE uses `_BitInt(24)` for `int24_t`, so it's recommended that you use Clang C23. For reference, the CE C/C++ toolchain uses Clang C17. You may also try using `_ExtInt` in Clang.
- If your compiler does not support `_BitInt`, you can try `typedef int32_t int24_t`, but this may break/crash your code. 
+ If your compiler does not support `_BitInt`, you can try `typedef int32_t int24_t`, but this may break/crash your code.
 
 To compile your code for PortCE, run `mkdir build`, `cd build`, and `cmake -G Ninja ..`, then run `ninja` to compile your code.
 

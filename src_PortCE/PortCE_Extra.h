@@ -30,7 +30,7 @@ typedef enum PortCE_Mouse_State {
 #ifdef _EZ80
 
 	#define PortCE_get_mouse_state(...) (0)
-	
+
 	#define PortCE_SoundEffect(...)
 	#define PortCE_PlayMusic(...)
 	#define PortCE_PauseMusic()
@@ -94,7 +94,7 @@ typedef enum PortCE_Mouse_State {
 		 * Restarts the music.
 		 */
 		void PortCE_RewindMusic(void);
-		
+
 		/**
 		 * Returns true if music is playing or paused.
 		 */

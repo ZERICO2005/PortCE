@@ -105,7 +105,7 @@ extern "C" {
 /* Function Declarations */
 
 	void PortCE_terminate_fileioc(void);
-	
+
 	void reset_ti84ce_registers(void);
 
 #ifdef __cplusplus

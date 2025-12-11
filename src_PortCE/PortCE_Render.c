@@ -369,7 +369,7 @@ uint8_t os_GetCSC(void) {
 
 uint16_t os_GetKey(void) {
 	uint8_t key = KB_None;
-	
+
 	while (key == KB_None) {
 		key = internal_CSC_Scan();
 		PortCE_new_frame();
@@ -583,7 +583,7 @@ static void unpack_cursor(uint8_t* dst, const uint8_t* src, __attribute__((unuse
 
 // Will be optimized later on
 static void renderCursor(uint32_t* data) {
-	
+
 	if (data == NULL) { return; }
 	// srand(1234);
 	// for (size_t i = 0; i < 1024; i++) {
@@ -657,7 +657,7 @@ static void render_color_idle_mode(uint32_t* data) {
 	void internal_print_LCD_registers(void) {
 		#define PrintVar(label, value) \
 			printf("\t%12s: %" PRId32 "\n", (label), (int32_t)(value));
-		
+
 		#define PrintHex(label, value) \
 			printf("\t%12s: 0x%06" PRIX32 "\n", (label), (int32_t)(value));
 
@@ -710,7 +710,7 @@ void copyFrame(uint32_t* data) {
 	};
 
 	memcpy(videoCopy,((uint8_t*)&simulated_ram[(0xD00000 | (lcd_UpBase & (0xFFFF << 3)))]),copyAmount);
-	
+
 
 	// Tests BGR bit
     if (lcd_VideoMode & LCD_MASK_BGR) {
@@ -835,7 +835,7 @@ void initLCDcontroller(const char* window_title, const PortCE_Config* config) {
 	);
 
 	SDL_SetWindowMinimumSize(window, RESX_MINIMUM, RESY_MINIMUM);
-	
+
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 	SDL_RenderClear(renderer);
@@ -875,14 +875,14 @@ static bool resizeWindow(int32_t resX, int32_t resY, uint32_t* resizeX, uint32_t
 		SDL_SetWindowSize(window,resX,resY);
 
 		SDL_RenderSetLogicalSize(renderer, resX, resY);
-		
+
 		if (resizeX != NULL) { *resizeX = resX; }
 		if (resizeY != NULL) { *resizeY = resY; }
 
 		if (texture != NULL) {
 			SDL_DestroyTexture(texture);
 		}
-		
+
 		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, (int)Master.resX, (int)Master.resY);
 		SDL_SetTextureScaleMode(texture, PortCE_scale_mode);
 		if (texture == NULL) {
@@ -910,7 +910,7 @@ static bool windowResizingCode(uint32_t* resX, uint32_t* resY) {
 
 static void pace_frame(nano64_t pace_time) {
 	const nano64_t yield_threshold = SECONDS_TO_NANO(1.0e-4);
-	
+
 	static nano64_t last_frame_time = 0;
 	nano64_t current_time = getNanoTime();
 
@@ -954,7 +954,7 @@ void PortCE_new_frame(void) {
     }
 	windowResizingCode(NULL,NULL);
 	copyFrame(Master.vram);
-	
+
 	SDL_UpdateTexture(texture, NULL, Master.vram, Master.pitch);
 	{
 		// SDL_Rect srcRect = {0,0,(int)Master.resX,(int)Master.resY};
@@ -979,7 +979,7 @@ void PortCE_new_frame(void) {
 				window_ResX, image_ResY
 			};
 		}
-		
+
 		SDL_RenderCopy(renderer, texture, NULL, &dstRect);
 	}
 	SDL_RenderPresent(renderer);

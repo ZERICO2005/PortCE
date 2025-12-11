@@ -14,7 +14,7 @@
 */
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 #endif
 
 // TEMP DATA //
@@ -273,7 +273,7 @@ static const int8_t gfx_SinTable[65] = {
 
 /**
  * @brief Calculates sin(x) from a lookup table.
- * 
+ *
  * @param theta angle 0-255
  * @return sin(x) * 128
  */
@@ -292,7 +292,7 @@ __attribute__((unused)) static uint8_t gfx_Sin(uint8_t theta) {
 
 /**
  * @brief Calculates cos(x) from a lookup table.
- * 
+ *
  * @param theta angle 0-255
  * @return cos(x) * 128
  */
@@ -337,7 +337,7 @@ void gfx_Begin() {
     gfx_ClipYMin = 0;
     gfx_ClipXMax = GFX_LCD_WIDTH;
     gfx_ClipYMax = GFX_LCD_HEIGHT;
-    
+
     gfx_MonospaceFont = 0;
 }
 
@@ -383,7 +383,7 @@ void gfx_SetDefaultPalette(__attribute__((unused)) gfx_mode_t mode) {
         for (size_t i = 0; i < 256; i++) {
             //uint8_t carry = 0;
             uint8_t a = b;
-            
+
             a = (a >> 1) | ((a & 1) << 7); // rrca
             a ^= b;
             a &= 224;
@@ -404,7 +404,7 @@ void gfx_SetDefaultPalette(__attribute__((unused)) gfx_mode_t mode) {
 
             b++;
         }
-        
+
     /* Data */
         // memcpy(gfx_palette, gfx_internal_default_palette, sizeof(uint16_t) * 256);
 }
@@ -553,7 +553,7 @@ void gfx_BlitRectangle(
 static void gfx_internal_PrintChar_NoClip(const char c, const uint8_t charWidth) {
     const uint8_t *bitImage = gfx_TextData + GFX_MAXIMUM_FONT_HEIGHT * (uint24_t)((unsigned char)c);
     uint8_t *fillLinePtr = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + (gfx_TextXPos + (gfx_TextYPos * GFX_LCD_WIDTH));
-    
+
     gfx_TextXPos += charWidth * gfx_TextWidthScale;
 
     for (uint8_t y = 0; y < gfx_FontHeight; y++) {
@@ -563,7 +563,7 @@ static void gfx_internal_PrintChar_NoClip(const char c, const uint8_t charWidth)
             for (uint8_t x = 0; x < charWidth; x++) {
                 const uint8_t fillColor = *bitImage & b ? gfx_Text_FG_Color : gfx_Text_BG_Color;
                 b >>= 1;
-                
+
                 if (fillColor == gfx_Text_TP_Color) {
                     fillPtr += gfx_TextWidthScale;
                     continue;
@@ -583,7 +583,7 @@ static void gfx_internal_PrintChar_NoClip(const char c, const uint8_t charWidth)
 
 void gfx_PrintChar(const char c) {
     // GFX_CLIPPING_ASSUMPTIONS();
-    
+
     const uint8_t charWidth = gfx_GetCharWidth(c);
     const uint8_t textSizeX = charWidth * gfx_TextWidthScale;
     const uint8_t textSizeY = GFX_MAXIMUM_FONT_HEIGHT * gfx_TextHeightScale;
@@ -617,7 +617,7 @@ void gfx_PrintChar(const char c) {
                         fillPtr >= (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) &&
                         fillPtr < (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer + GFX_LCD_WIDTH * GFX_LCD_HEIGHT)
                     ) {
-                        *fillPtr = fillColor;   
+                        *fillPtr = fillColor;
                     }
                     fillPtr++;
                 }
@@ -1209,7 +1209,7 @@ void gfx_Tilemap(const gfx_tilemap_t* tilemap, uint24_t x_offset, uint24_t y_off
     // Unoptimized and overclips a bit
     uint24_t map_row = x_offset / tilemap->tile_width;
     uint24_t map_col = y_offset / tilemap->tile_height;
-    
+
     const uint8_t posX_offset = x_offset % tilemap->tile_width;
     const uint8_t posY_offset = y_offset % tilemap->tile_height;
 
@@ -1219,7 +1219,7 @@ void gfx_Tilemap(const gfx_tilemap_t* tilemap, uint24_t x_offset, uint24_t y_off
     uint24_t posY = tilemap->y_loc - ((posY_offset == 0) ?
         0 : tilemap->tile_height + posY_offset);
     // posY = (posY < 0) ? 0 : posY;
-    
+
     uint8_t draw_sizeX = tilemap->draw_width;
     uint8_t draw_sizeY = tilemap->draw_height;
     if (x_offset % tilemap->tile_width != 0) {
@@ -1229,7 +1229,7 @@ void gfx_Tilemap(const gfx_tilemap_t* tilemap, uint24_t x_offset, uint24_t y_off
         } else if (posX_offset != 0) {
             posX0 += tilemap->tile_width;
         }
-        
+
     }
     if (y_offset % tilemap->tile_height != 0) {
         if (map_col > 0) {
@@ -1266,7 +1266,7 @@ void gfx_Tilemap(const gfx_tilemap_t* tilemap, uint24_t x_offset, uint24_t y_off
 void gfx_Tilemap_NoClip(const gfx_tilemap_t *tilemap, uint24_t x_offset, uint24_t y_offset) {
     uint24_t map_row = x_offset / tilemap->tile_width;
     uint24_t map_col = y_offset / tilemap->tile_height;
-    
+
     uint24_t map_index = map_row + (map_col * tilemap->width);
     const uint24_t map_jump = (tilemap->width - tilemap->draw_width);
 
@@ -1292,7 +1292,7 @@ void gfx_TransparentTilemap(const gfx_tilemap_t* tilemap, uint24_t x_offset, uin
     // Unoptimized and overclips a bit
     uint24_t map_row = x_offset / tilemap->tile_width;
     uint24_t map_col = y_offset / tilemap->tile_height;
-    
+
     const uint8_t posX_offset = x_offset % tilemap->tile_width;
     const uint8_t posY_offset = y_offset % tilemap->tile_height;
 
@@ -1302,7 +1302,7 @@ void gfx_TransparentTilemap(const gfx_tilemap_t* tilemap, uint24_t x_offset, uin
     uint24_t posY = tilemap->y_loc - ((posY_offset == 0) ?
         0 : tilemap->tile_height + posY_offset);
     // posY = (posY < 0) ? 0 : posY;
-    
+
     uint8_t draw_sizeX = tilemap->draw_width;
     uint8_t draw_sizeY = tilemap->draw_height;
     if (x_offset % tilemap->tile_width != 0) {
@@ -1312,7 +1312,7 @@ void gfx_TransparentTilemap(const gfx_tilemap_t* tilemap, uint24_t x_offset, uin
         } else if (posX_offset != 0) {
             posX0 += tilemap->tile_width;
         }
-        
+
     }
     if (y_offset % tilemap->tile_height != 0) {
         if (map_col > 0) {
@@ -1373,7 +1373,7 @@ void gfx_TransparentTilemap_NoClip(const gfx_tilemap_t *tilemap, uint24_t x_offs
 uint8_t *gfx_TilePtr(const gfx_tilemap_t *tilemap, uint24_t x_offset, uint24_t y_offset) {
     uint24_t map_row = x_offset / tilemap->tile_width;
     uint24_t map_col = y_offset / tilemap->tile_height;
-    
+
     uint24_t map_index = map_row + (map_col * tilemap->width);
     return &(tilemap->map[map_index]);
 }
@@ -1427,11 +1427,11 @@ void gfx_Sprite(const gfx_sprite_t *sprite, int24_t x, int24_t y) {
 
     uint8_t sizeX = sprite->width - (min_clipX + max_clipX);
     uint8_t sizeY = sprite->height - (min_clipY + max_clipY);
-    
+
     const uint8_t* src_buf = sprite->data + min_clipX + (min_clipY * sprite->width);
-    
+
     uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + (x + min_clipX) + ((y + min_clipY) * GFX_LCD_WIDTH);
-    
+
     for (uint8_t y_cord = 0; y_cord < sizeY; y_cord++) {
         memcpy(dst_buf, src_buf, sizeX);
         src_buf += sprite->width;
@@ -1466,7 +1466,7 @@ void gfx_TransparentSprite(const gfx_sprite_t *sprite, int24_t x, int24_t y) {
 
     uint8_t sizeX = sprite->width - (min_clipX + max_clipX);
     uint8_t sizeY = sprite->height - (min_clipY + max_clipY);
-    
+
     const uint8_t* src_buf = sprite->data + min_clipX + (min_clipY * sprite->width);
     const uint8_t clip_jumpX = min_clipX + max_clipX;
 
@@ -1489,7 +1489,7 @@ void gfx_TransparentSprite(const gfx_sprite_t *sprite, int24_t x, int24_t y) {
 void gfx_Sprite_NoClip(const gfx_sprite_t *sprite, uint24_t x, uint8_t y) {
     const uint8_t* src_buf = sprite->data;
     uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + x + (y * GFX_LCD_WIDTH);
-    
+
     for (uint8_t y_cord = 0; y_cord < sprite->height; y_cord++) {
         memcpy(dst_buf, src_buf, sprite->width);
         src_buf += sprite->width;
@@ -1503,7 +1503,7 @@ void gfx_TransparentSprite_NoClip(const gfx_sprite_t *sprite, uint24_t x, uint8_
     const uint8_t* src_buf = sprite->data;
     uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + x + (y * GFX_LCD_WIDTH);
     const uint24_t dst_jump = GFX_LCD_WIDTH - sprite->width;
-    
+
     for (uint8_t y_cord = 0; y_cord < sprite->height; y_cord++) {
         for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
             *dst_buf = (*src_buf != gfx_Transparent_Color) ? *src_buf : *dst_buf;
@@ -1519,7 +1519,7 @@ void gfx_TransparentSprite_NoClip(const gfx_sprite_t *sprite, uint24_t x, uint8_
 gfx_sprite_t *gfx_GetSprite(gfx_sprite_t *sprite_buffer, int24_t x, int24_t y) {
     uint8_t* dst_buf = sprite_buffer->data;
     const uint8_t* src_buf = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + x + (y * GFX_LCD_WIDTH);
-    
+
     for (uint8_t y_cord = 0; y_cord < sprite_buffer->height; y_cord++) {
         memcpy(dst_buf, src_buf, sprite_buffer->width);
         src_buf += GFX_LCD_WIDTH;
@@ -1544,7 +1544,7 @@ void gfx_ScaledSprite_NoClip(
     uint8_t* buf_start = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + x + (y * GFX_LCD_WIDTH);
     uint8_t* dst_buf = buf_start;
     const uint24_t dst_jump = (GFX_LCD_WIDTH * height_scale) - (sprite->width * width_scale);
-    
+
     for (uint8_t y_cord = 0; y_cord < sprite->height; y_cord++) {
         for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
             const uint8_t color = *src_buf;
@@ -1556,7 +1556,7 @@ void gfx_ScaledSprite_NoClip(
         }
         dst_buf += dst_jump;
     }
-    
+
     if (height_scale == 1) {
         return;
     }
@@ -1590,7 +1590,7 @@ void gfx_ScaledTransparentSprite_NoClip(
     uint8_t* buf_start = (uint8_t*)RAM_ADDRESS(gfx_CurrentBuffer) + x + (y * GFX_LCD_WIDTH);
     uint8_t* dst_buf = buf_start;
     const uint24_t dst_jump = GFX_LCD_WIDTH - (sprite->width * width_scale);
-    
+
     for (uint8_t y_cord = 0; y_cord < sprite->height; y_cord++) {
         for (uint8_t v = 0; v < height_scale; v++) {
             for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
@@ -1927,9 +1927,9 @@ void gfx_SetTextConfig(uint8_t config) {
 gfx_sprite_t *gfx_GetSpriteChar(__attribute__((unused)) char c) {
     const uint8_t *bitImage = gfx_TextData + GFX_MAXIMUM_FONT_HEIGHT * (uint24_t)((unsigned char)c);
     uint8_t *fillPtr = gfx_TmpCharSprite.data;
-    
+
     const uint8_t CharWidth = gfx_GetCharWidth(c);
-    
+
     for (uint8_t y = 0; y < gfx_FontHeight; y++) {
         uint8_t b = 1;
         uint8_t x = 0;
@@ -1942,7 +1942,7 @@ gfx_sprite_t *gfx_GetSpriteChar(__attribute__((unused)) char c) {
             *fillPtr = gfx_Text_BG_Color;
             fillPtr++;
         }
-        bitImage++;	
+        bitImage++;
     }
     memset(fillPtr, gfx_Text_BG_Color,
         (GFX_MAXIMUM_FONT_HEIGHT - gfx_FontHeight) * GFX_MAXIMUM_FONT_WIDTH
@@ -2054,7 +2054,7 @@ gfx_sprite_t *gfx_RotateScaleSprite(
 
     #define dys dxs
     #define dyc dxc
-    
+
     uint24_t src_index = 0;
 
     for (uint8_t y = 0; y < sprite_in->height; y++) {
@@ -2248,7 +2248,7 @@ static void gfx_internal_Ellipse_dual_line_NoClip(
 static void gfx_internal_Ellipse(
     int24_t x, int24_t y, uint24_t a, uint24_t b,
     void (*plot_function)(int24_t, int24_t, int24_t, int24_t)
-) {	
+) {
     int24_t a2 = a * a;
     int24_t fa2 = 4 * a2;
     if (a == 0 || b == 0) {
@@ -2288,7 +2288,7 @@ static void gfx_internal_Ellipse(
 
         sigma += a2 * (4 * yc + 6);
         yc++;
-    } 
+    }
 }
 
 /* gfx_Ellipse */

@@ -25,7 +25,7 @@ extern "C" {
 
 	typedef signed _BitInt(24) int24_t; /** @note Remember to account for integer promotion */
 	typedef unsigned _BitInt(24) uint24_t; /** @note Remember to account for integer promotion */
-	
+
 	typedef signed _BitInt(48) int48_t;
 	typedef unsigned _BitInt(48) uint48_t;
 
@@ -83,7 +83,7 @@ extern "C" {
 	#define    UINT_LEAST24_MAX                 __UINT_LEAST24_MAX__
 	#define    UINT_LEAST24_WIDTH  __STDINT_WIDTH(UINT_LEAST24)
 	#endif        /*__INT24_TYPE_*/
-	
+
 	#ifdef   __SIZEOF_INT48__
 	typedef        __INT_48_TYPE__                  int_fast48_t;
 	#define      INT_FAST48_MIN                 (~__INT_FAST48_MAX__)
@@ -169,7 +169,7 @@ extern "C" {
 	 * @brief Access pointers through this macro
 	 */
 	#define RAM_ADDRESS(x) ((void*)(x))
-	
+
 	/**
 	 * @brief Calculate pointer offsets from this macro
 	 */
@@ -188,24 +188,24 @@ extern "C" {
 #else
 
 	/**
-	 * @brief 
-	 * 
-	 * @param address 
-	 * @return void* 
+	 * @brief
+	 *
+	 * @param address
+	 * @return void*
 	 */
 	void* RAM_ADDRESS(uint24_t address);
-	
+
 	/**
-	 * @brief 
-	 * 
-	 * @param ptr 
-	 * @return uint24_t 
+	 * @brief
+	 *
+	 * @param ptr
+	 * @return uint24_t
 	 */
 	uint24_t RAM_OFFSET(const void* ptr);
 
 	/**
 	 * @brief Initializes the PortCE screen, keyboard, timers, etc.
-	 * 
+	 *
 	 * @param window_title your programs name (Can be NULL)
 	 */
 	void PortCE_initialize(const char* window_title);
@@ -227,11 +227,11 @@ extern "C" {
 
 	/**
 	 * @brief Used to update registers
-	 * 
+	 *
 	 * @return This function always returns 0
 	 */
 	ti_int PortCE_update_registers(void);
-	
+
 #endif
 
 /* Clock */

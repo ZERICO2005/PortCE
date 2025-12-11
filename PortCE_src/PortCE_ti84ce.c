@@ -12,11 +12,11 @@
 #include "PortCE_Common.h"
 
 #include "PortCE_Render.h"
-#include "PortCE_include/ce/include/sys/lcd.h"
-#include "PortCE_include/ce/include/sys/util.h"
-#include "PortCE_include/ce/include/sys/timers.h"
-#include "PortCE_include/ce/include/sys/rtc.h"
-#include "PortCE_include/lcddrvce/lcddrvce.h"
+#include <sys/lcd.h>
+#include <sys/util.h>
+#include <sys/timers.h>
+#include <sys/rtc.h>
+#include <lcddrvce.h>
 
 // #include <process.h>
 //#include <dir.h>
@@ -121,7 +121,7 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
     // 	uint8_t inter;
     // 	uint8_t dir;
     // }; typedef struct Simulated_Timer Simulated_Timer;
-    
+
     // static Simulated_Timer simulated_timer[3] = {
     // 	{0,1,0,1},{1,1,0,1},{1,1,0,1}
     // };
@@ -133,7 +133,7 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
     // 	simulated_timer[n - 1].inter = inter;
     // 	simulated_timer[n - 1].dir = dir;
     // }
-    
+
     // void timer_Disable(uint8_t n) {
     // 	if (n < 1 || n > 3) { return; }
     // 	simulated_timer[n - 1].enabled = 0;
@@ -165,7 +165,7 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
                 /* Wait */
             }
         }
-        
+
         void msleep(uint16_t msec) {
             nano64_t dur = (nano64_t)msec * 1000000;
             nano64_t startTime = getNanoTime();
@@ -283,7 +283,7 @@ static void PortCE_update_timers(void) {
         last_timer_update = getNanoTime();
     }
     const nano64_t current_time = getNanoTime();
-    
+
     const nano64_t delta_nano = (current_time - last_timer_update);
     const uint32_t delta_32K = (uint32_t)((int32_t)((double)delta_nano * (32768.0 / 1.0e9) * timer_mult)); // 32 KHz
     const uint32_t delta_CPU = (uint32_t)((int32_t)((double)delta_nano * (8.0e6 / 1.0e9) * timer_mult)); // 8 MHz
@@ -405,7 +405,7 @@ static void PortCE_update_RTC(void) {
         if (*RTC_Minutes != Minutes && (rtc_Control & RTC_MIN_INT_SOURCE)) { *rtc_IntStatus_ptr |= RTC_MIN_INT; }
         if (*RTC_Hours   != Hours   && (rtc_Control & RTC_HR_INT_SOURCE )) { *rtc_IntStatus_ptr |= RTC_HR_INT ; }
         if (*RTC_Days    != Days    && (rtc_Control & RTC_DAY_INT_SOURCE)) { *rtc_IntStatus_ptr |= RTC_DAY_INT; }
-        
+
         *RTC_Seconds = Seconds;
         *RTC_Minutes = Minutes;
         *RTC_Hours   = Hours  ;

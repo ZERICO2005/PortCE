@@ -8,7 +8,7 @@ set(PROJECT_NAME "PortCE-Project")
 project(${PROJECT_NAME})
 
 set(SRC_DIR "./src")
-set(SRC_PORTCE_DIR "./src_PortCE")
+set(SRC_PORTCE_DIR "./PortCE_src")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 
@@ -22,6 +22,8 @@ set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_CXX_STANDARD 17)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Packages
 find_package(SDL2 REQUIRED)
 
@@ -30,17 +32,8 @@ file(GLOB_RECURSE SRC_FILES "${SRC_DIR}/*.c" "${SRC_DIR}/*.cpp" "${SRC_PORTCE_DI
 # Create an executable
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${SRC_PORTCE_DIR})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${SRC_PORTCE_DIR}
-	"${SRC_PORTCE_DIR}/PortCE_include/"
-	"${SRC_PORTCE_DIR}/PortCE_include/ce"
-	"${SRC_PORTCE_DIR}/PortCE_include/ce/include/sys"
-	"${SRC_PORTCE_DIR}/PortCE_include/keypadc"
-	"${SRC_PORTCE_DIR}/PortCE_include/fileioc"
-	"${SRC_PORTCE_DIR}/PortCE_include/ce/include"
-	"${SRC_PORTCE_DIR}/PortCE_include/ce/include/ti"
-	"${SRC_PORTCE_DIR}/PortCE_include/graphx"
-	"${SRC_PORTCE_DIR}/PortCE_include/graphy"
-	"${SRC_PORTCE_DIR}/PortCE_include/lcddrvce"
+target_include_directories(${PROJECT_NAME} PUBLIC
+	${PROJECT_SOURCE_DIR}/PortCE_include
 )
 
 # Compiler Flags Debug(-g -O0) Release(-O3)

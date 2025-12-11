@@ -12,8 +12,8 @@
 #define ArchiveFolderPath "./Ti-Archive"
 
 /**
- * @brief 
- * 
+ * @brief
+ *
  */
 static const char* PortCE_FilePaths[] = {
 	"./",
@@ -61,7 +61,7 @@ static Ti_File_Handle ti_File_Handle[256];
 
 /**
  * @brief Finds the first empty file handle
- * 
+ *
  * @return uint8_t file handle or 0 on failure
  */
 static uint8_t get_Empty_File_Handle() {
@@ -76,10 +76,10 @@ static uint8_t get_Empty_File_Handle() {
 
 /**
  * @brief Sets the file access flags
- * 
+ *
  * @param[in] handle non zero file handle
  * @param[in] mode `r`, `w`, `a`, `r+`, `w+`, `a+`
- * @return false if parameters are invalid 
+ * @return false if parameters are invalid
  */
 static bool set_File_Access_Flags(uint8_t handle, const char* mode) {
 	if (handle == 0 || mode == NULL) {
@@ -158,7 +158,7 @@ static FILE* open_File(const char* name, const char* mode) {
 		memset(path, '\0', sizeof(path));
 		static char mode_temp[16];
 		memset(mode_temp, '\0', sizeof(mode_temp));
-	
+
 	for (size_t i = 0; i < ARRAY_LENGTH(PortCE_FilePaths); i++) {
 		memset(path, '\0', sizeof(path));
 		snprintf(path,sizeof(path),"%s%s.8xv", PortCE_FilePaths[i], name);

@@ -30,7 +30,7 @@ typedef enum PortCE_Mouse_State {
 #ifdef _EZ80
 
 	#define PortCE_get_mouse_state(...) (0)
-	
+
 	#define PortCE_SoundEffect(...)
 	#define PortCE_PlayMusic(...)
 	#define PortCE_PauseMusic()
@@ -41,7 +41,7 @@ typedef enum PortCE_Mouse_State {
 
 	/**
 	 * @brief Returns the position of the cursor relative to the calculator screen.
-	 * 
+	 *
 	 * @param[out] posX position or `INT_MIN` for out of bounds
 	 * @param[out] posY position or `INT_MIN` for out of bounds
 	 * @return `uint32_t` mask of `PortCE_Mouse_State`
@@ -94,7 +94,7 @@ typedef enum PortCE_Mouse_State {
 		 * Restarts the music.
 		 */
 		void PortCE_RewindMusic(void);
-		
+
 		/**
 		 * Returns true if music is playing or paused.
 		 */

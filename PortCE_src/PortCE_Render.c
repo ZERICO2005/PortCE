@@ -8,11 +8,11 @@
 #include "PortCE_Common.h"
 #include "PortCE_Render.h"
 
-#include "PortCE_include/ce/include/sys/lcd.h"
-#include "PortCE_include/keypadc/keypadc.h"
-#include "PortCE_include/ce/include/ti/getcsc.h"
-#include "PortCE_config/PortCE_Keybinds.h"
-#include "PortCE_include/lcddrvce/lcddrvce.h"
+#include <sys/lcd.h>
+#include <keypadc.h>
+#include <ti/getcsc.h>
+#include <PortCE_Keybinds.h>
+#include <lcddrvce.h>
 #include "PortCE_SPI.h"
 #include <stdio.h>
 
@@ -635,7 +635,7 @@ static void render_color_idle_mode(uint8_t* data) {
 	void internal_print_LCD_registers(void) {
 		#define PrintVar(label, value) \
 			printf("\t%12s: %" PRId32 "\n", (label), (int32_t)(value));
-		
+
 		#define PrintHex(label, value) \
 			printf("\t%12s: 0x%06" PRIX32 "\n", (label), (int32_t)(value));
 
@@ -650,7 +650,7 @@ static void render_color_idle_mode(uint8_t* data) {
 
 /**
  * @brief Writes the contents of the ti84ce screen to a buffer
- * 
+ *
  * @param data buffer to write a LCD_RESX * LCD_RESY image to
  */
 void copyFrame(uint8_t* data) {
@@ -687,7 +687,7 @@ void copyFrame(uint8_t* data) {
 	};
 
 	memcpy(videoCopy,((uint8_t*)&simulated_ram[(0xD00000 | (lcd_UpBase & (0xFFFF << 3)))]),copyAmount);
-	
+
 
 	// Tests BGR bit
     if (lcd_VideoMode & LCD_MASK_BGR) {
@@ -783,7 +783,7 @@ int terminateLCDcontroller() {
 }
 
 void initLCDcontroller(const char* window_title, const PortCE_Config* config) {
-	
+
 	uint8_t init_scale = (config == NULL) ? 2 : config->window_scale;
 	if (init_scale < 1) {
 		init_scale = 1;
@@ -810,7 +810,7 @@ void initLCDcontroller(const char* window_title, const PortCE_Config* config) {
 
 	SDL_SetWindowMinimumSize(window, RESX_MINIMUM, RESY_MINIMUM);
 	SDL_SetWindowMaximumSize(window, RESX_MAXIMUM, RESY_MAXIMUM);
-	
+
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 	SDL_RenderClear(renderer);
@@ -849,14 +849,14 @@ static bool resizeWindow(int32_t resX, int32_t resY, uint32_t* resizeX, uint32_t
 		SDL_SetWindowSize(window,resX,resY);
 
 		SDL_RenderSetLogicalSize(renderer, resX, resY);
-		
+
 		if (resizeX != NULL) { *resizeX = resX; }
 		if (resizeY != NULL) { *resizeY = resY; }
 
 		if (texture != NULL) {
 			SDL_DestroyTexture(texture);
 		}
-		
+
 		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, (int)Master.resX, (int)Master.resY);
 		SDL_SetTextureScaleMode(texture, PortCE_scale_mode);
 		if (texture == NULL) {
@@ -913,7 +913,7 @@ void PortCE_new_frame(void) {
     }
 	windowResizingCode(NULL,NULL);
 	copyFrame(Master.vram);
-	
+
 	SDL_UpdateTexture(texture, NULL, Master.vram, Master.pitch);
 	{
 		// SDL_Rect srcRect = {0,0,(int)Master.resX,(int)Master.resY};
@@ -938,7 +938,7 @@ void PortCE_new_frame(void) {
 				window_ResX, image_ResY
 			};
 		}
-		
+
 		SDL_RenderCopy(renderer, texture, NULL, &dstRect);
 	}
 	SDL_RenderPresent(renderer);

@@ -29,7 +29,7 @@ uint24_t RAM_OFFSET(const void* const ptr) {
 /* Function Declarations */
 
 	void PortCE_terminate_fileioc(void);
-	
+
 	void reset_ti84ce_registers(void);
 
 void PortCE_initialize(const char* window_title) {
@@ -40,7 +40,7 @@ void PortCE_initialize(const char* window_title) {
 	// import_config_file();
 	PortCE_Config config = {2, false, false, false, false};
 	initLCDcontroller(window_title, &config);
-	
+
 }
 
 void PortCE_terminate(void) {

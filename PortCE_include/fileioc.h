@@ -7,8 +7,6 @@
 #ifndef _FILEIOC_H
 #define _FILEIOC_H
 
-#include <PortCE.h>
-
 #include <stdint.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -89,11 +87,11 @@ extern "C" {
 #define ti_MallocEqu(len) ti_AllocEqu((len), malloc)
 
 /* @cond */
-string_t *ti_AllocString(unsigned len, void *(*malloc_routine)(size_t));
-list_t *ti_AllocList(unsigned dim, void *(*malloc_routine)(size_t));
-matrix_t *ti_AllocMatrix(uint8_t rows, uint8_t cols, void *(*malloc_routine)(size_t));
-cplx_list_t *ti_AllocCplxList(unsigned dim, void *(*malloc_routine)(size_t));
-equ_t *ti_AllocEqu(unsigned len, void *(*malloc_routine)(size_t));
+string_t *ti_AllocString(unsigned len, void *(*malloc_routine)(size_t)) __attribute__((__nonnull__(2)));
+list_t *ti_AllocList(unsigned dim, void *(*malloc_routine)(size_t)) __attribute__((__nonnull__(2)));
+matrix_t *ti_AllocMatrix(uint8_t rows, uint8_t cols, void *(*malloc_routine)(size_t)) __attribute__((__nonnull__(3)));
+cplx_list_t *ti_AllocCplxList(unsigned dim, void *(*malloc_routine)(size_t)) __attribute__((__nonnull__(2)));
+equ_t *ti_AllocEqu(unsigned len, void *(*malloc_routine)(size_t)) __attribute__((__nonnull__(2)));
 /* @endcond */
 
 /**
@@ -158,7 +156,7 @@ uint8_t ti_OpenVar(const char *name, const char *mode, uint8_t type);
  * @param[in] handle AppVar/variable handle.
  * @returns `0` (zero) on error.
  */
-int24_t ti_Close(uint8_t handle);
+int ti_Close(uint8_t handle);
 
 /**
  * Locates AppVars stored in archive and RAM.
@@ -273,7 +271,7 @@ size_t ti_Read(void *data, size_t size, size_t count, uint8_t handle);
  * @param[in] handle AppVar/variable handle.
  * @returns `EOF` on error, or \p ch.
  */
-int24_t ti_PutC(char ch, uint8_t handle);
+int ti_PutC(char ch, uint8_t handle);
 
 /**
  * Reads a character from an AppVar/variable handle.
@@ -281,7 +279,7 @@ int24_t ti_PutC(char ch, uint8_t handle);
  * @param[in] handle AppVar/variable handle.
  * @returns `EOF` on error, or a valid character.
  */
-int24_t ti_GetC(uint8_t handle);
+int ti_GetC(uint8_t handle);
 
 /**
  * Seeks to an offset in the file.
@@ -301,7 +299,7 @@ int24_t ti_GetC(uint8_t handle);
  * @param[in] handle AppVar/variable handle.
  * @returns `EOF` on failure.
  */
-int24_t ti_Seek(int24_t offset, uint24_t origin, uint8_t handle);
+int ti_Seek(int offset, size_t origin, uint8_t handle);
 
 /**
  * Seeks to the start of an AppVar/variable's data.
@@ -310,7 +308,7 @@ int24_t ti_Seek(int24_t offset, uint24_t origin, uint8_t handle);
  * @param[in] handle AppVar/variable handle.
  * @returns `EOF` on failure.
  */
-int24_t ti_Rewind(uint8_t handle);
+int ti_Rewind(uint8_t handle);
 
 /**
  * Gets the current data offset from the start of an AppVar/variable.
@@ -333,9 +331,13 @@ uint16_t ti_GetSize(uint8_t handle);
  *
  * @param[in] handle AppVar/variable handle.
  * @param[in] size New AppVar/variable size.
- * @returns Resized size on success, `0` on failure, or `-1` if the AppVar/variable cannot be opened.
+ * @returns Resized size on success, `0` on failure, or `-1` if the
+ *          AppVar/variable cannot be opened.
+ * @warning This function does not maintain the data already stored in the
+ *          AppVar/variable when shrinking/expanding, and effectively
+ *          corrupts the contents.
  */
-int24_t ti_Resize(size_t size, uint8_t handle);
+int ti_Resize(size_t size, uint8_t handle);
 
 /**
  * Checks if an AppVar/variable is stored in archive memory.
@@ -343,7 +345,7 @@ int24_t ti_Resize(size_t size, uint8_t handle);
  * @param[in] handle AppVar/variable handle.
  * @returns `0` if the AppVar/variable is not in the archive.
  */
-int24_t ti_IsArchived(uint8_t handle);
+int ti_IsArchived(uint8_t handle);
 
 /**
  * Moves an AppVar/variable between archive or RAM storage.
@@ -363,7 +365,30 @@ int24_t ti_IsArchived(uint8_t handle);
  * @warning Archiving a variable can cause a garbage collection cycle.
  * You should use ti_SetGCBehavior to catch this event.
  */
-int24_t ti_SetArchiveStatus(bool archive, uint8_t handle);
+int ti_SetArchiveStatus(uint8_t archive, uint8_t handle);
+
+/**
+ * Moves an AppVar/variable between archive or RAM storage.
+ * \rst
+ *   +-------------+-----------------------------------------+
+ *   | **archive** | **Description**                         |
+ *   +-------------+-----------------------------------------+
+ *   | true        | Store AppVar/variable in archive.       |
+ *   +-------------+-----------------------------------------+
+ *   | false       | Store AppVar/variable in RAM.           |
+ *   +-------------+-----------------------------------------+
+ * \endrst
+ * @param[in] archive Documented in the above table.
+ * @param[in] handle AppVar/variable handle.
+ * @returns `0` on failure.
+ *
+ * @warning Archiving a variable can cause a garbage collection cycle.
+ * You should use ti_SetGCBehavior to catch this event.
+ *
+ * @note This macro wraps ti_SetArchiveStatus, and ensures that `archive` is
+ * passed into ti_SetArchiveStatus correctly.
+ */
+#define ti_SetArchiveStatus(archive, handle) ti_SetArchiveStatus((bool)(archive), (handle))
 
 /**
  * Deletes an AppVar.
@@ -371,7 +396,7 @@ int24_t ti_SetArchiveStatus(bool archive, uint8_t handle);
  * @param[in] name AppVar name.
  * @returns `0` on failure.
  */
-int24_t ti_Delete(const char *name);
+int ti_Delete(const char *name);
 
 /**
  * Deletes a variable.
@@ -380,7 +405,7 @@ int24_t ti_Delete(const char *name);
  * @param[in] type Variable type.
  * @returns `0` on failure.
  */
-int24_t ti_DeleteVar(const char *name, uint8_t type);
+int ti_DeleteVar(const char *name, uint8_t type);
 
 /**
  * Gets the string used for displaying a TI token.
@@ -402,7 +427,7 @@ int24_t ti_DeleteVar(const char *name, uint8_t type);
  * @note \p read_pointer is automatically updated to point to the next token,
  * incremented by the value of \p token_len.
  */
-char *ti_GetTokenString(void **read_pointer, uint8_t *token_len, uint24_t *str_len);
+char *ti_GetTokenString(void **read_pointer, uint8_t *token_len, size_t *str_len);
 
 /**
  * Gets a direct data pointer to the current offset in an AppVar/variable.

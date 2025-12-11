@@ -213,7 +213,7 @@ void os_SetCursorPos(uint8_t curRow, uint8_t curCol) {
     }
 }
 
-void os_GetCursorPos(uint24_t *curRow, uint24_t *curCol) {
+void os_GetCursorPos(unsigned int *curRow, unsigned int *curCol) {
     if (curRow != NULL) { *curRow = os_CurRow; }
     if (curCol != NULL) { *curCol = os_CurCol; }
 }

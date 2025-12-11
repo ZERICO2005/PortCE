@@ -12,6 +12,8 @@
 
 #include "PortCE.h"
 
+#undef ti_SetArchiveStatus
+
 #define NameSize (8)
 #define RamFolderPath "./Ti-Ram"
 #define ArchiveFolderPath "./Ti-Archive"
@@ -215,7 +217,7 @@ uint8_t ti_Open(const char* name, const char* mode) {
     return handle;
 }
 
-int24_t ti_Close(uint8_t handle) {
+int ti_Close(uint8_t handle) {
     if (handle == 0) {
         return 0;
     }
@@ -223,7 +225,7 @@ int24_t ti_Close(uint8_t handle) {
         return 0; // File already closed
     }
     ti_File_Handle[handle].active = false;
-    return (int24_t)fclose(ti_File_Handle[handle].file);
+    return fclose(ti_File_Handle[handle].file);
 }
 
 size_t ti_Write(const void *data, size_t size, size_t count, uint8_t handle) {
@@ -240,28 +242,28 @@ size_t ti_Read(void *data, size_t size, size_t count, uint8_t handle) {
     return fread(data, size, count, ti_File_Handle[handle].file);
 }
 
-int24_t ti_PutC(char ch, uint8_t handle) {
+int ti_PutC(char ch, uint8_t handle) {
     if (validate_File_Handle(handle) == false) {
         return EOF;
     }
     return putc(ch,ti_File_Handle[handle].file);
 }
 
-int24_t ti_GetC(uint8_t handle) {
+int ti_GetC(uint8_t handle) {
     if (validate_File_Handle(handle) == false) {
         return EOF;
     }
     return getc(ti_File_Handle[handle].file);
 }
 
-int24_t ti_Seek(int24_t offset, uint24_t origin, uint8_t handle) {
+int ti_Seek(int offset, size_t origin, uint8_t handle) {
     if (validate_File_Handle(handle) == false) {
         return EOF;
     }
     return (int24_t)fseek(ti_File_Handle[handle].file,offset,origin);
 }
 
-int24_t ti_Rewind(uint8_t handle) {
+int ti_Rewind(uint8_t handle) {
     return (int24_t)ti_Seek(0, SEEK_SET, handle);
 }
 
@@ -363,15 +365,14 @@ char *ti_DetectAny(__attribute__((unused)) void **vat_ptr, __attribute__((unused
     return NULL;
 }
 
-int24_t ti_IsArchived(__attribute__((unused)) uint8_t handle) {
+int ti_IsArchived(__attribute__((unused)) uint8_t handle) {
     return 0;
 }
 
-int24_t ti_SetArchiveStatus(__attribute__((unused)) bool archive, __attribute__((unused)) uint8_t handle) {
+int ti_SetArchiveStatus(__attribute__((unused)) uint8_t archive, __attribute__((unused)) uint8_t handle) {
     return 0;
 }
 
-
-int24_t ti_Delete(__attribute__((unused)) const char *name) {
+int ti_Delete(__attribute__((unused)) const char *name) {
     return 0;
 }

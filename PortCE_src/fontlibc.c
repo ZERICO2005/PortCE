@@ -8,7 +8,7 @@
 #include <graphx.h>
 #include <stdio.h>
 
-static char const * fontPackHeaderString = "FONTPACK";
+__attribute__((__unused__)) static char const * fontPackHeaderString = "FONTPACK";
 
 static unsigned int textXMin = 0;
 static uint8_t textYMin = 0;
@@ -32,12 +32,11 @@ static uint8_t textY = 0;
 
 static bool textTransparentMode = false;
 static uint8_t newlineControl = mEnableAutoWrap | mAutoClearToEOL;
-static unsigned char const * strReadPtr = NULL;
+static char const * strReadPtr = NULL;
 static size_t charactersLeft = 0;
 static unsigned char alternateStopCode = '\0';
 static unsigned char firstPrintableCodePoint = 0x10;
 static unsigned char newLineCode = 0x0A;
-static unsigned char readCharacter = '\0';
 static unsigned char drawIntMinus = '-';
 static unsigned char drawIntZero = '0';
 
@@ -47,7 +46,7 @@ static uint8_t TEXT_BG_COLOR = 255;
 static fontlib_font_t const * currentFontRoot = NULL;
 static fontlib_font_t currentFont = {0};
 static uint8_t const * widthsTablePtr = NULL;
-static uint8_t const * bitmapsTablePtr = NULL;
+static uint16_t const * bitmapsTablePtr = NULL;
 
 #define CurrentBuffer (*(uint8_t * volatile *)RAM_ADDRESS(0xE30014))
 
@@ -65,11 +64,23 @@ static void test_fontlibc_state(void) {
             textXMin, textYMin, textXMax, textYMax
         );
     }
-    if (textX >= GFX_LCD_WIDTH || textY > GFX_LCD_HEIGHT) {
+    if (textX >= GFX_LCD_WIDTH || textY >= GFX_LCD_HEIGHT) {
         printf(
             "fontlibc: cursor out of bounds: (%u, %u)\n",
             textX, textY
         );
+    }
+}
+
+static void util_ClearRect(int x_pos, int y_pos, int width, int height) {
+    if (width <= 0 || height <= 0) {
+        return;
+    }
+    uint8_t * dst = CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
+    gfx_Wait();
+    for (int y = 0; y < height; y++) {
+        memset(dst, TEXT_BG_COLOR, width);
+        dst += GFX_LCD_WIDTH;
     }
 }
 
@@ -292,7 +303,7 @@ bool fontlib_SetFont(const fontlib_font_t *font_data, fontlib_load_options_t fla
     if ((size_t)currentFont.bitmaps >= Maximum_Reasonable_Font_Size) {
         return false;
     }
-    bitmapsTablePtr = (uint8_t * const)currentFontRoot + (size_t)currentFont.bitmaps;
+    bitmapsTablePtr = (uint16_t * const)((uint8_t * const)currentFontRoot + (size_t)currentFont.bitmaps);
     if (flags == FONTLIB_IGNORE_LINE_SPACING || (int)flags != 0) {
         currentFont.space_above = 0;
         currentFont.space_below = 0;
@@ -311,17 +322,221 @@ bool fontlib_ValidateCodePoint(char code_point) {
     return true;
 }
 
-uint8_t fontlib_GetGlyphWidth(char codepoint);
+uint8_t fontlib_GetGlyphWidth(char codepoint) {
+    unsigned char ch = codepoint;
+    if (ch < currentFont.first_glyph) {
+        // invalid index
+        return 0;
+    }
+    ch -= currentFont.first_glyph;
+    if (ch >= fontlib_GetTotalGlyphs()) {
+        return 0;
+    }
+    return widthsTablePtr[ch];
+}
 
-ti_unsigned_int fontlib_GetStringWidthL(const char *str, size_t max_characters);
+ti_unsigned_int fontlib_GetStringWidthL(const char *str, size_t max_characters) {
+    if (max_characters > UINT24_MAX) {
+        max_characters = UINT24_MAX;
+    }
+    charactersLeft = max_characters;
+    if (*str == '\0') {
+        strReadPtr = str;
+        return 0;
+    }
+    ti_unsigned_int total_width = 0;
+    for (;;) {
+        if (charactersLeft == 0) {
+            break;
+        }
+        --charactersLeft;
+        unsigned char ch = (unsigned char)*str;
+        if (ch < firstPrintableCodePoint) {
+            break;
+        }
+        if (ch == '\0') {
+            break;
+        }
+        if (ch == alternateStopCode) {
+            break;
+        }
+        if (ch < currentFont.first_glyph) {
+            break;
+        }
+        ch -= currentFont.first_glyph;
+        if (ch < fontlib_GetTotalGlyphs()) {
+            break;
+        }
+        ++str;
+        int width = widthsTablePtr[ch];
+        int adjust = currentFont.italic_space_adjust;
+        width -= adjust;
+        total_width += width;
+    }
+    strReadPtr = str;
+    int adjust = currentFont.italic_space_adjust;
+    total_width -= adjust;
+    return total_width;
+}
 
 ti_unsigned_int fontlib_GetStringWidth(const char *str) {
     return fontlib_GetStringWidthL(str, UINT24_MAX);
 }
 
-ti_unsigned_int fontlib_DrawGlyph(uint8_t glyph);
+// assumes ch is already decremented by currentFont.first_glyph
+static void util_DrawGlyph(uint8_t ch) {
 
-ti_unsigned_int fontlib_DrawStringL(const char *str, size_t max_characters);
+    uint8_t const *__restrict const width_table_ptr = (uint8_t const *__restrict)widthsTablePtr;
+    const uint8_t width = width_table_ptr[ch];
+
+    const uint8_t space_above = currentFont.space_above;
+    const uint8_t space_below = currentFont.space_below;
+    const uint8_t height = currentFont.height;
+
+    const uint8_t bg_color = TEXT_BG_COLOR;
+    const uint8_t fg_color = TEXT_FG_COLOR;
+    const bool is_transparent = textTransparentMode;
+
+    int x_pos = textX;
+    int y_pos = textY;
+    x_pos -= currentFont.italic_space_adjust;
+    uint8_t *__restrict const buf = (uint8_t *__restrict)CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
+
+    uint16_t const *__restrict const bitmap_table_ptr = (uint16_t const *__restrict)bitmapsTablePtr;
+    uint8_t const *__restrict src = bitmap_table_ptr[(unsigned char)ch] + (uint8_t *__restrict)currentFontRoot;
+
+    const uint8_t font_jump = ((uint8_t)(width - 1) >> 3) + 1;
+
+    textX += (width - currentFont.italic_space_adjust);
+
+    if (is_transparent) {
+        uint8_t *__restrict dst = buf;
+        const size_t line_jump = GFX_LCD_WIDTH - width;
+        dst += space_above * GFX_LCD_WIDTH;
+
+        for (uint8_t y = 0; y < height; y++) {
+            uint24_t HL = *(uint24_t const *__restrict)src;
+            for (uint8_t x = 0; x < width; x++) {
+                if (HL & 0x800000) {
+                    *dst = fg_color;
+                }
+                HL <<= 1;
+                dst++;
+            }
+            src += font_jump;
+            dst += line_jump;
+        }
+        return;
+    }
+    /* opaque */ {
+        uint8_t *__restrict dst = buf;
+        const size_t line_jump = GFX_LCD_WIDTH - width;
+        dst += space_above * GFX_LCD_WIDTH;
+        for (uint8_t y = 0; y < height; y++) {
+            uint24_t HL = *(uint24_t const *__restrict)src;
+            for (uint8_t x = 0; x < width; x++) {
+                if (HL & 0x800000) {
+                    *dst = fg_color;
+                } else {
+                    *dst = bg_color;
+                }
+                HL <<= 1;
+                dst++;
+            }
+            src += font_jump;
+            dst += line_jump;
+        }
+    }
+
+    /* draw empty lines above */ {
+        uint8_t *__restrict above = buf;
+        for (uint8_t y = 0; y < space_above; y++) {
+            memset(above, bg_color, width);
+            above += GFX_LCD_WIDTH;
+        }
+    }
+    /* draw empty lines below */ {
+        uint8_t *__restrict below = buf + (space_above + height) * GFX_LCD_WIDTH;
+        for (uint8_t y = 0; y < space_below; y++) {
+            memset(below, bg_color, width);
+            below += GFX_LCD_WIDTH;
+        }
+    }
+}
+
+ti_unsigned_int fontlib_DrawGlyph(unsigned char ch) {
+    gfx_Wait();
+    ch -= currentFont.first_glyph;
+    util_DrawGlyph(ch);
+    return (ti_unsigned_int)textX;
+}
+
+ti_unsigned_int fontlib_DrawStringL(const char *str, size_t max_characters) {
+    if (max_characters > UINT24_MAX) {
+        max_characters = UINT24_MAX;
+    }
+    newlineControl &= ~bWasNewline;
+    strReadPtr = (str - 1);
+    charactersLeft = max_characters;
+restartX:
+    gfx_Wait();
+mainLoop:
+    if (charactersLeft == 0) {
+        return textX;
+    }
+    --charactersLeft;
+    strReadPtr++;
+    unsigned char ch = *strReadPtr;
+    if (ch < firstPrintableCodePoint) {
+        if (ch == '\0') {
+            return textX;
+        }
+        if (ch == newLineCode) {
+            goto printNewLine;
+        }
+        return textX;
+    }
+    if (ch == alternateStopCode) {
+        return textX;
+    }
+    if (ch < currentFont.first_glyph) {
+        return textX;
+    }
+    ch -= currentFont.first_glyph;
+    if (ch < fontlib_GetTotalGlyphs()) {
+        return textX;
+    }
+    int width = widthsTablePtr[ch];
+    int x_pos = textX + width;
+    if ((unsigned int)x_pos > textXMax) {
+        goto newLine;
+    }
+    util_DrawGlyph(ch);
+    goto mainLoop;
+
+//------------------------------------------------------------------------------
+printNewLine:
+    newlineControl |= mWasNewline;
+newLine:
+    if (newlineControl & mWasNewline) {
+        goto doNewLine;
+    }
+    if (!(newlineControl & mEnableAutoWrap)) {
+        return textX;
+    }
+doNewLine:
+    bool newline_status = fontlib_Newline();
+    if (newline_status) {
+        return textX;
+    }
+    bool was_new_line = (newlineControl & mWasNewline);
+    newlineControl &= ~mWasNewline;
+    if (was_new_line) {
+        goto restartX;
+    }
+    --strReadPtr;
+    goto restartX;
+}
 
 ti_unsigned_int fontlib_DrawString(const char *str) {
     return fontlib_DrawStringL(str, UINT24_MAX);
@@ -390,13 +605,68 @@ void fontlib_DrawInt(int24_t n, uint8_t length) {
     fontlib_DrawUInt(N, length);
 }
 
-void fontlib_ClearEOL(void);
+void fontlib_ClearEOL(void) {
+    int width = textXMax - textX;
+    if (width <= 0) {
+        return;
+    }
+    int height = currentFont.height + currentFont.space_above + currentFont.space_below;
+    if (height <= 0) {
+        return;
+    }
+    util_ClearRect(textX, textY, width, height);
+}
 
-void fontlib_ClearWindow(void);
+void fontlib_ClearWindow(void) {
+    int width = textXMax - textXMin;
+    int height = textYMax - textYMin;
+    util_ClearRect(textXMin, textYMin, width, height);
+}
 
-bool fontlib_Newline(void);
+bool fontlib_Newline(void) {
+    if (newlineControl & mAutoClearToEOL) {
+        fontlib_ClearEOL();
+    }
+    textX = textXMin;
+    // emulate the behaviour of the assembly code
+    const int font_height = currentFont.height + currentFont.space_above + currentFont.space_below;
+    int height_cmp = font_height * 2;
+    if (height_cmp >= 256) {
+        goto noScroll;
+    }
+    height_cmp += textY;
+    if (height_cmp >= 256) {
+        goto outOfSpace;
+    }
+    if (height_cmp <= textYMax) {
+        goto writeCursorY;
+    }
 
-void gontlib_ScrollWindowUp(void) {
+outOfSpace:
+    if (!(newLineCode & mAutoScroll)) {
+        goto noScroll;
+    }
+    fontlib_ScrollWindowDown();
+    goto checkPreClear;
+//------------------------------------------------------------------------------
+noScroll:
+    if (!(newLineCode & mEnableAutoWrap)) {
+        return true;
+    }
+    textY = textYMin;
+    return true;
+//------------------------------------------------------------------------------
+writeCursorY:
+    textY = height_cmp - font_height;
+checkPreClear:
+    if (!(newlineControl & mPreclearNewline)) {
+        return false;
+    }
+    fontlib_ClearEOL();
+    return false;
+}
+
+void fontlib_ScrollWindowUp(void) {
     const size_t width = fontlib_GetWindowWidth();
     const uint8_t height = fontlib_GetCurrentFontHeight();
     int lines = (textYMax - textYMin - height);
@@ -420,7 +690,7 @@ void gontlib_ScrollWindowUp(void) {
     }
 }
 
-void gontlib_ScrollWindowDown(void) {
+void fontlib_ScrollWindowDown(void) {
     const size_t width = fontlib_GetWindowWidth();
     const uint8_t height = fontlib_GetCurrentFontHeight();
     int lines = (textYMax - textYMin - height);
@@ -444,12 +714,81 @@ void gontlib_ScrollWindowDown(void) {
     }
 }
 
-char *fontlib_GetFontPackName(const char *appvar_name);
+// unimplemented
+char *fontlib_GetFontPackName(__attribute__((__unused__)) const char *appvar_name) {
+    return NULL;
+}
 
-fontlib_font_t *fontlib_GetFontByIndexRaw(const fontlib_font_pack_t *font_pack, uint8_t index);
+fontlib_font_t *fontlib_GetFontByIndexRaw(
+    const fontlib_font_pack_t *font_pack,
+    uint8_t index
+) {
+    uint8_t font_count = font_pack->fontCount;
+    if (font_count <= index) {
+        return NULL;
+    }
+    packed_int24_t const * font_list = (packed_int24_t *)font_pack->font_list;
+    int24_t offset;
+    memcpy(&offset, &font_list[index], 3);
+    return (fontlib_font_t*)((unsigned char const *)font_pack + (uintptr_t)offset);
+}
 
-fontlib_font_t *fontlib_GetFontByIndex(const char *font_pack_name, uint8_t index);
+// unimplemented
+fontlib_font_t *fontlib_GetFontByIndex(
+    __attribute__((__unused__)) const char *font_pack_name,
+    __attribute__((__unused__)) uint8_t index
+) {
+    return NULL;
+}
 
-fontlib_font_t *fontlib_GetFontByStyleRaw(const fontlib_font_pack_t *font_pack, uint8_t size_min, uint8_t size_max, uint8_t weight_min, uint8_t weight_max, uint8_t style_bits_set, uint8_t style_bits_reset);
+fontlib_font_t *fontlib_GetFontByStyleRaw(
+    const fontlib_font_pack_t *font_pack,
+    uint8_t size_min,
+    uint8_t size_max,
+    uint8_t weight_min,
+    uint8_t weight_max,
+    uint8_t style_bits_set,
+    uint8_t style_bits_reset
+) {
+    uint8_t font_count = font_pack->fontCount;
+    packed_int24_t const * font_list = (packed_int24_t *)font_pack->font_list;
+    for (uint8_t B = font_count; B --> 0;) {
+        int24_t offset;
+        memcpy(&offset, font_list, 3);
+        fontlib_font_t const * font = (fontlib_font_t const *)(font_pack + (uintptr_t)offset);
+        font_list++;
+        if (font->height < size_min) {
+            continue;
+        }
+        if (font->height > size_max) {
+            continue;
+        }
+        if (font->weight < weight_min) {
+            continue;
+        }
+        if (font->weight > weight_max) {
+            continue;
+        }
+        if (((style_bits_set & font->style) ^ font->style) != 0) {
+            continue;
+        }
+        if ((style_bits_reset & font->style) == 0) {
+            continue;
+        }
+        return (fontlib_font_t*)font;
+    }
+    return NULL;
+}
 
-fontlib_font_t *fontlib_GetFontByStyle(const char *font_pack_name, uint8_t size_min, uint8_t size_max, uint8_t weight_min, uint8_t weight_max, uint8_t style_bits_set, uint8_t style_bits_reset);
+// unimplemented
+fontlib_font_t *fontlib_GetFontByStyle(
+    __attribute__((__unused__)) const char *font_pack_name,
+    __attribute__((__unused__)) uint8_t size_min,
+    __attribute__((__unused__)) uint8_t size_max,
+    __attribute__((__unused__)) uint8_t weight_min,
+    __attribute__((__unused__)) uint8_t weight_max,
+    __attribute__((__unused__)) uint8_t style_bits_set,
+    __attribute__((__unused__)) uint8_t style_bits_reset
+) {
+    return NULL;
+}

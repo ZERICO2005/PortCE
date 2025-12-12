@@ -310,8 +310,18 @@ static uint8_t internal_CSC_Scan(void) {
 }
 
 uint8_t os_GetCSC(void) {
+    static nano64_t prev_time = 0;
+    nano64_t current_time;
+    do  {
+        current_time = getNanoTime();
+        // or some other busy wait function idk
+        PortCE_update_registers();
+    } while (current_time - prev_time < FRAMERATE_TO_NANO(60.0));
+    prev_time = current_time;
+
     uint8_t key = internal_CSC_Scan();
     PortCE_new_frame();
+
     switch(key) {
         case KB_Down    : return sk_Down    ;
         case KB_Left    : return sk_Left    ;

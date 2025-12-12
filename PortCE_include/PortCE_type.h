@@ -112,31 +112,40 @@
     typedef uint64_t ti_unsigned_long_long;
 
 #ifdef _EZ80
-    typedef uint24_t packed_uint24_t;
-    typedef int24_t packed_int24_t;
-    typedef ti_int packed_ti_int;
-    typedef ti_signed_int packed_ti_signed_int;
-    typedef ti_unsigned_int packed_ti_unsigned_int;
 
-    typedef uint48_t packed_uint48_t;
-    typedef int48_t packed_int48_t;
+typedef uint24_t packed_uint24_t;
+typedef int24_t packed_int24_t;
+
+typedef ti_int packed_ti_int;
+typedef ti_signed_int packed_ti_signed_int;
+typedef ti_unsigned_int packed_ti_unsigned_int;
+
+typedef uint48_t packed_uint48_t;
+typedef int48_t packed_int48_t;
 
 #else
-    typedef struct packed_uint24_t {
-        uint8_t do_not_access_these_bytes_directly[3];
-    } packed_uint24_t; /** Use for indexing arrays */
-    typedef packed_uint24_t packed_int24_t;
-    typedef packed_uint24_t packed_ti_int;
-    typedef packed_uint24_t packed_ti_signed_int;
-    typedef packed_uint24_t packed_ti_unsigned_int;
 
-    typedef struct packed_uint48_t {
-        uint8_t do_not_access_these_bytes_directly[6];
-    } packed_uint48_t; /** Use for indexing arrays */
-    typedef packed_uint48_t packed_int48_t;
+typedef struct __attribute__((__packed__)) packed_uint24_t {
+    uint24_t value : 24;
+} packed_uint24_t;
+
+typedef struct __attribute__((__packed__)) packed_int24_t {
+    int24_t value : 24;
+} packed_int24_t;
+
+typedef packed_uint24_t packed_ti_int;
+typedef packed_uint24_t packed_ti_signed_int;
+typedef packed_uint24_t packed_ti_unsigned_int;
+
+typedef struct __attribute__((__packed__)) packed_uint48_t {
+    uint48_t value : 48;
+} packed_uint48_t;
+
+typedef struct __attribute__((__packed__)) packed_int48_t {
+    int48_t value : 48;
+} packed_int48_t;
 
 #endif
-
 
 //------------------------------------------------------------------------------
 // floating point types

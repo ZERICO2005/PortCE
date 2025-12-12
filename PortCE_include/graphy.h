@@ -55,13 +55,6 @@
      */
     // #define USE_GRAPHX_SPRITE_DATA
 
-    /**
-     * graphy will call additional graphx functions to ensure that internal
-     * variables will be in sync. Leaving this disabled can marginally improve
-     * performance and reduce the binary size slightly.
-     */
-    // #define IMPROVE_GRAPHX_COMPATIBILITY
-
     #ifdef _EZ80
         #ifndef RAM_ADDRESS
             #define RAM_ADDRESS(x) ((void*)(x))

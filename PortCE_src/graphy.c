@@ -4,7 +4,7 @@
 * @author "zerico2005"
 */
 
-#include "graphy.h"
+#include <graphy.h>
 
 #include <graphx.h>
 
@@ -633,83 +633,24 @@ void gfy_Begin() {
 void gfy_End(void) {
     lcd_SetColumnMajor(false);
 
-    #ifdef _EZ80
-        gfx_End();
-    #else
-        lcd_VideoMode = lcd_BGR16bit;
-        lcd_UpBase = RAM_OFFSET(gfy_vram);
-        memset(gfy_vram, 0xFF, sizeof(uint16_t) * GFY_LCD_WIDTH * GFY_LCD_HEIGHT);
-    #endif
+    lcd_VideoMode = lcd_BGR16bit;
+    lcd_UpBase = RAM_OFFSET(gfy_vram);
+    memset(gfy_vram, 0xFF, sizeof(uint16_t) * GFY_LCD_WIDTH * GFY_LCD_HEIGHT);
     lcd_Cleanup();
 }
 
 /* gfy_SetColor */
 
 uint8_t gfy_SetColor(uint8_t index) {
-    #ifdef IMPROVE_GRAPHX_COMPATIBILITY
-        gfy_Color = index;
-        return gfx_SetColor(index);
-    #else
-        const uint8_t prev_Color = gfy_Color;
-        gfy_Color = index;
-        return prev_Color;
-    #endif
+    const uint8_t prev_Color = gfy_Color;
+    gfy_Color = index;
+    return prev_Color;
 }
 
 /* gfy_SetDefaultPalette */
 
-#ifndef _EZ80
-    __attribute__((unused)) static const uint16_t gfy_internal_default_palette[256] = {
-
-    };
-#endif
-
-void gfy_SetDefaultPalette(__attribute__((unused)) gfy_mode_t mode) {
-    #ifdef _EZ80
-        gfx_SetDefaultPalette((gfx_mode_t)mode);
-    #else
-        /* RGB332? */
-            // uint8_t i = 0;
-            // for (uint8_t r = 0; r < 8; r++) {
-            //     for (uint8_t b = 0; b < 4; b++) {
-            //         for (uint8_t g = 0; g < 8; g++) {
-            //             gfy_palette[i] = (uint16_t)((r << 12) | (g << 7) | (b << 3));
-            //             i++;
-            //         }
-            //     }
-            // }
-
-        /* Fails to handle rrca, rla, and rra do not handle flags */
-            uint8_t* palette_ptr = (uint8_t*)(void*)gfy_palette;
-            uint8_t b = 0;
-            for (size_t i = 0; i < 256; i++) {
-                //uint8_t carry = 0;
-                uint8_t a = b;
-
-                a = (a >> 1) | ((a & 1) << 7); // rrca
-                a ^= b;
-                a &= 224;
-                a ^= b;
-
-                *palette_ptr = a;
-                palette_ptr++;
-
-                a = b;
-                a <<= 1; // rla
-                a <<= 1; // rla
-                a <<= 1; // rla
-                a = b;
-                a >>= 1; // rra
-
-                *palette_ptr = a;
-                palette_ptr++;
-
-                b++;
-            }
-
-        /* Data */
-            //memcpy(gfy_palette, gfy_internal_default_palette, sizeof(uint16_t) * 256);
-    #endif
+void gfy_SetDefaultPalette(gfy_mode_t mode) {
+    gfx_SetDefaultPalette((gfx_mode_t)mode);
 }
 
 /* gfy_SetPalette */
@@ -719,26 +660,13 @@ void gfy_SetPalette(
     uint24_t size,
     uint8_t offset
 ) {
-    #ifdef _EZ80
-        gfx_SetPalette(palette, size, offset);
-    #else
-        if ((2 * offset) + size > 512) {
-            size = 512 - (2 * offset);
-        }
-        memcpy(&gfy_palette[offset], palette, size);
-    #endif
+    gfx_SetPalette(palette, size, offset);
 }
 
 /* gfy_FillScreen */
 
 void gfy_FillScreen(uint8_t index) {
-    #ifdef _EZ80
-        // Assuming this covers the exact same 320x240 area
-        gfx_FillScreen(index);
-    #else
-        memset(RAM_ADDRESS(gfy_CurrentBuffer), index, GFY_LCD_WIDTH * GFY_LCD_HEIGHT);
-        gfy_Wait();
-    #endif
+    gfx_FillScreen(index);
 }
 
 /* gfy_SetPixel */
@@ -777,65 +705,49 @@ uint8_t gfy_GetPixel(uint24_t x, uint8_t y) {
 /* gfy_GetDraw */
 
 uint8_t gfy_GetDraw(void) {
-    #ifdef _EZ80
-        return gfx_GetDraw();
-    #else
-        // This is what the assembly does
-        // (0xD40000 >> 16) ^ (0xD52C00 >> 16) == 0xD4 ^ 0xD5
-        return ((gfy_CurrentBuffer >> 16) ^ (RAM_OFFSET(gfy_vram) >> 16)) ? 1 : 0;
-    #endif
+    // This is what the assembly does
+    // (0xD40000 >> 16) ^ (0xD52C00 >> 16) == 0xD4 ^ 0xD5
+    return ((gfy_CurrentBuffer >> 16) ^ (RAM_OFFSET(gfy_vram) >> 16)) ? 1 : 0;
 }
 
 /* gfy_SetDraw */
 
 void gfy_SetDraw(uint8_t location) {
-    #ifdef _EZ80
-        gfx_SetDraw(location);
-    #else
-        switch (location) {
-            case gfy_screen:
-                gfy_CurrentBuffer = lcd_UpBase;
-                return;
-            default:
-            case gfy_buffer:
-                if (lcd_UpBase == RAM_OFFSET(gfy_vram)) {
-                    gfy_CurrentBuffer = RAM_OFFSET(gfy_vram) + (GFY_LCD_HEIGHT * GFY_LCD_WIDTH);
-                } else {
-                    gfy_CurrentBuffer = RAM_OFFSET(gfy_vram);
-                }
-                return;
-        }
-    #endif
+    switch (location) {
+        case gfy_screen:
+            gfy_CurrentBuffer = lcd_UpBase;
+            return;
+        default:
+        case gfy_buffer:
+            if (lcd_UpBase == RAM_OFFSET(gfy_vram)) {
+                gfy_CurrentBuffer = RAM_OFFSET(gfy_vram) + (GFY_LCD_HEIGHT * GFY_LCD_WIDTH);
+            } else {
+                gfy_CurrentBuffer = RAM_OFFSET(gfy_vram);
+            }
+            return;
+    }
 }
 
 /* gfy_SwapDraw */
 
 void gfy_SwapDraw(void) {
-    #ifdef _EZ80
-        gfx_SwapDraw();
-    #else
-        const uint24_t temp = lcd_UpBase;
-        lcd_UpBase = gfy_CurrentBuffer;
-        gfy_CurrentBuffer = temp;
-        gfy_Wait();
-    #endif
+    const uint24_t temp = lcd_UpBase;
+    lcd_UpBase = gfy_CurrentBuffer;
+    gfy_CurrentBuffer = temp;
+    gfy_Wait();
 }
 
 /* gfy_Blit */
 
 void gfy_Blit(gfy_location_t src) {
-    #ifdef _EZ80
-        gfx_Blit((gfx_location_t)src);
-    #else
-        const uint8_t *src_buf = gfy_vram;
-        uint8_t *dst_buf = gfy_vram + (GFY_LCD_HEIGHT * GFY_LCD_WIDTH);
-        if (src) {
-            src_buf = gfy_vram + (GFY_LCD_HEIGHT * GFY_LCD_WIDTH);
-            dst_buf = gfy_vram;
-        }
-        memcpy(dst_buf, src_buf, GFY_LCD_WIDTH * GFY_LCD_HEIGHT);
-        gfy_Wait();
-    #endif
+    const uint8_t *src_buf = gfy_vram;
+    uint8_t *dst_buf = gfy_vram + (GFY_LCD_HEIGHT * GFY_LCD_WIDTH);
+    if (src) {
+        src_buf = gfy_vram + (GFY_LCD_HEIGHT * GFY_LCD_WIDTH);
+        dst_buf = gfy_vram;
+    }
+    memcpy(dst_buf, src_buf, GFY_LCD_WIDTH * GFY_LCD_HEIGHT);
+    gfy_Wait();
 }
 
 /* gfy_BlitLines */
@@ -1108,105 +1020,67 @@ void gfy_PrintStringXY(const char *string, int24_t x, int24_t y) {
 void gfy_SetTextXY(int24_t x, int24_t y) {
     gfy_TextXPos = x;
     gfy_TextYPos = y;
-    #ifdef IMPROVE_GRAPHX_COMPATIBILITY
-        gfx_SetTextXY(x, y);
-    #endif
 }
 
 /* gfy_SetTextBGColor */
 
 uint8_t gfy_SetTextBGColor(uint8_t color) {
-    #ifdef IMPROVE_GRAPHX_COMPATIBILITY
-        gfy_Text_BG_Color = color;
-        return gfx_SetTextBGColor(color);
-    #else
-        const uint8_t prev_Color = gfy_Text_BG_Color;
-        gfy_Text_BG_Color = color;
-        return prev_Color;
-    #endif
+    const uint8_t prev_Color = gfy_Text_BG_Color;
+    gfy_Text_BG_Color = color;
+    return prev_Color;
 }
 
 /* gfy_SetTextFGColor */
 
 uint8_t gfy_SetTextFGColor(uint8_t color) {
-    #ifdef IMPROVE_GRAPHX_COMPATIBILITY
-        gfy_Text_FG_Color = color;
-        return gfx_SetTextFGColor(color);
-    #else
-        const uint8_t prev_Color = gfy_Text_FG_Color;
-        gfy_Text_FG_Color = color;
-        return prev_Color;
-    #endif
+    const uint8_t prev_Color = gfy_Text_FG_Color;
+    gfy_Text_FG_Color = color;
+    return prev_Color;
 }
 
 /* gfy_SetTextTransparentColor */
 
 uint8_t gfy_SetTextTransparentColor(uint8_t color) {
-    #ifdef IMPROVE_GRAPHX_COMPATIBILITY
-        gfy_Text_TP_Color = color;
-        return gfx_SetTextTransparentColor(color);
-    #else
-        const uint8_t prev_Color = gfy_Text_TP_Color;
-        gfy_Text_TP_Color = color;
-        return prev_Color;
-    #endif
+    const uint8_t prev_Color = gfy_Text_TP_Color;
+    gfy_Text_TP_Color = color;
+    return prev_Color;
 }
 
 /* gfy_SetFontData */
 
 uint8_t *gfy_SetFontData(const uint8_t *data) {
-    #ifdef _EZ80
-        gfy_TextData = (data == NULL) ? gfy_DefaultTextData : data;
-        return gfx_SetFontData(data);
-    #else
-        uint8_t* temp = (uint8_t*)gfy_TextData;
-        gfy_TextData = (data == NULL) ? gfy_DefaultTextData : data;
-        return temp;
-    #endif
+    uint8_t* temp = (uint8_t*)gfy_TextData;
+    gfy_TextData = (data == NULL) ? gfy_DefaultTextData : data;
+    return temp;
 }
 
 /* gfy_SetFontSpacing */
 
 void gfy_SetFontSpacing(const uint8_t *data) {
     gfy_CharSpacing = (data == NULL) ? gfy_DefaultCharSpacing : data;
-    #ifdef _EZ80
-        gfx_SetFontSpacing(data);
-    #endif
 }
 
 /* gfy_SetMonospaceFont */
 
 void gfy_SetMonospaceFont(uint8_t spacing) {
-    #ifdef _EZ80
-        gfx_SetMonospaceFont(spacing);
-    #else
-        gfy_MonospaceFont = spacing;
-    #endif
+    gfy_MonospaceFont = spacing;
 }
 
 /* gfy_GetStringWidth */
 
 uint24_t gfy_GetStringWidth(const char *string) {
-    #ifdef _EZ80
-        return gfx_GetStringWidth(string);
-    #else
-        uint24_t len = 0;
-        while (*string != '\0') {
-            len += gfy_GetCharWidth(*string);
-            string++;
-        }
-        return len * gfy_TextWidthScale;
-    #endif
+    uint24_t len = 0;
+    while (*string != '\0') {
+        len += gfy_GetCharWidth(*string);
+        string++;
+    }
+    return len * gfy_TextWidthScale;
 }
 
 /* gfy_GetCharWidth */
 
 uint24_t gfy_GetCharWidth(const char c) {
-    #ifdef _EZ80
-        return gfx_GetCharWidth(c);
-    #else
-        return (gfy_MonospaceFont != 0) ? gfy_MonospaceFont : gfy_CharSpacing[(unsigned char)c];
-    #endif
+    return (gfy_MonospaceFont != 0) ? gfy_MonospaceFont : gfy_CharSpacing[(unsigned char)c];
 }
 
 /* gfy_GetTextX */
@@ -1554,30 +1428,23 @@ void gfy_SetClipRegion(int24_t xmin, int24_t ymin, int24_t xmax, int24_t ymax) {
     gfy_ClipYMin = ymin;
     gfy_ClipXMax = xmax;
     gfy_ClipYMax = ymax;
-    #ifdef IMPROVE_GRAPHX_COMPATIBILITY
-        gfx_SetClipRegion(xmin, ymin, xmax, ymax);
-    #endif
 }
 
 /* gfy_GetClipRegion */
 
 /** @todo fix the PortCE implementation */
 bool gfy_GetClipRegion(gfy_region_t *region) {
-    #ifdef IMPROVE_GRAPHX_COMPATIBILITY
-        return gfx_GetClipRegion((gfx_region_t*)region);
-    #else
-        if (
-            region->xmin >= GFY_LCD_WIDTH || region->ymin >= GFY_LCD_WIDTH ||
-            region->xmax <= 0 || region->ymax <= 0
-        ) {
-            return false;
-        }
-        if (region->xmin < 0) { region->xmin = 0; }
-        if (region->xmin < 0) { region->xmin = 0; }
-        if (region->xmax > GFY_LCD_WIDTH) { region->xmax = GFY_LCD_WIDTH; }
-        if (region->ymax > GFY_LCD_WIDTH) { region->ymax = GFY_LCD_WIDTH; }
-        return true;
-    #endif
+    if (
+        region->xmin >= GFY_LCD_WIDTH || region->ymin >= GFY_LCD_WIDTH ||
+        region->xmax <= 0 || region->ymax <= 0
+    ) {
+        return false;
+    }
+    if (region->xmin < 0) { region->xmin = 0; }
+    if (region->xmin < 0) { region->xmin = 0; }
+    if (region->xmax > GFY_LCD_WIDTH) { region->xmax = GFY_LCD_WIDTH; }
+    if (region->ymax > GFY_LCD_WIDTH) { region->ymax = GFY_LCD_WIDTH; }
+    return true;
 }
 
 /* gfy_ShiftDown */
@@ -2013,11 +1880,7 @@ gfy_sprite_t *gfy_AllocSprite(
     uint8_t height,
     void *(*malloc_routine)(size_t)
 ) {
-    #ifdef _EZ80
-        return (gfy_sprite_t*)gfx_AllocSprite(width, height, malloc_routine);
-    #else
-        return (gfy_sprite_t*)((*malloc_routine)(sizeof(gfy_sprite_t) + (width * height)));
-    #endif
+    return (gfy_sprite_t*)gfx_AllocSprite(width, height, malloc_routine);
 }
 
 /* gfy_Sprite */
@@ -2509,43 +2372,31 @@ gfy_sprite_t *gfy_FlipSpriteX(const gfy_sprite_t* sprite_in, gfy_sprite_t* sprit
 
 /** @todo implement PortCE routine */
 gfy_sprite_t *gfy_RotateSpriteC(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprite_out) {
-    #ifdef _EZ80
-        return (gfy_sprite_t*)gfx_RotateSpriteC((const gfx_sprite_t*)sprite_in, (gfx_sprite_t*)sprite_out);
-    #else
-        memcpy(sprite_out, sprite_in, sizeof(gfy_sprite_t) + (sprite_in->width * sprite_in->height));
-        return sprite_out;
-    #endif
+    memcpy(sprite_out, sprite_in, sizeof(gfy_sprite_t) + (sprite_in->width * sprite_in->height));
+    return sprite_out;
 }
 
 /* gfy_RotateSpriteCC */
 
 /** @todo implement PortCE routine */
 gfy_sprite_t *gfy_RotateSpriteCC(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprite_out) {
-    #ifdef _EZ80
-        return (gfy_sprite_t*)gfx_RotateSpriteCC((const gfx_sprite_t*)sprite_in, (gfx_sprite_t*)sprite_out);
-    #else
-        memcpy(sprite_out, sprite_in, sizeof(gfy_sprite_t) + (sprite_in->width * sprite_in->height));
-        return sprite_out;
-    #endif
+    memcpy(sprite_out, sprite_in, sizeof(gfy_sprite_t) + (sprite_in->width * sprite_in->height));
+    return sprite_out;
 }
 
 /* gfy_RotateSpriteHalf */
 
 gfy_sprite_t *gfy_RotateSpriteHalf(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprite_out) {
-    #ifdef _EZ80
-        return (gfy_sprite_t*)gfx_RotateSpriteHalf((const gfx_sprite_t*)sprite_in, (gfx_sprite_t*)sprite_out);
-    #else
-        const uint8_t* src_buf = sprite_in->data;
-        uint8_t* dst_buf = sprite_out->data + (sprite_in->width * sprite_in->height);
-        while (dst_buf != sprite_out->data) {
-            dst_buf--;
-            *dst_buf = *src_buf;
-            src_buf++;
-        }
-        sprite_out->width = sprite_in->width;
-        sprite_out->height = sprite_in->height;
-        return sprite_out;
-    #endif
+    const uint8_t* src_buf = sprite_in->data;
+    uint8_t* dst_buf = sprite_out->data + (sprite_in->width * sprite_in->height);
+    while (dst_buf != sprite_out->data) {
+        dst_buf--;
+        *dst_buf = *src_buf;
+        src_buf++;
+    }
+    sprite_out->width = sprite_in->width;
+    sprite_out->height = sprite_in->height;
+    return sprite_out;
 }
 
 /* gfy_Polygon */
@@ -2748,9 +2599,6 @@ void gfy_FillTriangle_NoClip(
 void gfy_SetTextScale(uint8_t width_scale, uint8_t height_scale) {
     gfy_TextWidthScale = width_scale;
     gfy_TextHeightScale = height_scale;
-    #ifdef IMPROVE_GRAPHX_COMPATIBILITY
-        gfx_SetTextScale(width_scale, height_scale);
-    #endif
 }
 
 //------------------------------------------------------------------------------
@@ -2760,14 +2608,9 @@ void gfy_SetTextScale(uint8_t width_scale, uint8_t height_scale) {
 /* gfy_SetTransparentColor */
 
 uint8_t gfy_SetTransparentColor(uint8_t index) {
-    #ifdef IMPROVE_GRAPHX_COMPATIBILITY
-        gfy_Color = index;
-        return gfx_SetTransparentColor(index);
-    #else
-        const uint8_t prev_Color = gfy_Transparent_Color;
-        gfy_Transparent_Color = index;
-        return prev_Color;
-    #endif
+    const uint8_t prev_Color = gfy_Transparent_Color;
+    gfy_Transparent_Color = index;
+    return prev_Color;
 }
 
 /* gfy_ZeroScreen */
@@ -2780,42 +2623,35 @@ void gfy_ZeroScreen(void) {
 
 void gfy_SetTextConfig(uint8_t config) {
     gfy_PrintChar_Clip = config;
-    #ifdef _EZ80
-        gfx_SetTextConfig(config);
-    #endif
 }
 
 /* gfy_GetSpriteChar */
 
 /** @todo test the PortCE implementation */
 gfy_sprite_t *gfy_GetSpriteChar(__attribute__((unused)) char c) {
-    #ifdef _EZ80
-        return (gfy_sprite_t*)gfx_GetSpriteChar(c);
-    #else
-        const uint8_t *bitImage = gfy_TextData + GFY_MAXIMUM_FONT_HEIGHT * (uint24_t)((unsigned char)c);
-        uint8_t *fillPtr = gfy_TmpCharSprite.data;
+    const uint8_t *bitImage = gfy_TextData + GFY_MAXIMUM_FONT_HEIGHT * (uint24_t)((unsigned char)c);
+    uint8_t *fillPtr = gfy_TmpCharSprite.data;
 
-        const uint8_t CharWidth = gfy_GetCharWidth(c);
+    const uint8_t CharWidth = gfy_GetCharWidth(c);
 
-        for (uint8_t y = 0; y < gfy_FontHeight; y++) {
-            uint8_t b = 1;
-            uint8_t x = 0;
-            for (; x < CharWidth; x++) {
-                *fillPtr = (*bitImage & b) ? gfy_Text_FG_Color : gfy_Text_BG_Color;
-                fillPtr++;
-                b <<= 1;
-            }
-            for (; x < GFY_MAXIMUM_FONT_WIDTH; x++) {
-                *fillPtr = gfy_Text_BG_Color;
-                fillPtr++;
-            }
-            bitImage++;
+    for (uint8_t y = 0; y < gfy_FontHeight; y++) {
+        uint8_t b = 1;
+        uint8_t x = 0;
+        for (; x < CharWidth; x++) {
+            *fillPtr = (*bitImage & b) ? gfy_Text_FG_Color : gfy_Text_BG_Color;
+            fillPtr++;
+            b <<= 1;
         }
-        memset(fillPtr, gfy_Text_BG_Color,
-            (GFY_MAXIMUM_FONT_HEIGHT - gfy_FontHeight) * GFY_MAXIMUM_FONT_WIDTH
-        );
-        return &gfy_TmpCharSprite;
-    #endif
+        for (; x < GFY_MAXIMUM_FONT_WIDTH; x++) {
+            *fillPtr = gfy_Text_BG_Color;
+            fillPtr++;
+        }
+        bitImage++;
+    }
+    memset(fillPtr, gfy_Text_BG_Color,
+        (GFY_MAXIMUM_FONT_HEIGHT - gfy_FontHeight) * GFY_MAXIMUM_FONT_WIDTH
+    );
+    return &gfy_TmpCharSprite;
 }
 
 //------------------------------------------------------------------------------
@@ -2841,26 +2677,17 @@ uint16_t gfy_Darken(uint16_t color, uint8_t amount) {
 /* gfy_SetFontHeight */
 
 uint8_t gfy_SetFontHeight(uint8_t height) {
-    #ifdef _EZ80
-        gfy_FontHeight = height;
-        return gfx_SetFontHeight(height);
-    #else
-        // The assembly doesn't appear to do any input validation
-        uint8_t temp = gfy_FontHeight;
-        gfy_FontHeight = height;
-        return temp;
-    #endif
+    // The assembly doesn't appear to do any input validation
+    uint8_t temp = gfy_FontHeight;
+    gfy_FontHeight = height;
+    return temp;
 }
 
 /* gfy_ScaleSprite */
 
 gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprite_out) {
-    #ifdef _EZ80
-        return (gfy_sprite_t*)gfx_ScaleSprite((const gfx_sprite_t*)sprite_in, (gfx_sprite_t*)sprite_out);
-    #else
-        memcpy(sprite_out, sprite_in, sizeof(gfy_sprite_t) + (sprite_in->width * sprite_in->height));
-        return sprite_out;
-    #endif
+    memcpy(sprite_out, sprite_in, sizeof(gfy_sprite_t) + (sprite_in->width * sprite_in->height));
+    return sprite_out;
 }
 
 /* gfy_FloodFill */
@@ -3366,129 +3193,116 @@ gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in, gfy_sprite_t *sprit
 
 /** @todo test PortCE routine */
 gfy_sprite_t *gfy_ConvertFromRLETSprite(const gfy_rletsprite_t *sprite_in, gfy_sprite_t *sprite_out) {
-    #ifdef _EZ80
-        return (gfy_sprite_t*)gfx_ConvertFromRLETSprite((const gfx_rletsprite_t*)sprite_in, (gfx_sprite_t*)sprite_out);
-    #else
-        sprite_out->width = sprite_in->width;
-        sprite_out->height = sprite_in->height;
-        const uint8_t* src_buf = sprite_in->data;
-        uint8_t* dst_buf = sprite_out->data;
-        const uint24_t dst_jump = sprite_in->width - 1;
+    sprite_out->width = sprite_in->width;
+    sprite_out->height = sprite_in->height;
+    const uint8_t* src_buf = sprite_in->data;
+    uint8_t* dst_buf = sprite_out->data;
+    const uint24_t dst_jump = sprite_in->width - 1;
 
-        for (uint8_t posY = 0; posY < sprite_in->height; posY++) {
-            uint8_t posX = 0;
-            while (posX < sprite_in->width) {
-                const uint8_t jump_TP = *src_buf;
-                posX += jump_TP;
-                memset(dst_buf, gfy_Transparent_Color, jump_TP);
-                dst_buf += jump_TP;
-                src_buf++;
+    for (uint8_t posY = 0; posY < sprite_in->height; posY++) {
+        uint8_t posX = 0;
+        while (posX < sprite_in->width) {
+            const uint8_t jump_TP = *src_buf;
+            posX += jump_TP;
+            memset(dst_buf, gfy_Transparent_Color, jump_TP);
+            dst_buf += jump_TP;
+            src_buf++;
 
-                if (posX >= sprite_in->width) {
-                    break;
-                }
-
-                const uint8_t len = *src_buf;
-                src_buf++;
-                posX += len;
-                memcpy(dst_buf, src_buf, len);
-                src_buf += len;
-                dst_buf += len;
+            if (posX >= sprite_in->width) {
+                break;
             }
-            dst_buf -= dst_jump;
+
+            const uint8_t len = *src_buf;
+            src_buf++;
+            posX += len;
+            memcpy(dst_buf, src_buf, len);
+            src_buf += len;
+            dst_buf += len;
         }
-        return sprite_out;
-    #endif
+        dst_buf -= dst_jump;
+    }
+    return sprite_out;
 }
 
 /* gfy_ConvertToRLETSprite */
 
 /** @todo test PortCE routine */
 gfy_rletsprite_t *gfy_ConvertToRLETSprite(const gfy_sprite_t *sprite_in, gfy_rletsprite_t *sprite_out) {
-    #ifdef _EZ80
-        return (gfy_rletsprite_t*)gfx_ConvertToRLETSprite((const gfx_sprite_t*)sprite_in, (gfx_rletsprite_t*)sprite_out);
-    #else
-        sprite_out->width = sprite_in->width;
-        sprite_out->height = sprite_in->height;
+    sprite_out->width = sprite_in->width;
+    sprite_out->height = sprite_in->height;
 
-        const uint8_t* src_ptr = sprite_in->data;
-        uint8_t* dst_ptr = sprite_out->data;
+    const uint8_t* src_ptr = sprite_in->data;
+    uint8_t* dst_ptr = sprite_out->data;
 
-        for (uint8_t y = 0; y < sprite_in->height; y++) {
-            uint8_t x = 0;
+    for (uint8_t y = 0; y < sprite_in->height; y++) {
+        uint8_t x = 0;
 
-            while (x < sprite_in->width) {
-                uint8_t transparent_run_length = 0;
-                while (x < sprite_in->width && *src_ptr == gfy_Transparent_Color) {
-                    transparent_run_length++;
-                    x++;
-                    src_ptr++;
-                }
-                *dst_ptr = transparent_run_length;
-                dst_ptr++;
-
-                if (x >= sprite_in->width) {
-                    break;
-                }
-
-                uint8_t* const opaque_element = dst_ptr;
-                dst_ptr++;
-                uint8_t opaque_run_length = 0;
-                while (x < sprite_in->width && *src_ptr != gfy_Transparent_Color) {
-                    opaque_run_length++;
-                    x++;
-                    *dst_ptr = *src_ptr;
-                    src_ptr++;
-                    dst_ptr++;
-                }
-                *opaque_element = opaque_run_length;
+        while (x < sprite_in->width) {
+            uint8_t transparent_run_length = 0;
+            while (x < sprite_in->width && *src_ptr == gfy_Transparent_Color) {
+                transparent_run_length++;
+                x++;
+                src_ptr++;
             }
+            *dst_ptr = transparent_run_length;
+            dst_ptr++;
+
+            if (x >= sprite_in->width) {
+                break;
+            }
+
+            uint8_t* const opaque_element = dst_ptr;
+            dst_ptr++;
+            uint8_t opaque_run_length = 0;
+            while (x < sprite_in->width && *src_ptr != gfy_Transparent_Color) {
+                opaque_run_length++;
+                x++;
+                *dst_ptr = *src_ptr;
+                src_ptr++;
+                dst_ptr++;
+            }
+            *opaque_element = opaque_run_length;
         }
-        return sprite_out;
-    #endif
+    }
+    return sprite_out;
 }
 
 /* gfy_ConvertToNewRLETSprite */
 
 /** @todo test PortCE routine */
 gfy_rletsprite_t *gfy_ConvertToNewRLETSprite(const gfy_sprite_t *sprite_in, void *(*malloc_routine)(size_t)) {
-    #ifdef _EZ80
-        return (gfy_rletsprite_t*)gfx_ConvertToNewRLETSprite((const gfx_sprite_t*)sprite_in, malloc_routine);
-    #else
+    size_t rlet_size = sizeof(gfy_sprite_t);
+    const uint8_t* src_ptr = sprite_in->data;
 
-        size_t rlet_size = sizeof(gfy_sprite_t);
-        const uint8_t* src_ptr = sprite_in->data;
+    // Calculates rlet_size
+    for (uint8_t y = 0; y < sprite_in->height; y++) {
+        uint8_t x = 0;
 
-        // Calculates rlet_size
-        for (uint8_t y = 0; y < sprite_in->height; y++) {
-            uint8_t x = 0;
+        while (x < sprite_in->width) {
+            while (x < sprite_in->width && *src_ptr == gfy_Transparent_Color) {
+                x++;
+                src_ptr++;
+            }
+            rlet_size++;
 
-            while (x < sprite_in->width) {
-                while (x < sprite_in->width && *src_ptr == gfy_Transparent_Color) {
-                    x++;
-                    src_ptr++;
-                }
+            if (x >= sprite_in->width) {
+                break;
+            }
+
+            rlet_size++;
+            while (x < sprite_in->width && *src_ptr != gfy_Transparent_Color) {
+                x++;
+                src_ptr++;
                 rlet_size++;
-
-                if (x >= sprite_in->width) {
-                    break;
-                }
-
-                rlet_size++;
-                while (x < sprite_in->width && *src_ptr != gfy_Transparent_Color) {
-                    x++;
-                    src_ptr++;
-                    rlet_size++;
-                }
             }
         }
+    }
 
-        gfy_rletsprite_t* sprite_out = (*malloc_routine)(rlet_size);
-        if (sprite_out == NULL) {
-            return NULL; // Allocation failure
-        }
-        return gfy_ConvertToRLETSprite(sprite_in, sprite_out);
-    #endif
+    gfy_rletsprite_t* sprite_out = (*malloc_routine)(rlet_size);
+    if (sprite_out == NULL) {
+        return NULL; // Allocation failure
+    }
+    return gfy_ConvertToRLETSprite(sprite_in, sprite_out);
 }
 
 //------------------------------------------------------------------------------
@@ -3504,17 +3318,8 @@ gfy_sprite_t *gfy_RotateScaleSprite(
     __attribute__((unused)) uint8_t angle,
     __attribute__((unused)) uint8_t scale
 ) {
-    #ifdef _EZ80
-        return (gfy_sprite_t*)gfx_RotateScaleSprite(
-            (const gfx_sprite_t*)sprite_in,
-            (gfx_sprite_t*)sprite_out,
-            angle,
-            scale
-        );
-    #else
-        memcpy(sprite_out, sprite_in, sizeof(gfy_sprite_t) + (sprite_in->width * sprite_in->height));
-        return sprite_out;
-    #endif
+    memcpy(sprite_out, sprite_in, sizeof(gfy_sprite_t) + (sprite_in->width * sprite_in->height));
+    return sprite_out;
 }
 
 /* gfy_RotatedScaledTransparentSprite_NoClip */
@@ -3532,11 +3337,7 @@ gfy_sprite_t *gfy_RotateScaleSprite(
 /* gfy_SetCharData */
 
 uint8_t *gfy_SetCharData(uint8_t index, const uint8_t *data) {
-    #ifdef _EZ80
-        return gfx_SetCharData(index, data);
-    #else
-        return memcpy(&((uint8_t*)gfy_TextData)[index * 8], data, 8 * 8);
-    #endif
+    return memcpy(&((uint8_t*)gfy_TextData)[index * 8], data, 8 * 8);
 }
 
 //------------------------------------------------------------------------------
@@ -3546,11 +3347,7 @@ uint8_t *gfy_SetCharData(uint8_t index, const uint8_t *data) {
 /* gfy_Wait */
 
 void gfy_Wait(void) {
-    #ifdef _EZ80
-        gfx_Wait();
-    #else
-        PortCE_new_frame();
-    #endif
+    PortCE_new_frame();
 }
 
 //------------------------------------------------------------------------------

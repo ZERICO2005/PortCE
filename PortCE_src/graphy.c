@@ -981,6 +981,9 @@ void gfy_PrintInt(int24_t n, uint8_t length) {
         return;
     }
     gfy_PrintChar('-');
+    if (length > 1) {
+        length--;
+    }
     gfy_PrintUInt(-n, length);
 }
 
@@ -993,7 +996,7 @@ void gfy_PrintUInt(uint24_t n, uint8_t length) {
     length = (length > 8) ? 8 : length;
     uint8_t digit_count = 0;
     {
-        int24_t n_temp = n;
+        uint24_t n_temp = n;
         while (n_temp != 0) {
             n_temp /= 10;
             digit_count++;

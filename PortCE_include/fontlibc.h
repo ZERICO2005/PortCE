@@ -115,42 +115,42 @@ typedef enum {
  * enforced.  Check for malformed metadata!
  * @see fontlib_font_pack_t
  */
-typedef struct fontlib_metadata_t {
+typedef struct __attribute__((__packed__)) fontlib_metadata_t {
     /**
      * Size of this struct, basically functions as a version field.
      * This does NOT include the lengths of the strings!
      */
-    int24_t length;
+    int24_t length : 24;
     /**
      * A short, human-readable typeface name, such as "Times"
      */
-    int24_t font_family_name;
+    int24_t font_family_name : 24;
     /**
      * A SHORT string naming the typeface designer.
      */
-    int24_t font_author;
+    int24_t font_author : 24;
     /**
      * A SHORT copyright claim.
      * Do not try to include a complete license in here!  Space is limited!
      * @note Typefaces and bitmapped fonts cannot be copyrighted under US law.
      * This field is therefore referred to as a pseudocopyright.  HOWEVER,
      * it IS is applicable in other jusrisdictions, such as Germany. */
-    int24_t font_pseudocopyright;
+    int24_t font_pseudocopyright : 24;
     /**
      * A BRIEF description of the font.
      */
-    int24_t font_description;
+    int24_t font_description : 24;
     /**
      * @note This is a STRING, so while this should be something like "1.0.0.0"
      * it could also be something like "1 June 2019" or even "Hahaha versioning
      * is overrated!"
      */
-    int24_t font_version;
+    int24_t font_version : 24;
     /**
      * Suggested values: "ASCII" "TIOS" "ISO-8859-1" "Windows 1252"
      * "Calculator 1252"
      */
-    int24_t font_code_page;
+    int24_t font_code_page : 24;
 } fontlib_metadata_t;
 
 /**
@@ -171,7 +171,7 @@ typedef struct fontlib_metadata_t {
  * it is probably not useful for C code to parse the width or bitmap data
  * directly.
  */
-typedef struct fontlib_font_t {
+typedef struct __attribute__((__packed__)) fontlib_font_t {
     /**
      * Version ID
      * @note This must be zero or the font will be rejected as invalid.
@@ -196,13 +196,13 @@ typedef struct fontlib_font_t {
      * This is an OFFSET from the fontVersion member
      * @note It is 24-bits long because it becomes a real pointer upon loading.
      */
-    int24_t widths_table;
+    int24_t widths_table : 24;
     /**
      * Offset to a table of offsets to glyph bitmaps.
      * @note Parsing the bitmaps yourself is probably not useful.
      * @note These offsets are only 16-bits each to save some space.
      */
-    int24_t bitmaps;
+    int24_t bitmaps : 24;
     /**
      * Specifies how much to move the cursor left after each glyph.
      * Total movement is width - overhang.
@@ -271,7 +271,7 @@ typedef struct fontlib_font_t {
  *  ti_Close(font_pack_file);
  * @endcode
  */
-typedef struct fontlib_font_pack_t {
+typedef struct __attribute__((__packed__)) fontlib_font_pack_t {
     /**
      * Must be "FONTPACK"
      * @note This is NOT null-terminated!
@@ -280,7 +280,7 @@ typedef struct fontlib_font_pack_t {
     /**
      * Offset from first byte of header
      */
-    int24_t metadata;
+    int24_t metadata : 24;
     /**
      * Number of fonts present.  Should be greater than zero. . . .
      * @note Frankly, if you have more than 127 fonts in a pack, you have a
@@ -292,7 +292,7 @@ typedef struct fontlib_font_pack_t {
      * @note Despite being declared as a single element, this will be fontCount
      * elements long.
      */
-    int24_t font_list[1];
+    packed_int24_t font_list[1];
 } fontlib_font_pack_t;
 
 
@@ -316,7 +316,7 @@ void fontlib_SetWindowFullScreen(void);
  * @param[in] width Width
  * @param[in] height Height
  */
-void fontlib_SetWindow(ti_unsigned_int x_min, uint8_t y_min, ti_unsigned_int width, uint8_t height);
+void fontlib_SetWindow(unsigned int x_min, uint8_t y_min, unsigned int width, uint8_t height);
 
 /**
  * Returns the starting column of the current text window
@@ -349,7 +349,7 @@ uint8_t fontlib_GetWindowHeight(void);
  * @param[in] x X
  * @param[in] y Y
  */
-void fontlib_SetCursorPosition(ti_unsigned_int x, uint8_t y);
+void fontlib_SetCursorPosition(unsigned int x, uint8_t y);
 
 /**
  * Returns the cursor column.
@@ -370,7 +370,7 @@ uint8_t fontlib_GetCursorY(void);
  * @param[in] x x-shift
  * @param[in] y y-shift
  */
-void fontlib_ShiftCursorPosition(ti_int x, ti_int y);
+void fontlib_ShiftCursorPosition(int x, int y);
 
 /**
  * Moves the cursor to the upper left corner of the text window.
@@ -635,7 +635,7 @@ size_t fontlib_GetCharactersRemaining(void);
  * @param[in] glyph Codepoint
  * @return The new X value of the cursor
  */
-uint24_t fontlib_DrawGlyph(uint8_t glyph);
+ti_unsigned_int fontlib_DrawGlyph(uint8_t glyph);
 
 /**
  * Draws a string.
@@ -657,7 +657,7 @@ uint24_t fontlib_DrawGlyph(uint8_t glyph);
  * @return The new X value of the cursor (probably not useful if a newline was
  * processed.)
  */
-uint24_t fontlib_DrawString(const char *str);
+ti_unsigned_int fontlib_DrawString(const char *str);
 
 /**
  * Draws a string, up to a maximum number of characters.
@@ -673,7 +673,7 @@ uint24_t fontlib_DrawString(const char *str);
  * @return The new X value of the cursor (probably not useful if a newline was
  * processed.)
  */
-uint24_t fontlib_DrawStringL(const char *str, size_t max_characters);
+ti_unsigned_int fontlib_DrawStringL(const char *str, size_t max_characters);
 
 /**
  * Prints a signed integer
@@ -685,7 +685,7 @@ uint24_t fontlib_DrawStringL(const char *str, size_t max_characters);
  * @note This does not obey window bounds like DrawString/L
  * @note \c length must be between 1 and 8, inclusive
  */
-void fontlib_DrawInt(ti_int n, uint8_t length);
+void fontlib_DrawInt(int24_t n, uint8_t length);
 
 /**
  * Prints an unsigned integer
@@ -697,7 +697,7 @@ void fontlib_DrawInt(ti_int n, uint8_t length);
  * @note This does not obey window bounds like DrawString/L
  * @note \c length must be between 1 and 8, inclusive
  */
-void fontlib_DrawUInt(ti_unsigned_int n, uint8_t length);
+void fontlib_DrawUInt(uint24_t n, uint8_t length);
 
 /**
  * Erases everything from the cursor to the right side of the text window
@@ -801,7 +801,7 @@ fontlib_font_t *fontlib_GetFontByIndex(const char *font_pack_name, uint8_t index
  * FONTLIB_MONOSPACE to REJECT monospaced fonts.
  * @return Direct pointer to font, or NULL if no matching font is found
  */
- fontlib_font_t *fontlib_GetFontByStyleRaw(const fontlib_font_pack_t *font_pack, uint8_t size_min, uint8_t size_max, uint8_t weight_min, uint8_t weight_max, uint8_t style_bits_set, uint8_t style_bits_reset);
+fontlib_font_t *fontlib_GetFontByStyleRaw(const fontlib_font_pack_t *font_pack, uint8_t size_min, uint8_t size_max, uint8_t weight_min, uint8_t weight_max, uint8_t style_bits_set, uint8_t style_bits_reset);
 
 /**
  * Gets a pointer to a font, suitable for passing to SetFont(), given a font
@@ -827,4 +827,4 @@ fontlib_font_t *fontlib_GetFontByStyle(const char *font_pack_name, uint8_t size_
 }
 #endif
 
-#endif
+#endif /* _FONTLIBC_H */

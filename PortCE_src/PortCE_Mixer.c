@@ -4,6 +4,8 @@
  * @author "zerico2005"
  */
 
+#include "PortCE_Common.h"
+
 #include "PortCE_internal.h"
 
 #include <PortCE_Extra.h>
@@ -12,9 +14,11 @@
 
 #ifdef PortCE_Enable_Audio
 
-#include "PortCE_Common.h"
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
+
+#include <PortCE.h>
 
 static bool PortCE_SDL2_Audio_initialized = false;
 

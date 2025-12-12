@@ -45,16 +45,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-    #ifdef _EZ80
-        #ifndef RAM_ADDRESS
-            #define RAM_ADDRESS(x) ((void*)(x))
-        #endif
-        #ifndef RAM_OFFSET
-            #define RAM_OFFSET(ptr) ((uint24_t)(ptr))
-        #endif
-    #else
-        #include <PortCE.h>
-    #endif
+#include <PortCE.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,7 +73,7 @@ extern "C" {
  * Create at runtime (with uninitialized data) with gfx_MallocSprite(),
  * gfx_UninitedSprite(), or gfx_TempSprite().
  */
-typedef struct gfx_sprite_t {
+typedef struct __attribute__((__packed__)) gfx_sprite_t {
     uint8_t width;   /**< Width of the image.  */
     uint8_t height;  /**< Height of the image. */
     uint8_t data[]; /**< Image data array.    */
@@ -103,7 +94,7 @@ typedef struct gfx_sprite_t {
  * Create at compile-time with a tool like
  * <a href="https://github.com/mateoconlechuga/convimg" target="_blank">convimg</a>.
  */
-typedef struct gfx_rletsprite_t {
+typedef struct __attribute__((__packed__)) gfx_rletsprite_t {
     uint8_t width; /**< Width of the image. */
     uint8_t height; /**< Height of the image. */
     uint8_t data[]; /**< Image data array. */
@@ -113,8 +104,8 @@ typedef struct gfx_rletsprite_t {
  * A structure for working with 2D points.
  */
 typedef struct gfx_point_t {
-    int24_t x; /**< x point. */
-    int24_t y; /**< y point. */
+    ti_int x; /**< x point. */
+    ti_int y; /**< y point. */
 } gfx_point_t;
 
 /**
@@ -123,10 +114,10 @@ typedef struct gfx_point_t {
  * @see gfx_GetClipRegion
  */
 typedef struct gfx_region_t {
-    int24_t xmin; /**< Minimum x coordinate. */
-    int24_t ymin; /**< Minimum y coordinate. */
-    int24_t xmax; /**< Maximum x coordinate. */
-    int24_t ymax; /**< Maximum y coordinate. */
+    ti_int xmin; /**< Minimum x coordinate. */
+    ti_int ymin; /**< Minimum y coordinate. */
+    ti_int xmax; /**< Maximum x coordinate. */
+    ti_int ymax; /**< Maximum y coordinate. */
 } gfx_region_t;
 
 /**
@@ -484,16 +475,42 @@ gfx_RotatedScaledTransparentSprite_NoClip(sprite, x, y, angle, 64)
 
 /**
  * Helper macro to only perform rotation using
+ * gfx_RotatedScaledTransparentSprite.
+ *
+ * @param[in] sprite Input sprite to rotate/scale.
+ * @param[in] x X coordinate position.
+ * @param[in] y Y coordinate position.
+ * @param[in] angle 256 position angular integer.
+ * @see gfx_RotatedScaledTransparentSprite.
+ */
+ #define gfx_RotatedTransparentSprite(sprite, x, y, angle) \
+gfx_RotatedScaledTransparentSprite(sprite, x, y, angle, 64)
+
+/**
+ * Helper macro to only perform rotation using
  * gfx_RotatedScaledSprite_NoClip.
  *
  * @param[in] sprite Input sprite to rotate/scale.
  * @param[in] x X coordinate position.
  * @param[in] y Y coordinate position.
  * @param[in] angle 256 position angular integer.
- * @see gfx_RotatedScaledTransparentSprite_NoClip.
+ * @see gfx_RotatedScaledSprite_NoClip.
  */
 #define gfx_RotatedSprite_NoClip(sprite, x, y, angle) \
 gfx_RotatedScaledSprite_NoClip(sprite, x, y, angle, 64)
+
+/**
+ * Helper macro to only perform rotation using
+ * gfx_RotatedScaledSprite.
+ *
+ * @param[in] sprite Input sprite to rotate/scale.
+ * @param[in] x X coordinate position.
+ * @param[in] y Y coordinate position.
+ * @param[in] angle 256 position angular integer.
+ * @see gfx_RotatedScaledSprite.
+ */
+#define gfx_RotatedSprite(sprite, x, y, angle) \
+gfx_RotatedScaledSprite(sprite, x, y, angle, 64)
 
 /**
  * Helper macro to only perform rotation using gfx_RotateScaleSprite.
@@ -599,7 +616,7 @@ gfx_ConvertToNewRLETSprite(sprite_in, malloc)
  *
  * This function should be called before any other `graphx` library routines.
  */
-void gfx_Begin();
+void gfx_Begin(void);
 
 /**
  * Ends the `graphx` library context.
@@ -632,7 +649,8 @@ void gfx_End(void);
  */
 gfx_sprite_t *gfx_AllocSprite(uint8_t width,
                               uint8_t height,
-                              void *(*malloc_routine)(size_t));
+                              void *(*malloc_routine)(size_t)
+                              ) __attribute__((__nonnull__(3)));
 
 /**
  * Draws a tilemap.
@@ -643,8 +661,8 @@ gfx_sprite_t *gfx_AllocSprite(uint8_t width,
  * @see gfx_tilemap_t.
  */
 void gfx_Tilemap(const gfx_tilemap_t *tilemap,
-                 uint24_t x_offset,
-                 uint24_t y_offset);
+                 ti_unsigned_int x_offset,
+                 ti_unsigned_int y_offset);
 
 /**
  * Draws an unclipped tilemap.
@@ -655,8 +673,8 @@ void gfx_Tilemap(const gfx_tilemap_t *tilemap,
  * @see gfx_tilemap_t.
  */
 void gfx_Tilemap_NoClip(const gfx_tilemap_t *tilemap,
-                            uint24_t x_offset,
-                            uint24_t y_offset);
+                            ti_unsigned_int x_offset,
+                            ti_unsigned_int y_offset);
 
 /**
  * Draws a transparent tilemap.
@@ -667,8 +685,8 @@ void gfx_Tilemap_NoClip(const gfx_tilemap_t *tilemap,
  * @see gfx_tilemap_t.
  */
 void gfx_TransparentTilemap(const gfx_tilemap_t *tilemap,
-                            uint24_t x_offset,
-                            uint24_t y_offset);
+                            ti_unsigned_int x_offset,
+                            ti_unsigned_int y_offset);
 
 /**
  * Draws an unclipped transparent tilemap.
@@ -679,8 +697,8 @@ void gfx_TransparentTilemap(const gfx_tilemap_t *tilemap,
  * @see gfx_tilemap_t.
  */
 void gfx_TransparentTilemap_NoClip(const gfx_tilemap_t *tilemap,
-                                   uint24_t x_offset,
-                                   uint24_t y_offset);
+                                   ti_unsigned_int x_offset,
+                                   ti_unsigned_int y_offset);
 
 /**
  * Gets a pointer to a particular sprite tileset index.
@@ -691,8 +709,9 @@ void gfx_TransparentTilemap_NoClip(const gfx_tilemap_t *tilemap,
  * @param[in] y_offset Offset in pixels from the top of the tilemap.
  */
 uint8_t *gfx_TilePtr(const gfx_tilemap_t *tilemap,
-                     uint24_t x_offset,
-                     uint24_t y_offset);
+                     ti_unsigned_int x_offset,
+                     ti_unsigned_int y_offset
+                     ) __attribute__((__pure__));
 
 /**
  * Gets a pointer to a particular sprite tileset index.
@@ -704,7 +723,8 @@ uint8_t *gfx_TilePtr(const gfx_tilemap_t *tilemap,
  */
 uint8_t *gfx_TilePtrMapped(const gfx_tilemap_t *tilemap,
                            uint8_t col,
-                           uint8_t row);
+                           uint8_t row
+                           ) __attribute__((__pure__));
 
 /**
  * Sets the color index that drawing routines will use
@@ -739,7 +759,7 @@ void gfx_SetDefaultPalette(gfx_mode_t mode);
  * @param[in] offset Palette index to insert at.
  */
 void gfx_SetPalette(const void *palette,
-                    uint24_t size,
+                    size_t size,
                     uint8_t offset);
 
 /**
@@ -764,7 +784,7 @@ void gfx_ZeroScreen(void);
  * @param[in] y Y coordinate.
  * @see gfx_SetColor
  */
-void gfx_SetPixel(uint24_t x, uint8_t y);
+void gfx_SetPixel(ti_unsigned_int x, uint8_t y);
 
 /**
  * Gets a pixel's color index.
@@ -773,7 +793,7 @@ void gfx_SetPixel(uint24_t x, uint8_t y);
  * @param[in] x X coordinate.
  * @param[in] y Y coordinate.
  */
-uint8_t gfx_GetPixel(uint24_t x, uint8_t y);
+uint8_t gfx_GetPixel(ti_unsigned_int x, uint8_t y);
 
 /**
  * Draws a line.
@@ -783,10 +803,10 @@ uint8_t gfx_GetPixel(uint24_t x, uint8_t y);
  * @param[in] x1 Second X coordinate.
  * @param[in] y1 Second Y coordinate.
  */
-void gfx_Line(int24_t x0,
-              int24_t y0,
-              int24_t x1,
-              int24_t y1);
+void gfx_Line(ti_int x0,
+              ti_int y0,
+              ti_int x1,
+              ti_int y1);
 
 /**
  * Draws an unclipped line.
@@ -796,9 +816,9 @@ void gfx_Line(int24_t x0,
  * @param[in] x1 Second X coordinate.
  * @param[in] y1 Second Y coordinate.
  */
-void gfx_Line_NoClip(uint24_t x0,
+void gfx_Line_NoClip(ti_unsigned_int x0,
                      uint8_t y0,
-                     uint24_t x1,
+                     ti_unsigned_int x1,
                      uint8_t y1);
 
 /**
@@ -809,9 +829,9 @@ void gfx_Line_NoClip(uint24_t x0,
  * @param[in] y Y coordinate.
  * @param[in] length Length of line.
  */
-void gfx_HorizLine(int24_t x,
-                   int24_t y,
-                   int24_t length);
+void gfx_HorizLine(ti_int x,
+                   ti_int y,
+                   ti_int length);
 
 /**
  * Draws an unclipped horizontal line.
@@ -821,9 +841,9 @@ void gfx_HorizLine(int24_t x,
  * @param[in] y Y coordinate.
  * @param[in] length Length of line.
  */
-void gfx_HorizLine_NoClip(uint24_t x,
+void gfx_HorizLine_NoClip(ti_unsigned_int x,
                           uint8_t y,
-                          uint24_t length);
+                          ti_unsigned_int length);
 
 /**
  * Draws a vertical line
@@ -833,9 +853,9 @@ void gfx_HorizLine_NoClip(uint24_t x,
  * @param[in] y Y coordinate
  * @param[in] length Length of line
  */
-void gfx_VertLine(int24_t x,
-                  int24_t y,
-                  int24_t length);
+void gfx_VertLine(ti_int x,
+                  ti_int y,
+                  ti_int length);
 
 /**
  * Draws an unclipped vertical line.
@@ -845,9 +865,9 @@ void gfx_VertLine(int24_t x,
  * @param[in] y Y coordinate.
  * @param[in] length Length of line.
  */
-void gfx_VertLine_NoClip(uint24_t x,
+void gfx_VertLine_NoClip(ti_unsigned_int x,
                          uint8_t y,
-                         uint24_t length);
+                         ti_unsigned_int length);
 
 /**
  * Draws a rectangle outline.
@@ -857,10 +877,10 @@ void gfx_VertLine_NoClip(uint24_t x,
  * @param[in] width Width of rectangle.
  * @param[in] height Height of rectangle.
  */
-void gfx_Rectangle(int24_t x,
-                   int24_t y,
-                   int24_t width,
-                   int24_t height);
+void gfx_Rectangle(ti_int x,
+                   ti_int y,
+                   ti_int width,
+                   ti_int height);
 
 /**
  * Draws an unclipped rectangle outline.
@@ -870,9 +890,9 @@ void gfx_Rectangle(int24_t x,
  * @param[in] width Width of rectangle.
  * @param[in] height Height of rectangle.
  */
-void gfx_Rectangle_NoClip(uint24_t x,
+void gfx_Rectangle_NoClip(ti_unsigned_int x,
                           uint8_t y,
-                          uint24_t width,
+                          ti_unsigned_int width,
                           uint8_t height);
 
 /**
@@ -883,10 +903,10 @@ void gfx_Rectangle_NoClip(uint24_t x,
  * @param[in] width Width of rectangle.
  * @param[in] height Height of rectangle.
  */
-void gfx_FillRectangle(int24_t x,
-                       int24_t y,
-                       int24_t width,
-                       int24_t height);
+void gfx_FillRectangle(ti_int x,
+                       ti_int y,
+                       ti_int width,
+                       ti_int height);
 
 /**
  * Draws an unclipped filled rectangle
@@ -896,9 +916,9 @@ void gfx_FillRectangle(int24_t x,
  * @param[in] width Width of rectangle
  * @param[in] height Height of rectangle
  */
-void gfx_FillRectangle_NoClip(uint24_t x,
+void gfx_FillRectangle_NoClip(ti_unsigned_int x,
                               uint8_t y,
-                              uint24_t width,
+                              ti_unsigned_int width,
                               uint8_t height);
 
 /**
@@ -908,9 +928,9 @@ void gfx_FillRectangle_NoClip(uint24_t x,
  * @param[in] y Y coordinate.
  * @param[in] radius The radius of the circle.
  */
-void gfx_Circle(int24_t x,
-                int24_t y,
-                uint24_t radius);
+void gfx_Circle(ti_int x,
+                ti_int y,
+                ti_unsigned_int radius);
 
 /**
  * Draws a filled circle.
@@ -919,9 +939,9 @@ void gfx_Circle(int24_t x,
  * @param[in] y Y coordinate.
  * @param[in] radius The radius of the circle.
  */
-void gfx_FillCircle(int24_t x,
-                    int24_t y,
-                    uint24_t radius);
+void gfx_FillCircle(ti_int x,
+                    ti_int y,
+                    ti_unsigned_int radius);
 
 /**
  * Draws an unclipped filled circle.
@@ -930,9 +950,9 @@ void gfx_FillCircle(int24_t x,
  * @param[in] y Y coordinate.
  * @param[in] radius The radius of the circle.
  */
-void gfx_FillCircle_NoClip(uint24_t x,
+void gfx_FillCircle_NoClip(ti_unsigned_int x,
                            uint8_t y,
-                           uint24_t radius);
+                           ti_unsigned_int radius);
 
 /**
  * Draws an unclipped filled ellipse.
@@ -942,7 +962,7 @@ void gfx_FillCircle_NoClip(uint24_t x,
  * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
  * @param[in] b The vertical radius of the ellipse (current maximum is 128).
  */
-void gfx_FillEllipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b);
+void gfx_FillEllipse_NoClip(ti_unsigned_int x, ti_unsigned_int y, uint8_t a, uint8_t b);
 
 /**
  * Draws a filled ellipse.
@@ -952,7 +972,7 @@ void gfx_FillEllipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b);
  * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
  * @param[in] b The vertical radius of the ellipse (current maximum is 128).
  */
-void gfx_FillEllipse(int24_t x, int24_t y, uint24_t a, uint24_t b);
+void gfx_FillEllipse(ti_int x, ti_int y, ti_unsigned_int a, ti_unsigned_int b);
 
 /**
  * Draws an unclipped ellipse.
@@ -962,7 +982,7 @@ void gfx_FillEllipse(int24_t x, int24_t y, uint24_t a, uint24_t b);
  * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
  * @param[in] b The vertical radius of the ellipse (current maximum is 128).
  */
-void gfx_Ellipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b);
+void gfx_Ellipse_NoClip(ti_unsigned_int x, ti_unsigned_int y, uint8_t a, uint8_t b);
 
 /**
  * Draws an ellipse.
@@ -972,13 +992,13 @@ void gfx_Ellipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b);
  * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
  * @param[in] b The vertical radius of the ellipse (current maximum is 128).
  */
-void gfx_Ellipse(int24_t x, int24_t y, uint24_t a, uint24_t b);
+void gfx_Ellipse(ti_int x, ti_int y, ti_unsigned_int a, ti_unsigned_int b);
 
 /**
  * Draws a clipped polygon outline.
  *
  * @code{.cpp}
- * int24_t points[6] = {
+ * int points[6] = {
  *                    160,  1,  // (x0, y0)
  *                    1,  238,  // (x1, y1)
  *                    318,238,  // (x2, y2)
@@ -989,13 +1009,13 @@ void gfx_Ellipse(int24_t x, int24_t y, uint24_t a, uint24_t b);
  * @param[in] points Pointer to x and y pairs.
  * @param[in] num_points Number of x and y pairs.
  */
-void gfx_Polygon(const int24_t *points, size_t num_points);
+void gfx_Polygon(const ti_int *points, size_t num_points);
 
 /**
  * Draws an unclipped polygon outline
  *
  * @code{.cpp}
- * int24_t points[6] = {
+ * int points[6] = {
  *                    160,  1,  // (x0, y0)
  *                    1,  238,  // (x1, y1)
  *                    318,238,  // (x2, y2)
@@ -1007,7 +1027,7 @@ void gfx_Polygon(const int24_t *points, size_t num_points);
  * @param[in] points Pointer to x and y pairs
  * @param[in] num_points Number of x and y pairs
  */
-void gfx_Polygon_NoClip(const int24_t *points, size_t num_points);
+void gfx_Polygon_NoClip(const ti_int *points, size_t num_points);
 
 /**
  * Draws a clipped filled triangle.
@@ -1019,12 +1039,12 @@ void gfx_Polygon_NoClip(const int24_t *points, size_t num_points);
  * @param[in] x2 Third X coordinate.
  * @param[in] y2 Third Y coordinate.
  */
-void gfx_FillTriangle(int24_t x0,
-                      int24_t y0,
-                      int24_t x1,
-                      int24_t y1,
-                      int24_t x2,
-                      int24_t y2);
+void gfx_FillTriangle(ti_int x0,
+                      ti_int y0,
+                      ti_int x1,
+                      ti_int y1,
+                      ti_int x2,
+                      ti_int y2);
 
 /**
  * Draws a unclipped filled triangle.
@@ -1036,12 +1056,12 @@ void gfx_FillTriangle(int24_t x0,
  * @param[in] x2 Third X coordinate.
  * @param[in] y2 Third Y coordinate.
  */
-void gfx_FillTriangle_NoClip(int24_t x0,
-                             int24_t y0,
-                             int24_t x1,
-                             int24_t y1,
-                             int24_t x2,
-                             int24_t y2);
+void gfx_FillTriangle_NoClip(ti_int x0,
+                             ti_int y0,
+                             ti_int x1,
+                             ti_int y1,
+                             ti_int x2,
+                             ti_int y2);
 
 /**
  * Forces all graphics routines draw location.
@@ -1123,10 +1143,10 @@ void gfx_BlitLines(gfx_location_t src,
  * @see gfx_location_t.
  */
 void gfx_BlitRectangle(gfx_location_t src,
-                       uint24_t x,
+                       ti_unsigned_int x,
                        uint8_t y,
-                       uint24_t width,
-                       uint24_t height);
+                       ti_unsigned_int width,
+                       ti_unsigned_int height);
 
 /**
  * Copies a rectangular region between graphics buffers or to the same graphics buffer.
@@ -1144,11 +1164,11 @@ void gfx_BlitRectangle(gfx_location_t src,
  */
 void gfx_CopyRectangle(gfx_location_t src,
                        gfx_location_t dst,
-                       uint24_t src_x,
+                       ti_unsigned_int src_x,
                        uint8_t src_y,
-                       uint24_t dst_x,
+                       ti_unsigned_int dst_x,
                        uint8_t dst_y,
-                       uint24_t width,
+                       ti_unsigned_int width,
                        uint8_t height);
 
 /**
@@ -1220,17 +1240,17 @@ void gfx_PrintString(const char *string);
  * @param[in] y Y coordinate.
  * @note By default, no text clipping is performed. See gfx_SetTextConfig.
  */
-void gfx_PrintStringXY(const char *string, int24_t x, int24_t y);
+void gfx_PrintStringXY(const char *string, ti_int x, ti_int y);
 
 /**
  * @returns The current text cursor X position.
  */
-int24_t gfx_GetTextX(void);
+ti_int gfx_GetTextX(void) __attribute__((__pure__));
 
 /**
  * @returns The current text cursor Y position.
  */
-int24_t gfx_GetTextY(void);
+ti_int gfx_GetTextY(void) __attribute__((__pure__));
 
 /**
  * Sets the text cursor X and Y positions.
@@ -1238,7 +1258,7 @@ int24_t gfx_GetTextY(void);
  * @param[in] x X coordinate.
  * @param[in] y Y coordinate.
  */
-void gfx_SetTextXY(int24_t x, int24_t y);
+void gfx_SetTextXY(ti_int x, ti_int y);
 
 /**
  * Sets the configuration for the text routines.
@@ -1285,7 +1305,7 @@ uint8_t gfx_SetTextTransparentColor(uint8_t color);
  * @param[in] x X coordinate.
  * @param[in] y Y coordinate.
  */
-void gfx_Sprite(const gfx_sprite_t *sprite, int24_t x, int24_t y);
+void gfx_Sprite(const gfx_sprite_t *sprite, ti_int x, ti_int y);
 
 /**
  * Draws an unclipped sprite.
@@ -1294,7 +1314,7 @@ void gfx_Sprite(const gfx_sprite_t *sprite, int24_t x, int24_t y);
  * @param[in] x X coordinate.
  * @param[in] y Y coordinate.
  */
-void gfx_Sprite_NoClip(const gfx_sprite_t *sprite, uint24_t x, uint8_t y);
+void gfx_Sprite_NoClip(const gfx_sprite_t *sprite, ti_unsigned_int x, uint8_t y);
 
 /**
  * Draws a transparent sprite.
@@ -1303,7 +1323,7 @@ void gfx_Sprite_NoClip(const gfx_sprite_t *sprite, uint24_t x, uint8_t y);
  * @param[in] x X coordinate.
  * @param[in] y Y coordinate.
  */
-void gfx_TransparentSprite(const gfx_sprite_t *sprite, int24_t x, int24_t y);
+void gfx_TransparentSprite(const gfx_sprite_t *sprite, ti_int x, ti_int y);
 
 /**
  * Draws an unclipped transparent sprite.
@@ -1312,7 +1332,7 @@ void gfx_TransparentSprite(const gfx_sprite_t *sprite, int24_t x, int24_t y);
  * @param[in] x X coordinate.
  * @param[in] y Y coordinate.
  */
-void gfx_TransparentSprite_NoClip(const gfx_sprite_t *sprite, uint24_t x, uint8_t y);
+void gfx_TransparentSprite_NoClip(const gfx_sprite_t *sprite, ti_unsigned_int x, uint8_t y);
 
 /**
  * Grabs the background behind a sprite.
@@ -1325,7 +1345,7 @@ void gfx_TransparentSprite_NoClip(const gfx_sprite_t *sprite, uint24_t x, uint8_
  * @note \p sprite_buffer must be pointing to a large enough buffer to hold
  *       (width * height + 2) number of bytes.
  */
-gfx_sprite_t *gfx_GetSprite(gfx_sprite_t *sprite_buffer, int24_t x, int24_t y);
+gfx_sprite_t *gfx_GetSprite(gfx_sprite_t *sprite_buffer, ti_int x, ti_int y);
 
 /**
  * Scales an unclipped sprite.
@@ -1341,7 +1361,7 @@ gfx_sprite_t *gfx_GetSprite(gfx_sprite_t *sprite_buffer, int24_t x, int24_t y);
  * @note Usable with gfx_GetSprite in order to create clipped versions.
  */
 void gfx_ScaledSprite_NoClip(const gfx_sprite_t *sprite,
-                             uint24_t x,
+                             ti_unsigned_int x,
                              uint8_t y,
                              uint8_t width_scale,
                              uint8_t height_scale);
@@ -1360,16 +1380,18 @@ void gfx_ScaledSprite_NoClip(const gfx_sprite_t *sprite,
  * @note Usable with gfx_GetSprite in order to create clipped versions.
  */
 void gfx_ScaledTransparentSprite_NoClip(const gfx_sprite_t *sprite,
-                                        uint24_t x,
+                                        ti_unsigned_int x,
                                         uint8_t y,
                                         uint8_t width_scale,
                                         uint8_t height_scale);
 
 /**
- * Fixed Rotation with scaling factor for sprites.
+ * Fixed Rotation with scaling factor for an unclipped sprite.
  *
  * @note A scale factor of 64 represents 100% scaling.
  * @warning This routine only accepts square input sprites.
+ * @note Sprites larger than 210x210 may have rendering artifacts.
+ * @warning The output size cannot be greater than 255x255.
  * @param[in] sprite Input sprite to rotate/scale.
  * @param[in] x X coordinate position.
  * @param[in] y Y coordinate position.
@@ -1379,16 +1401,18 @@ void gfx_ScaledTransparentSprite_NoClip(const gfx_sprite_t *sprite,
  *          This can be used for centering purposes.
  */
 uint8_t gfx_RotatedScaledTransparentSprite_NoClip(const gfx_sprite_t *sprite,
-                                                  uint24_t x,
+                                                  ti_unsigned_int x,
                                                   uint8_t y,
                                                   uint8_t angle,
                                                   uint8_t scale);
 
 /**
- * Fixed Rotation with scaling fator for sprites without transparency.
+ * Fixed Rotation with scaling fator for an unclipped sprite without transparency.
  *
  * @note A scale factor of 64 represents 100% scaling.
  * @warning This routine only accepts square input sprites.
+ * @note Sprites larger than 210x210 may have rendering artifacts.
+ * @warning The output size cannot be greater than 255x255.
  * @param[in] sprite Input sprite to rotate/scale.
  * @param[in] x X coordinate position.
  * @param[in] y Y coordinate position.
@@ -1399,10 +1423,53 @@ uint8_t gfx_RotatedScaledTransparentSprite_NoClip(const gfx_sprite_t *sprite,
  *          This can be used for centering purposes.
  */
 uint8_t gfx_RotatedScaledSprite_NoClip(const gfx_sprite_t *sprite,
-                                       uint24_t x,
+                                       ti_unsigned_int x,
                                        uint8_t y,
                                        uint8_t angle,
                                        uint8_t scale);
+
+/**
+ * Fixed Rotation with scaling factor for sprites.
+ *
+ * @note A scale factor of 64 represents 100% scaling.
+ * @warning This routine only accepts square input sprites.
+ * @note Sprites larger than 210x210 may have rendering artifacts.
+ * @warning The output size cannot be greater than 255x255.
+ * @param[in] sprite Input sprite to rotate/scale.
+ * @param[in] x X coordinate position.
+ * @param[in] y Y coordinate position.
+ * @param[in] angle 256 position angular integer.
+ * @param[in] scale Scaling factor; range is about 1% to 400% scale.
+ * @returns The unclipped size of the sprite after scaling.
+ *          This can be used for centering purposes.
+ */
+uint8_t gfx_RotatedScaledTransparentSprite(const gfx_sprite_t *sprite,
+                                           ti_int x,
+                                           ti_int y,
+                                           uint8_t angle,
+                                           uint8_t scale);
+
+/**
+ * Fixed Rotation with scaling fator for sprites without transparency.
+ *
+ * @note A scale factor of 64 represents 100% scaling.
+ * @warning This routine only accepts square input sprites.
+ * @note Sprites larger than 210x210 may have rendering artifacts.
+ * @warning The output size cannot be greater than 255x255.
+ * @param[in] sprite Input sprite to rotate/scale.
+ * @param[in] x X coordinate position.
+ * @param[in] y Y coordinate position.
+ * @param[in] angle 256 position angular integer.
+ * @param[in] scale Scaling factor; range is about 1% to 400% scale.
+ *        64 represents 100% scaling.
+ * @returns The unclipped size of the sprite after scaling.
+ *          This can be used for centering purposes.
+ */
+uint8_t gfx_RotatedScaledSprite(const gfx_sprite_t *sprite,
+                                ti_int x,
+                                ti_int y,
+                                uint8_t angle,
+                                uint8_t scale);
 
 /**
  * Flips a sprite along the X axis.
@@ -1412,8 +1479,8 @@ uint8_t gfx_RotatedScaledSprite_NoClip(const gfx_sprite_t *sprite,
  * @returns A pointer to sprite_out.
  * @note sprite_in and sprite_out cannot be the same. Ensure sprite_out is allocated.
  */
-gfx_sprite_t *gfx_FlipSpriteX(const gfx_sprite_t *sprite_in,
-                              gfx_sprite_t *sprite_out);
+gfx_sprite_t *gfx_FlipSpriteX(const gfx_sprite_t *__restrict sprite_in,
+                              gfx_sprite_t *__restrict sprite_out);
 
 /**
  * Flips a sprite along the Y axis.
@@ -1423,8 +1490,8 @@ gfx_sprite_t *gfx_FlipSpriteX(const gfx_sprite_t *sprite_in,
  * @returns A pointer to sprite_out.
  * @note sprite_in and sprite_out cannot be the same. Ensure sprite_out is allocated.
  */
-gfx_sprite_t *gfx_FlipSpriteY(const gfx_sprite_t *sprite_in,
-                              gfx_sprite_t *sprite_out);
+gfx_sprite_t *gfx_FlipSpriteY(const gfx_sprite_t *__restrict sprite_in,
+                              gfx_sprite_t *__restrict sprite_out);
 
 /**
  * Rotates a sprite 90 degrees clockwise.
@@ -1434,8 +1501,8 @@ gfx_sprite_t *gfx_FlipSpriteY(const gfx_sprite_t *sprite_in,
  * @returns A pointer to sprite_out.
  * @note sprite_in and sprite_out cannot be the same. Ensure sprite_out is allocated.
  */
-gfx_sprite_t *gfx_RotateSpriteC(const gfx_sprite_t *sprite_in,
-                                gfx_sprite_t *sprite_out);
+gfx_sprite_t *gfx_RotateSpriteC(const gfx_sprite_t *__restrict sprite_in,
+                                gfx_sprite_t *__restrict sprite_out);
 
 /**
  * Rotates a sprite 90 degrees counter clockwise.
@@ -1445,8 +1512,8 @@ gfx_sprite_t *gfx_RotateSpriteC(const gfx_sprite_t *sprite_in,
  * @returns A pointer to sprite_out.
  * @note sprite_in and sprite_out cannot be the same. Ensure sprite_out is allocated.
  */
-gfx_sprite_t *gfx_RotateSpriteCC(const gfx_sprite_t *sprite_in,
-                                 gfx_sprite_t *sprite_out);
+gfx_sprite_t *gfx_RotateSpriteCC(const gfx_sprite_t *__restrict sprite_in,
+                                 gfx_sprite_t *__restrict sprite_out);
 
 /**
  * Rotates a sprite 180 degrees.
@@ -1456,8 +1523,8 @@ gfx_sprite_t *gfx_RotateSpriteCC(const gfx_sprite_t *sprite_in,
  * @returns A pointer to sprite_out.
  * @note sprite_in and sprite_out cannot be the same. Ensure sprite_out is allocated.
  */
-gfx_sprite_t *gfx_RotateSpriteHalf(const gfx_sprite_t *sprite_in,
-                                   gfx_sprite_t *sprite_out);
+gfx_sprite_t *gfx_RotateSpriteHalf(const gfx_sprite_t *__restrict sprite_in,
+                                   gfx_sprite_t *__restrict sprite_out);
 
 /**
  * Resizes a sprite to new dimensions.
@@ -1469,8 +1536,8 @@ gfx_sprite_t *gfx_RotateSpriteHalf(const gfx_sprite_t *sprite_in,
  * @returns A pointer to \p sprite_out.
  * @note sprite_in and sprite_out cannot be the same. Ensure sprite_out is allocated.
  */
-gfx_sprite_t *gfx_ScaleSprite(const gfx_sprite_t *sprite_in,
-                              gfx_sprite_t *sprite_out);
+gfx_sprite_t *gfx_ScaleSprite(const gfx_sprite_t *__restrict sprite_in,
+                              gfx_sprite_t *__restrict sprite_out);
 
 /**
  * Fixed Rotation with scaling factor for sprites.
@@ -1488,10 +1555,12 @@ gfx_sprite_t *gfx_ScaleSprite(const gfx_sprite_t *sprite_in,
  * @param[in] angle 256 position angular integer.
  * @param[in] scale Scaling factor; range is about 1% to 400% scale.
  * @returns A pointer to \p sprite_out.
+ * @note Rendering artifacts may occur if the output is larger than 210x210.
+ * @warning The output size cannot be greater than 255x255.
  * @note sprite_in and sprite_out cannot be the same. Ensure sprite_out is allocated.
  */
-gfx_sprite_t *gfx_RotateScaleSprite(const gfx_sprite_t *sprite_in,
-                                    gfx_sprite_t *sprite_out,
+gfx_sprite_t *gfx_RotateScaleSprite(const gfx_sprite_t *__restrict sprite_in,
+                                    gfx_sprite_t *__restrict sprite_out,
                                     uint8_t angle,
                                     uint8_t scale);
 
@@ -1565,7 +1634,7 @@ void gfx_SetMonospaceFont(uint8_t spacing);
  * @param[in] string Pointer to a string.
  * @note Takes into account monospacing flag.
  */
-uint24_t gfx_GetStringWidth(const char *string);
+ti_unsigned_int gfx_GetStringWidth(const char *string) __attribute__((__pure__));
 
 /**
  * Gets the pixel width of the given character.
@@ -1574,7 +1643,7 @@ uint24_t gfx_GetStringWidth(const char *string);
  * @returns Width in pixels of character.
  * @note Takes into account monospacing flag.
  */
-uint24_t gfx_GetCharWidth(const char c);
+ti_unsigned_int gfx_GetCharWidth(const char c) __attribute__((__pure__));
 
 /**
  * Sets the dimensions of the drawing window for all clipped routines.
@@ -1584,7 +1653,7 @@ uint24_t gfx_GetCharWidth(const char c);
  * @param[in] xmax Maximum x coordinate, exclusive (default 320).
  * @param[in] ymax Maximum y coordinate, exclusive (default 240).
  */
-void gfx_SetClipRegion(int24_t xmin, int24_t ymin, int24_t xmax, int24_t ymax);
+void gfx_SetClipRegion(ti_int xmin, ti_int ymin, ti_int xmax, ti_int ymax);
 
 /**
  * Clips a region to fit within the drawing window using Cohen-Sutherland.
@@ -1615,7 +1684,7 @@ void gfx_ShiftUp(uint8_t pixels);
  * @param[in] pixels Number of pixels to shift.
  * @note Remnant data after a shift is undefined.
  */
-void gfx_ShiftLeft(uint24_t pixels);
+void gfx_ShiftLeft(ti_unsigned_int pixels);
 
 /**
  * Shifts/Slides the drawing window right.
@@ -1623,7 +1692,7 @@ void gfx_ShiftLeft(uint24_t pixels);
  * @param[in] pixels Number of pixels to shift.
  * @note Remnant data after a shift is undefined.
  */
-void gfx_ShiftRight(uint24_t pixels);
+void gfx_ShiftRight(ti_unsigned_int pixels);
 
 /**
  * Lightens a given 1555 color; useful for palette color conversions.
@@ -1634,7 +1703,8 @@ void gfx_ShiftRight(uint24_t pixels);
  * @note 0 returns full white, 255 returns original color.
  */
 uint16_t gfx_Lighten(uint16_t color,
-                     uint8_t amount);
+                     uint8_t amount
+                     ) __attribute__((__const__));
 
 /**
  * Darkens a given 1555 color; useful for palette color conversions.
@@ -1645,7 +1715,8 @@ uint16_t gfx_Lighten(uint16_t color,
  * @note 0 returns full black, 255 returns original color.
  */
 uint16_t gfx_Darken(uint16_t color,
-                    uint8_t amount);
+                    uint8_t amount
+                    ) __attribute__((__const__));
 
 /**
  * Fills an area with a color.
@@ -1657,7 +1728,7 @@ uint16_t gfx_Darken(uint16_t color,
  * @note This routine performs clipping to stay within the window,
  *       but you must ensure it starts in the window.
  */
-void gfx_FloodFill(uint24_t x,
+void gfx_FloodFill(ti_unsigned_int x,
                    uint8_t y,
                    uint8_t color);
 
@@ -1669,8 +1740,8 @@ void gfx_FloodFill(uint24_t x,
  * @param[in] y Y coordinate.
  */
 void gfx_RLETSprite(const gfx_rletsprite_t *sprite,
-                    int24_t x,
-                    int24_t y);
+                    ti_int x,
+                    ti_int y);
 
 /**
  * Draws an unclipped sprite with RLE transparency.
@@ -1680,7 +1751,7 @@ void gfx_RLETSprite(const gfx_rletsprite_t *sprite,
  * @param[in] y Y coordinate.
  */
 void gfx_RLETSprite_NoClip(const gfx_rletsprite_t *sprite,
-                           uint24_t x,
+                           ti_unsigned_int x,
                            uint8_t y);
 
 /**
@@ -1755,7 +1826,8 @@ gfx_rletsprite_t *gfx_ConvertToRLETSprite(const gfx_sprite_t *sprite_in,
  * @see gfx_ConvertFromRLETSprite.
  */
 gfx_rletsprite_t *gfx_ConvertToNewRLETSprite(const gfx_sprite_t *sprite_in,
-                                             void *(*malloc_routine)(size_t));
+                                             void *(*malloc_routine)(size_t)
+                                             ) __attribute__((__nonnull__(2)));
 
 /* Compatibility defines (don't use please) */
 /* @cond */
@@ -1776,4 +1848,4 @@ gfx_rletsprite_t *gfx_ConvertToNewRLETSprite(const gfx_sprite_t *sprite_in,
 }
 #endif
 
-#endif
+#endif /* GRAPHX_H */

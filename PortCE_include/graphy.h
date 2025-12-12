@@ -1,7 +1,7 @@
 /**
  * @file
  *
- * The below example template shows the best graphx buffer usage pattern:
+ * The below example template shows the best graphy buffer usage pattern:
  * @code{.cpp}
  * // Standard #includes omitted
  *
@@ -35,8 +35,7 @@
  *          Zachary "Runer112" Wassall <br/>
  *          Patrick "tr1p1ea" Prendergast <br/>
  *          Peter "PT_" Tillema <br/>
- *          "grosged" <br/>
- *          "zerico2005"
+ *          "grosged"
  */
 
 #ifndef GRAPHY_H
@@ -46,32 +45,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-/* Configuration */
-
-    /**
-     * Configures the graphy to use row-major graphx data instead of
-     * column-major graphy data. This may cause sprite and tilemap functions
-     * to run slower.
-     */
-    // #define USE_GRAPHX_SPRITE_DATA
-
-    /**
-     * graphy will call additional graphx functions to ensure that internal
-     * variables will be in sync. Leaving this disabled can marginally improve
-     * performance and reduce the binary size slightly.
-     */
-    // #define IMPROVE_GRAPHX_COMPATIBILITY
-
-    #ifdef _EZ80
-        #ifndef RAM_ADDRESS
-            #define RAM_ADDRESS(x) ((void*)(x))
-        #endif
-        #ifndef RAM_OFFSET
-            #define RAM_OFFSET(ptr) ((uint24_t)(ptr))
-        #endif
-    #else
-        #include <PortCE.h>
-    #endif
+#include <PortCE.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -99,14 +73,9 @@ extern "C" {
  * Create at runtime (with uninitialized data) with gfy_MallocSprite(),
  * gfy_UninitedSprite(), or gfy_TempSprite().
  */
-typedef struct gfy_sprite_t {
-    #ifdef USE_GRAPHX_SPRITE_DATA
-        uint8_t width;   /**< Width of the image.  */
-        uint8_t height;  /**< Height of the image. */
-    #else
-        uint8_t height;  /**< Height of the image. */
-        uint8_t width;   /**< Width of the image.  */
-    #endif
+typedef struct __attribute__((__packed__)) gfy_sprite_t {
+    uint8_t width;   /**< Width of the image.  */
+    uint8_t height;  /**< Height of the image. */
     uint8_t data[]; /**< Image data array.    */
 } gfy_sprite_t;
 
@@ -125,14 +94,9 @@ typedef struct gfy_sprite_t {
  * Create at compile-time with a tool like
  * <a href="https://github.com/mateoconlechuga/convimg" target="_blank">convimg</a>.
  */
-typedef struct gfy_rletsprite_t {
-    #ifdef USE_GRAPHX_SPRITE_DATA
-        uint8_t width;   /**< Width of the image.  */
-        uint8_t height;  /**< Height of the image. */
-    #else
-        uint8_t width;  /**< Height of the image. */
-        uint8_t height;   /**< Width of the image.  */
-    #endif
+typedef struct __attribute__((__packed__)) gfy_rletsprite_t {
+    uint8_t width; /**< Width of the image. */
+    uint8_t height; /**< Height of the image. */
     uint8_t data[]; /**< Image data array. */
 } gfy_rletsprite_t;
 
@@ -140,8 +104,8 @@ typedef struct gfy_rletsprite_t {
  * A structure for working with 2D points.
  */
 typedef struct gfy_point_t {
-    int24_t x; /**< x point. */
-    int24_t y; /**< y point. */
+    ti_int x; /**< x point. */
+    ti_int y; /**< y point. */
 } gfy_point_t;
 
 /**
@@ -150,10 +114,10 @@ typedef struct gfy_point_t {
  * @see gfy_GetClipRegion
  */
 typedef struct gfy_region_t {
-    int24_t xmin; /**< Minimum x coordinate. */
-    int24_t ymin; /**< Minimum y coordinate. */
-    int24_t xmax; /**< Maximum x coordinate. */
-    int24_t ymax; /**< Maximum y coordinate. */
+    ti_int xmin; /**< Minimum x coordinate. */
+    ti_int ymin; /**< Minimum y coordinate. */
+    ti_int xmax; /**< Maximum x coordinate. */
+    ti_int ymax; /**< Maximum y coordinate. */
 } gfy_region_t;
 
 /**
@@ -496,31 +460,57 @@ gfy_Circle((x), (y), (radius))
 #define gfy_GetSprite_NoClip(sprite_buffer, x, y) \
 gfy_GetSprite((sprite_buffer), (x), (y))
 
-// /**
-//  * Helper macro to only perform rotation using
-//  * gfy_RotatedScaledTransparentSprite_NoClip.
-//  *
-//  * @param[in] sprite Input sprite to rotate/scale.
-//  * @param[in] x X coordinate position.
-//  * @param[in] y Y coordinate position.
-//  * @param[in] angle 256 position angular integer.
-//  * @see gfy_RotatedScaledTransparentSprite_NoClip.
-//  */
-// #define gfy_RotatedTransparentSprite_NoClip(sprite, x, y, angle) \
-// gfy_RotatedScaledTransparentSprite_NoClip(sprite, x, y, angle, 64)
+/**
+ * Helper macro to only perform rotation using
+ * gfy_RotatedScaledTransparentSprite_NoClip.
+ *
+ * @param[in] sprite Input sprite to rotate/scale.
+ * @param[in] x X coordinate position.
+ * @param[in] y Y coordinate position.
+ * @param[in] angle 256 position angular integer.
+ * @see gfy_RotatedScaledTransparentSprite_NoClip.
+ */
+#define gfy_RotatedTransparentSprite_NoClip(sprite, x, y, angle) \
+gfy_RotatedScaledTransparentSprite_NoClip(sprite, x, y, angle, 64)
 
-// /**
-//  * Helper macro to only perform rotation using
-//  * gfy_RotatedScaledSprite_NoClip.
-//  *
-//  * @param[in] sprite Input sprite to rotate/scale.
-//  * @param[in] x X coordinate position.
-//  * @param[in] y Y coordinate position.
-//  * @param[in] angle 256 position angular integer.
-//  * @see gfy_RotatedScaledTransparentSprite_NoClip.
-//  */
-// #define gfy_RotatedSprite_NoClip(sprite, x, y, angle) \
-// gfy_RotatedScaledSprite_NoClip(sprite, x, y, angle, 64)
+/**
+ * Helper macro to only perform rotation using
+ * gfy_RotatedScaledTransparentSprite.
+ *
+ * @param[in] sprite Input sprite to rotate/scale.
+ * @param[in] x X coordinate position.
+ * @param[in] y Y coordinate position.
+ * @param[in] angle 256 position angular integer.
+ * @see gfy_RotatedScaledTransparentSprite.
+ */
+ #define gfy_RotatedTransparentSprite(sprite, x, y, angle) \
+gfy_RotatedScaledTransparentSprite(sprite, x, y, angle, 64)
+
+/**
+ * Helper macro to only perform rotation using
+ * gfy_RotatedScaledSprite_NoClip.
+ *
+ * @param[in] sprite Input sprite to rotate/scale.
+ * @param[in] x X coordinate position.
+ * @param[in] y Y coordinate position.
+ * @param[in] angle 256 position angular integer.
+ * @see gfy_RotatedScaledSprite_NoClip.
+ */
+#define gfy_RotatedSprite_NoClip(sprite, x, y, angle) \
+gfy_RotatedScaledSprite_NoClip(sprite, x, y, angle, 64)
+
+/**
+ * Helper macro to only perform rotation using
+ * gfy_RotatedScaledSprite.
+ *
+ * @param[in] sprite Input sprite to rotate/scale.
+ * @param[in] x X coordinate position.
+ * @param[in] y Y coordinate position.
+ * @param[in] angle 256 position angular integer.
+ * @see gfy_RotatedScaledSprite.
+ */
+#define gfy_RotatedSprite(sprite, x, y, angle) \
+gfy_RotatedScaledSprite(sprite, x, y, angle, 64)
 
 /**
  * Helper macro to only perform rotation using gfy_RotateScaleSprite.
@@ -586,50 +576,50 @@ gfy_ConvertToNewRLETSprite(sprite_in, malloc)
 ((y1) < ((y0) + (h0))) && \
 (((y1) + (h1)) > (y0)))
 
-// /* byte 0 of compressed data is always literal - is the width */
-// #define gfy_GetZX7SpriteWidth(zx7_sprite)                     \
-//     __extension__({                                           \
-//         const uint8_t *_Data = (const uint8_t *)(zx7_sprite); \
-//         _Data[0];                                             \
-//     })
+/* byte 0 of compressed data is always literal - is the width */
+#define gfy_GetZX7SpriteWidth(zx7_sprite)                     \
+    __extension__({                                           \
+        const uint8_t *_Data = (const uint8_t *)(zx7_sprite); \
+        _Data[0];                                             \
+    })
 
-// /* byte 1 of compressed data is flag. If bit 7 set, copy byte 0, else byte 2 */
-// #define gfy_GetZX7SpriteHeight(zx7_sprite)                    \
-//     __extension__({                                           \
-//         const uint8_t *_Data = (const uint8_t *)(zx7_sprite); \
-//         _Data[_Data[1] & 0x80 ? 0 : 2];                       \
-//     })
-
-// /**
-//  * Calculates the amount of memory that a zx7-compressed
-//  * sprite would use when decompressed.
-//  *
-//  * Sprite size is calculated as 2 + (width * height).
-//  *
-//  * ZX7 data always starts with a literal, which is the sprite's width. The next
-//  * byte contains flags, which indicates if the following bytes are literals or
-//  * codewords. If bit 7 of that is zero, the byte immediately after it is a
-//  * literal and can be read in as sprite height. Otherwise, the bits that follows
-//  * indicates a codeword, making sprite height the same as width.
-//  *
-//  * @param[in] zx7_sprite ZX7-compressed sprite
-//  * @return Size, in bytes, of decompressed sprite
-// */
-// #define gfy_GetZX7SpriteSize(zx7_sprite)                                      \
-//     __extension__({                                                           \
-//         const void *_Sprite = (const void *)(zx7_sprite);                     \
-//         2 + gfy_GetZX7SpriteWidth(_Sprite) * gfy_GetZX7SpriteHeight(_Sprite); \
-//     })
+/* byte 1 of compressed data is flag. If bit 7 set, copy byte 0, else byte 2 */
+#define gfy_GetZX7SpriteHeight(zx7_sprite)                    \
+    __extension__({                                           \
+        const uint8_t *_Data = (const uint8_t *)(zx7_sprite); \
+        _Data[_Data[1] & 0x80 ? 0 : 2];                       \
+    })
 
 /**
- * Initializes the `graphx` library context.
+ * Calculates the amount of memory that a zx7-compressed
+ * sprite would use when decompressed.
  *
- * This function should be called before any other `graphx` library routines.
- */
-void gfy_Begin();
+ * Sprite size is calculated as 2 + (width * height).
+ *
+ * ZX7 data always starts with a literal, which is the sprite's width. The next
+ * byte contains flags, which indicates if the following bytes are literals or
+ * codewords. If bit 7 of that is zero, the byte immediately after it is a
+ * literal and can be read in as sprite height. Otherwise, the bits that follows
+ * indicates a codeword, making sprite height the same as width.
+ *
+ * @param[in] zx7_sprite ZX7-compressed sprite
+ * @return Size, in bytes, of decompressed sprite
+*/
+#define gfy_GetZX7SpriteSize(zx7_sprite)                                      \
+    __extension__({                                                           \
+        const void *_Sprite = (const void *)(zx7_sprite);                     \
+        2 + gfy_GetZX7SpriteWidth(_Sprite) * gfy_GetZX7SpriteHeight(_Sprite); \
+    })
 
 /**
- * Ends the `graphx` library context.
+ * Initializes the `graphy` library context.
+ *
+ * This function should be called before any other `graphy` library routines.
+ */
+void gfy_Begin(void);
+
+/**
+ * Ends the `graphy` library context.
  *
  * Restores the LCD to 16bpp and clears the screen.
  * 16bpp is used by the OS, so if you don't call this, the screen will look
@@ -658,8 +648,9 @@ void gfy_End(void);
  * @return A pointer to the allocated sprite.
  */
 gfy_sprite_t *gfy_AllocSprite(uint8_t width,
-                            uint8_t height,
-                            void *(*malloc_routine)(size_t));
+                              uint8_t height,
+                              void *(*malloc_routine)(size_t)
+                              ) __attribute__((__nonnull__(3)));
 
 /**
  * Draws a tilemap.
@@ -670,8 +661,8 @@ gfy_sprite_t *gfy_AllocSprite(uint8_t width,
  * @see gfy_tilemap_t.
  */
 void gfy_Tilemap(const gfy_tilemap_t *tilemap,
-                uint24_t x_offset,
-                uint24_t y_offset);
+                 ti_unsigned_int x_offset,
+                 ti_unsigned_int y_offset);
 
 /**
  * Draws an unclipped tilemap.
@@ -682,8 +673,8 @@ void gfy_Tilemap(const gfy_tilemap_t *tilemap,
  * @see gfy_tilemap_t.
  */
 void gfy_Tilemap_NoClip(const gfy_tilemap_t *tilemap,
-                            uint24_t x_offset,
-                            uint24_t y_offset);
+                            ti_unsigned_int x_offset,
+                            ti_unsigned_int y_offset);
 
 /**
  * Draws a transparent tilemap.
@@ -694,8 +685,8 @@ void gfy_Tilemap_NoClip(const gfy_tilemap_t *tilemap,
  * @see gfy_tilemap_t.
  */
 void gfy_TransparentTilemap(const gfy_tilemap_t *tilemap,
-                            uint24_t x_offset,
-                            uint24_t y_offset);
+                            ti_unsigned_int x_offset,
+                            ti_unsigned_int y_offset);
 
 /**
  * Draws an unclipped transparent tilemap.
@@ -706,8 +697,8 @@ void gfy_TransparentTilemap(const gfy_tilemap_t *tilemap,
  * @see gfy_tilemap_t.
  */
 void gfy_TransparentTilemap_NoClip(const gfy_tilemap_t *tilemap,
-                                uint24_t x_offset,
-                                uint24_t y_offset);
+                                   ti_unsigned_int x_offset,
+                                   ti_unsigned_int y_offset);
 
 /**
  * Gets a pointer to a particular sprite tileset index.
@@ -718,8 +709,9 @@ void gfy_TransparentTilemap_NoClip(const gfy_tilemap_t *tilemap,
  * @param[in] y_offset Offset in pixels from the top of the tilemap.
  */
 uint8_t *gfy_TilePtr(const gfy_tilemap_t *tilemap,
-                    uint24_t x_offset,
-                    uint24_t y_offset);
+                     ti_unsigned_int x_offset,
+                     ti_unsigned_int y_offset
+                     ) __attribute__((__pure__));
 
 /**
  * Gets a pointer to a particular sprite tileset index.
@@ -730,8 +722,9 @@ uint8_t *gfy_TilePtr(const gfy_tilemap_t *tilemap,
  * @param[in] row Row of tile in tilemap.
  */
 uint8_t *gfy_TilePtrMapped(const gfy_tilemap_t *tilemap,
-                        uint8_t col,
-                        uint8_t row);
+                           uint8_t col,
+                           uint8_t row
+                           ) __attribute__((__pure__));
 
 /**
  * Sets the color index that drawing routines will use
@@ -766,7 +759,7 @@ void gfy_SetDefaultPalette(gfy_mode_t mode);
  * @param[in] offset Palette index to insert at.
  */
 void gfy_SetPalette(const void *palette,
-                    uint24_t size,
+                    size_t size,
                     uint8_t offset);
 
 /**
@@ -791,7 +784,7 @@ void gfy_ZeroScreen(void);
  * @param[in] y Y coordinate.
  * @see gfy_SetColor
  */
-void gfy_SetPixel(uint24_t x, uint8_t y);
+void gfy_SetPixel(ti_unsigned_int x, uint8_t y);
 
 /**
  * Gets a pixel's color index.
@@ -800,7 +793,7 @@ void gfy_SetPixel(uint24_t x, uint8_t y);
  * @param[in] x X coordinate.
  * @param[in] y Y coordinate.
  */
-uint8_t gfy_GetPixel(uint24_t x, uint8_t y);
+uint8_t gfy_GetPixel(ti_unsigned_int x, uint8_t y);
 
 /**
  * Draws a line.
@@ -810,10 +803,10 @@ uint8_t gfy_GetPixel(uint24_t x, uint8_t y);
  * @param[in] x1 Second X coordinate.
  * @param[in] y1 Second Y coordinate.
  */
-void gfy_Line(int24_t x0,
-            int24_t y0,
-            int24_t x1,
-            int24_t y1);
+void gfy_Line(ti_int x0,
+              ti_int y0,
+              ti_int x1,
+              ti_int y1);
 
 /**
  * Draws an unclipped line.
@@ -823,10 +816,10 @@ void gfy_Line(int24_t x0,
  * @param[in] x1 Second X coordinate.
  * @param[in] y1 Second Y coordinate.
  */
-void gfy_Line_NoClip(uint24_t x0,
-                    uint8_t y0,
-                    uint24_t x1,
-                    uint8_t y1);
+void gfy_Line_NoClip(ti_unsigned_int x0,
+                     uint8_t y0,
+                     ti_unsigned_int x1,
+                     uint8_t y1);
 
 /**
  * Draws a horizontal line.
@@ -836,9 +829,9 @@ void gfy_Line_NoClip(uint24_t x0,
  * @param[in] y Y coordinate.
  * @param[in] length Length of line.
  */
-void gfy_HorizLine(int24_t x,
-                int24_t y,
-                int24_t length);
+void gfy_HorizLine(ti_int x,
+                   ti_int y,
+                   ti_int length);
 
 /**
  * Draws an unclipped horizontal line.
@@ -848,9 +841,9 @@ void gfy_HorizLine(int24_t x,
  * @param[in] y Y coordinate.
  * @param[in] length Length of line.
  */
-void gfy_HorizLine_NoClip(uint24_t x,
-                        uint8_t y,
-                        uint24_t length);
+void gfy_HorizLine_NoClip(ti_unsigned_int x,
+                          uint8_t y,
+                          ti_unsigned_int length);
 
 /**
  * Draws a vertical line
@@ -860,9 +853,9 @@ void gfy_HorizLine_NoClip(uint24_t x,
  * @param[in] y Y coordinate
  * @param[in] length Length of line
  */
-void gfy_VertLine(int24_t x,
-                int24_t y,
-                int24_t length);
+void gfy_VertLine(ti_int x,
+                  ti_int y,
+                  ti_int length);
 
 /**
  * Draws an unclipped vertical line.
@@ -872,9 +865,9 @@ void gfy_VertLine(int24_t x,
  * @param[in] y Y coordinate.
  * @param[in] length Length of line.
  */
-void gfy_VertLine_NoClip(uint24_t x,
-                        uint8_t y,
-                        uint24_t length);
+void gfy_VertLine_NoClip(ti_unsigned_int x,
+                         uint8_t y,
+                         ti_unsigned_int length);
 
 /**
  * Draws a rectangle outline.
@@ -884,10 +877,10 @@ void gfy_VertLine_NoClip(uint24_t x,
  * @param[in] width Width of rectangle.
  * @param[in] height Height of rectangle.
  */
-void gfy_Rectangle(int24_t x,
-                int24_t y,
-                int24_t width,
-                int24_t height);
+void gfy_Rectangle(ti_int x,
+                   ti_int y,
+                   ti_int width,
+                   ti_int height);
 
 /**
  * Draws an unclipped rectangle outline.
@@ -897,10 +890,10 @@ void gfy_Rectangle(int24_t x,
  * @param[in] width Width of rectangle.
  * @param[in] height Height of rectangle.
  */
-void gfy_Rectangle_NoClip(uint24_t x,
-                        uint8_t y,
-                        uint24_t width,
-                        uint8_t height);
+void gfy_Rectangle_NoClip(ti_unsigned_int x,
+                          uint8_t y,
+                          ti_unsigned_int width,
+                          uint8_t height);
 
 /**
  * Draws a filled rectangle.
@@ -910,10 +903,10 @@ void gfy_Rectangle_NoClip(uint24_t x,
  * @param[in] width Width of rectangle.
  * @param[in] height Height of rectangle.
  */
-void gfy_FillRectangle(int24_t x,
-                    int24_t y,
-                    int24_t width,
-                    int24_t height);
+void gfy_FillRectangle(ti_int x,
+                       ti_int y,
+                       ti_int width,
+                       ti_int height);
 
 /**
  * Draws an unclipped filled rectangle
@@ -923,10 +916,10 @@ void gfy_FillRectangle(int24_t x,
  * @param[in] width Width of rectangle
  * @param[in] height Height of rectangle
  */
-void gfy_FillRectangle_NoClip(uint24_t x,
-                            uint8_t y,
-                            uint24_t width,
-                            uint8_t height);
+void gfy_FillRectangle_NoClip(ti_unsigned_int x,
+                              uint8_t y,
+                              ti_unsigned_int width,
+                              uint8_t height);
 
 /**
  * Draws a circle outline.
@@ -935,9 +928,9 @@ void gfy_FillRectangle_NoClip(uint24_t x,
  * @param[in] y Y coordinate.
  * @param[in] radius The radius of the circle.
  */
-void gfy_Circle(int24_t x,
-                int24_t y,
-                uint24_t radius);
+void gfy_Circle(ti_int x,
+                ti_int y,
+                ti_unsigned_int radius);
 
 /**
  * Draws a filled circle.
@@ -946,9 +939,9 @@ void gfy_Circle(int24_t x,
  * @param[in] y Y coordinate.
  * @param[in] radius The radius of the circle.
  */
-void gfy_FillCircle(int24_t x,
-                    int24_t y,
-                    uint24_t radius);
+void gfy_FillCircle(ti_int x,
+                    ti_int y,
+                    ti_unsigned_int radius);
 
 /**
  * Draws an unclipped filled circle.
@@ -957,9 +950,9 @@ void gfy_FillCircle(int24_t x,
  * @param[in] y Y coordinate.
  * @param[in] radius The radius of the circle.
  */
-void gfy_FillCircle_NoClip(uint24_t x,
-                        uint8_t y,
-                        uint24_t radius);
+void gfy_FillCircle_NoClip(ti_unsigned_int x,
+                           uint8_t y,
+                           ti_unsigned_int radius);
 
 /**
  * Draws an unclipped filled ellipse.
@@ -969,7 +962,7 @@ void gfy_FillCircle_NoClip(uint24_t x,
  * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
  * @param[in] b The vertical radius of the ellipse (current maximum is 128).
  */
-void gfy_FillEllipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b);
+void gfy_FillEllipse_NoClip(ti_unsigned_int x, ti_unsigned_int y, uint8_t a, uint8_t b);
 
 /**
  * Draws a filled ellipse.
@@ -979,7 +972,7 @@ void gfy_FillEllipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b);
  * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
  * @param[in] b The vertical radius of the ellipse (current maximum is 128).
  */
-void gfy_FillEllipse(int24_t x, int24_t y, uint24_t a, uint24_t b);
+void gfy_FillEllipse(ti_int x, ti_int y, ti_unsigned_int a, ti_unsigned_int b);
 
 /**
  * Draws an unclipped ellipse.
@@ -989,7 +982,7 @@ void gfy_FillEllipse(int24_t x, int24_t y, uint24_t a, uint24_t b);
  * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
  * @param[in] b The vertical radius of the ellipse (current maximum is 128).
  */
-void gfy_Ellipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b);
+void gfy_Ellipse_NoClip(ti_unsigned_int x, ti_unsigned_int y, uint8_t a, uint8_t b);
 
 /**
  * Draws an ellipse.
@@ -999,13 +992,13 @@ void gfy_Ellipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b);
  * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
  * @param[in] b The vertical radius of the ellipse (current maximum is 128).
  */
-void gfy_Ellipse(int24_t x, int24_t y, uint24_t a, uint24_t b);
+void gfy_Ellipse(ti_int x, ti_int y, ti_unsigned_int a, ti_unsigned_int b);
 
 /**
  * Draws a clipped polygon outline.
  *
  * @code{.cpp}
- * int24_t points[6] = {
+ * int points[6] = {
  *                    160,  1,  // (x0, y0)
  *                    1,  238,  // (x1, y1)
  *                    318,238,  // (x2, y2)
@@ -1016,13 +1009,13 @@ void gfy_Ellipse(int24_t x, int24_t y, uint24_t a, uint24_t b);
  * @param[in] points Pointer to x and y pairs.
  * @param[in] num_points Number of x and y pairs.
  */
-void gfy_Polygon(const int24_t *points, size_t num_points);
+void gfy_Polygon(const ti_int *points, size_t num_points);
 
 /**
  * Draws an unclipped polygon outline
  *
  * @code{.cpp}
- * int24_t points[6] = {
+ * int points[6] = {
  *                    160,  1,  // (x0, y0)
  *                    1,  238,  // (x1, y1)
  *                    318,238,  // (x2, y2)
@@ -1034,7 +1027,7 @@ void gfy_Polygon(const int24_t *points, size_t num_points);
  * @param[in] points Pointer to x and y pairs
  * @param[in] num_points Number of x and y pairs
  */
-void gfy_Polygon_NoClip(const int24_t *points, size_t num_points);
+void gfy_Polygon_NoClip(const ti_int *points, size_t num_points);
 
 /**
  * Draws a clipped filled triangle.
@@ -1046,12 +1039,12 @@ void gfy_Polygon_NoClip(const int24_t *points, size_t num_points);
  * @param[in] x2 Third X coordinate.
  * @param[in] y2 Third Y coordinate.
  */
-void gfy_FillTriangle(int24_t x0,
-                    int24_t y0,
-                    int24_t x1,
-                    int24_t y1,
-                    int24_t x2,
-                    int24_t y2);
+void gfy_FillTriangle(ti_int x0,
+                      ti_int y0,
+                      ti_int x1,
+                      ti_int y1,
+                      ti_int x2,
+                      ti_int y2);
 
 /**
  * Draws a unclipped filled triangle.
@@ -1063,12 +1056,12 @@ void gfy_FillTriangle(int24_t x0,
  * @param[in] x2 Third X coordinate.
  * @param[in] y2 Third Y coordinate.
  */
-void gfy_FillTriangle_NoClip(int24_t x0,
-                            int24_t y0,
-                            int24_t x1,
-                            int24_t y1,
-                            int24_t x2,
-                            int24_t y2);
+void gfy_FillTriangle_NoClip(ti_int x0,
+                             ti_int y0,
+                             ti_int x1,
+                             ti_int y1,
+                             ti_int x2,
+                             ti_int y2);
 
 /**
  * Forces all graphics routines draw location.
@@ -1090,7 +1083,7 @@ uint8_t gfy_GetDraw(void);
  * Swaps the roles of the screen and drawing buffers.
  *
  * Does not wait for the old screen buffer to finish being displayed. Instead,
- * the next invocation of a graphx drawing function will block, (pause program
+ * the next invocation of a graphy drawing function will block, (pause program
  * execution) waiting for this event. To block and wait explicitly, use gfy_Wait().
  *
  * The LCD driver maintains its own screen buffer pointer for the duration of a
@@ -1099,7 +1092,7 @@ uint8_t gfy_GetDraw(void);
  *
  * @remarks
  * In practice, this function should be invoked immediately after finishing
- * drawing a frame to the drawing buffer, and invocation of the first graphx
+ * drawing a frame to the drawing buffer, and invocation of the first graphy
  * drawing function for the next frame should be scheduled as late as possible
  * relative to non-drawing logic. Non-drawing logic can execute during time when
  * a drawing function may otherwise block.
@@ -1124,32 +1117,6 @@ void gfy_Wait(void);
  */
 void gfy_Blit(gfy_location_t src);
 
-/**scr
- * Copies lines from the input buffer to the opposite buffer.
- *
- * No clipping is performed as it is a copy not a draw.
- * @param[in] src drawing location to copy from.
- * @param[in] y_loc Y Location to begin copying at.
- * @param[in] num_lines Number of lines to copy.
- * @see gfy_location_t.
- */
-void gfy_BlitLines(gfy_location_t src,
-                uint8_t y_loc,
-                uint8_t num_lines);
-
-/**
- * Copies columns from the input buffer to the opposite buffer.
- *
- * No clipping is performed as it is a copy not a draw.
- * @param[in] src drawing location to copy from.
- * @param[in] x_loc X Location to begin copying at.
- * @param[in] num_columns Number of columns to copy.
- * @see gfy_location_t.
- */
-void gfy_BlitColumns(gfy_location_t src,
-                    uint24_t x_loc,
-                    uint24_t num_columns);
-
 /**
  * Transfers a rectangle from the source graphics buffer to the opposite
  * buffer.
@@ -1163,10 +1130,47 @@ void gfy_BlitColumns(gfy_location_t src,
  * @see gfy_location_t.
  */
 void gfy_BlitRectangle(gfy_location_t src,
-                    uint24_t x,
-                    uint8_t y,
-                    uint24_t width,
-                    uint24_t height);
+                       ti_unsigned_int x,
+                       uint8_t y,
+                       ti_unsigned_int width,
+                       ti_unsigned_int height);
+
+/**
+ * Copies lines from the input buffer to the opposite buffer.
+ *
+ * No clipping is performed as it is a copy not a draw.
+ * @param[in] src drawing location to copy from.
+ * @param[in] y_loc Y Location to begin copying at.
+ * @param[in] num_lines Number of lines to copy.
+ * @see gfy_location_t.
+ */
+#define gfy_BlitLines(src, y_loc, num_lines) \
+gfy_BlitRectangle(src, 0, y_loc, GFY_LCD_WIDTH, num_lines)
+
+/**
+ * Copies rows from the input buffer to the opposite buffer.
+ *
+ * No clipping is performed as it is a copy not a draw.
+ * @param[in] src drawing location to copy from.
+ * @param[in] y_loc Y Location to begin copying at.
+ * @param[in] num_rows Number of rows to copy.
+ * @see gfy_location_t.
+ */
+#define gfy_BlitRows(src, y_loc, num_rows) \
+gfy_BlitRectangle(src, 0, y_loc, GFY_LCD_WIDTH, num_rows)
+
+/**
+ * Copies columns from the input buffer to the opposite buffer.
+ *
+ * No clipping is performed as it is a copy not a draw.
+ * @param[in] src drawing location to copy from.
+ * @param[in] x_loc X Location to begin copying at.
+ * @param[in] num_columns Number of columns to copy.
+ * @see gfy_location_t.
+ */
+void gfy_BlitColumns(gfy_location_t src,
+                     ti_unsigned_int x_loc,
+                     ti_unsigned_int num_columns);
 
 /**
  * Copies a rectangular region between graphics buffers or to the same graphics buffer.
@@ -1183,13 +1187,13 @@ void gfy_BlitRectangle(gfy_location_t src,
  * @see gfy_location_t
  */
 void gfy_CopyRectangle(gfy_location_t src,
-                    gfy_location_t dst,
-                    uint24_t src_x,
-                    uint8_t src_y,
-                    uint24_t dst_x,
-                    uint8_t dst_y,
-                    uint24_t width,
-                    uint8_t height);
+                       gfy_location_t dst,
+                       ti_unsigned_int src_x,
+                       uint8_t src_y,
+                       ti_unsigned_int dst_x,
+                       uint8_t dst_y,
+                       ti_unsigned_int width,
+                       uint8_t height);
 
 /**
  * Sets the scaling for text. Scaling is performed by multiplying the
@@ -1239,20 +1243,6 @@ void gfy_PrintInt(int24_t n, uint8_t length);
 void gfy_PrintUInt(uint24_t n, uint8_t length);
 
 /**
- * Prints an unsigned integer in hexadecimal.
- *
- * Outputs at the current cursor position. Pads the integer with leading zeros if
- * necessary to satisfy the specified minimum length.
- * For example, gfy_PrintHex(0x2D,4) prints "002D".
- *
- * @param[in] n Unsigned integer to print.
- * @param[in] length Minimum number of characters to print.
- * @note By default, no text clipping is performed. See gfy_SetTextConfig.
- * @note \p length must be between 1 and 6, inclusive
- */
-void gfy_PrintHex(uint24_t n, uint8_t length);
-
-/**
  * Prints a string.
  *
  * Outputs a string at the current cursor position.
@@ -1274,17 +1264,17 @@ void gfy_PrintString(const char *string);
  * @param[in] y Y coordinate.
  * @note By default, no text clipping is performed. See gfy_SetTextConfig.
  */
-void gfy_PrintStringXY(const char *string, int24_t x, int24_t y);
+void gfy_PrintStringXY(const char *string, ti_int x, ti_int y);
 
 /**
  * @returns The current text cursor X position.
  */
-int24_t gfy_GetTextX(void);
+ti_int gfy_GetTextX(void) __attribute__((__pure__));
 
 /**
  * @returns The current text cursor Y position.
  */
-int24_t gfy_GetTextY(void);
+ti_int gfy_GetTextY(void) __attribute__((__pure__));
 
 /**
  * Sets the text cursor X and Y positions.
@@ -1292,7 +1282,7 @@ int24_t gfy_GetTextY(void);
  * @param[in] x X coordinate.
  * @param[in] y Y coordinate.
  */
-void gfy_SetTextXY(int24_t x, int24_t y);
+void gfy_SetTextXY(ti_int x, ti_int y);
 
 /**
  * Sets the configuration for the text routines.
@@ -1339,7 +1329,7 @@ uint8_t gfy_SetTextTransparentColor(uint8_t color);
  * @param[in] x X coordinate.
  * @param[in] y Y coordinate.
  */
-void gfy_Sprite(const gfy_sprite_t *sprite, int24_t x, int24_t y);
+void gfy_Sprite(const gfy_sprite_t *sprite, ti_int x, ti_int y);
 
 /**
  * Draws an unclipped sprite.
@@ -1348,7 +1338,7 @@ void gfy_Sprite(const gfy_sprite_t *sprite, int24_t x, int24_t y);
  * @param[in] x X coordinate.
  * @param[in] y Y coordinate.
  */
-void gfy_Sprite_NoClip(const gfy_sprite_t *sprite, uint24_t x, uint8_t y);
+void gfy_Sprite_NoClip(const gfy_sprite_t *sprite, ti_unsigned_int x, uint8_t y);
 
 /**
  * Draws a transparent sprite.
@@ -1357,7 +1347,7 @@ void gfy_Sprite_NoClip(const gfy_sprite_t *sprite, uint24_t x, uint8_t y);
  * @param[in] x X coordinate.
  * @param[in] y Y coordinate.
  */
-void gfy_TransparentSprite(const gfy_sprite_t *sprite, int24_t x, int24_t y);
+void gfy_TransparentSprite(const gfy_sprite_t *sprite, ti_int x, ti_int y);
 
 /**
  * Draws an unclipped transparent sprite.
@@ -1366,7 +1356,7 @@ void gfy_TransparentSprite(const gfy_sprite_t *sprite, int24_t x, int24_t y);
  * @param[in] x X coordinate.
  * @param[in] y Y coordinate.
  */
-void gfy_TransparentSprite_NoClip(const gfy_sprite_t *sprite, uint24_t x, uint8_t y);
+void gfy_TransparentSprite_NoClip(const gfy_sprite_t *sprite, ti_unsigned_int x, uint8_t y);
 
 /**
  * Grabs the background behind a sprite.
@@ -1379,7 +1369,7 @@ void gfy_TransparentSprite_NoClip(const gfy_sprite_t *sprite, uint24_t x, uint8_
  * @note \p sprite_buffer must be pointing to a large enough buffer to hold
  *       (width * height + 2) number of bytes.
  */
-gfy_sprite_t *gfy_GetSprite(gfy_sprite_t *sprite_buffer, int24_t x, int24_t y);
+gfy_sprite_t *gfy_GetSprite(gfy_sprite_t *sprite_buffer, ti_int x, ti_int y);
 
 /**
  * Scales an unclipped sprite.
@@ -1395,10 +1385,10 @@ gfy_sprite_t *gfy_GetSprite(gfy_sprite_t *sprite_buffer, int24_t x, int24_t y);
  * @note Usable with gfy_GetSprite in order to create clipped versions.
  */
 void gfy_ScaledSprite_NoClip(const gfy_sprite_t *sprite,
-                            uint24_t x,
-                            uint8_t y,
-                            uint8_t width_scale,
-                            uint8_t height_scale);
+                             ti_unsigned_int x,
+                             uint8_t y,
+                             uint8_t width_scale,
+                             uint8_t height_scale);
 
 /**
  * Scales an unclipped transparent sprite.
@@ -1414,49 +1404,96 @@ void gfy_ScaledSprite_NoClip(const gfy_sprite_t *sprite,
  * @note Usable with gfy_GetSprite in order to create clipped versions.
  */
 void gfy_ScaledTransparentSprite_NoClip(const gfy_sprite_t *sprite,
-                                        uint24_t x,
+                                        ti_unsigned_int x,
                                         uint8_t y,
                                         uint8_t width_scale,
                                         uint8_t height_scale);
 
-// /**
-//  * Fixed Rotation with scaling factor for sprites.
-//  *
-//  * @note A scale factor of 64 represents 100% scaling.
-//  * @warning This routine only accepts square input sprites.
-//  * @param[in] sprite Input sprite to rotate/scale.
-//  * @param[in] x X coordinate position.
-//  * @param[in] y Y coordinate position.
-//  * @param[in] angle 256 position angular integer.
-//  * @param[in] scale Scaling factor; range is about 1% to 400% scale.
-//  * @returns The size of the sprite after scaling.
-//  *          This can be used for centering purposes.
-//  */
-// uint8_t gfy_RotatedScaledTransparentSprite_NoClip(const gfy_sprite_t *sprite,
-//                                                   uint24_t x,
-//                                                   uint8_t y,
-//                                                   uint8_t angle,
-//                                                   uint8_t scale);
+/**
+ * Fixed Rotation with scaling factor for an unclipped sprite.
+ *
+ * @note A scale factor of 64 represents 100% scaling.
+ * @warning This routine only accepts square input sprites.
+ * @note Sprites larger than 210x210 may have rendering artifacts.
+ * @warning The output size cannot be greater than 255x255.
+ * @param[in] sprite Input sprite to rotate/scale.
+ * @param[in] x X coordinate position.
+ * @param[in] y Y coordinate position.
+ * @param[in] angle 256 position angular integer.
+ * @param[in] scale Scaling factor; range is about 1% to 400% scale.
+ * @returns The size of the sprite after scaling.
+ *          This can be used for centering purposes.
+ */
+uint8_t gfy_RotatedScaledTransparentSprite_NoClip(const gfy_sprite_t *sprite,
+                                                  ti_unsigned_int x,
+                                                  uint8_t y,
+                                                  uint8_t angle,
+                                                  uint8_t scale);
 
-// /**
-//  * Fixed Rotation with scaling fator for sprites without transparency.
-//  *
-//  * @note A scale factor of 64 represents 100% scaling.
-//  * @warning This routine only accepts square input sprites.
-//  * @param[in] sprite Input sprite to rotate/scale.
-//  * @param[in] x X coordinate position.
-//  * @param[in] y Y coordinate position.
-//  * @param[in] angle 256 position angular integer.
-//  * @param[in] scale Scaling factor; range is about 1% to 400% scale.
-//  *        64 represents 100% scaling.
-//  * @returns The size of the sprite after scaling.
-//  *          This can be used for centering purposes.
-//  */
-// uint8_t gfy_RotatedScaledSprite_NoClip(const gfy_sprite_t *sprite,
-//                                        uint24_t x,
-//                                        uint8_t y,
-//                                        uint8_t angle,
-//                                        uint8_t scale);
+/**
+ * Fixed Rotation with scaling fator for an unclipped sprite without transparency.
+ *
+ * @note A scale factor of 64 represents 100% scaling.
+ * @warning This routine only accepts square input sprites.
+ * @note Sprites larger than 210x210 may have rendering artifacts.
+ * @warning The output size cannot be greater than 255x255.
+ * @param[in] sprite Input sprite to rotate/scale.
+ * @param[in] x X coordinate position.
+ * @param[in] y Y coordinate position.
+ * @param[in] angle 256 position angular integer.
+ * @param[in] scale Scaling factor; range is about 1% to 400% scale.
+ *        64 represents 100% scaling.
+ * @returns The size of the sprite after scaling.
+ *          This can be used for centering purposes.
+ */
+uint8_t gfy_RotatedScaledSprite_NoClip(const gfy_sprite_t *sprite,
+                                       ti_unsigned_int x,
+                                       uint8_t y,
+                                       uint8_t angle,
+                                       uint8_t scale);
+
+/**
+ * Fixed Rotation with scaling factor for sprites.
+ *
+ * @note A scale factor of 64 represents 100% scaling.
+ * @warning This routine only accepts square input sprites.
+ * @note Sprites larger than 210x210 may have rendering artifacts.
+ * @warning The output size cannot be greater than 255x255.
+ * @param[in] sprite Input sprite to rotate/scale.
+ * @param[in] x X coordinate position.
+ * @param[in] y Y coordinate position.
+ * @param[in] angle 256 position angular integer.
+ * @param[in] scale Scaling factor; range is about 1% to 400% scale.
+ * @returns The unclipped size of the sprite after scaling.
+ *          This can be used for centering purposes.
+ */
+uint8_t gfy_RotatedScaledTransparentSprite(const gfy_sprite_t *sprite,
+                                           ti_int x,
+                                           ti_int y,
+                                           uint8_t angle,
+                                           uint8_t scale);
+
+/**
+ * Fixed Rotation with scaling fator for sprites without transparency.
+ *
+ * @note A scale factor of 64 represents 100% scaling.
+ * @warning This routine only accepts square input sprites.
+ * @note Sprites larger than 210x210 may have rendering artifacts.
+ * @warning The output size cannot be greater than 255x255.
+ * @param[in] sprite Input sprite to rotate/scale.
+ * @param[in] x X coordinate position.
+ * @param[in] y Y coordinate position.
+ * @param[in] angle 256 position angular integer.
+ * @param[in] scale Scaling factor; range is about 1% to 400% scale.
+ *        64 represents 100% scaling.
+ * @returns The unclipped size of the sprite after scaling.
+ *          This can be used for centering purposes.
+ */
+uint8_t gfy_RotatedScaledSprite(const gfy_sprite_t *sprite,
+                                ti_int x,
+                                ti_int y,
+                                uint8_t angle,
+                                uint8_t scale);
 
 /**
  * Flips a sprite along the X axis.
@@ -1466,8 +1503,8 @@ void gfy_ScaledTransparentSprite_NoClip(const gfy_sprite_t *sprite,
  * @returns A pointer to sprite_out.
  * @note sprite_in and sprite_out cannot be the same. Ensure sprite_out is allocated.
  */
-gfy_sprite_t *gfy_FlipSpriteX(const gfy_sprite_t *sprite_in,
-                            gfy_sprite_t *sprite_out);
+gfy_sprite_t *gfy_FlipSpriteX(const gfy_sprite_t *__restrict sprite_in,
+                              gfy_sprite_t *__restrict sprite_out);
 
 /**
  * Flips a sprite along the Y axis.
@@ -1477,8 +1514,8 @@ gfy_sprite_t *gfy_FlipSpriteX(const gfy_sprite_t *sprite_in,
  * @returns A pointer to sprite_out.
  * @note sprite_in and sprite_out cannot be the same. Ensure sprite_out is allocated.
  */
-gfy_sprite_t *gfy_FlipSpriteY(const gfy_sprite_t *sprite_in,
-                            gfy_sprite_t *sprite_out);
+gfy_sprite_t *gfy_FlipSpriteY(const gfy_sprite_t *__restrict sprite_in,
+                              gfy_sprite_t *__restrict sprite_out);
 
 /**
  * Rotates a sprite 90 degrees clockwise.
@@ -1488,8 +1525,8 @@ gfy_sprite_t *gfy_FlipSpriteY(const gfy_sprite_t *sprite_in,
  * @returns A pointer to sprite_out.
  * @note sprite_in and sprite_out cannot be the same. Ensure sprite_out is allocated.
  */
-gfy_sprite_t *gfy_RotateSpriteC(const gfy_sprite_t *sprite_in,
-                                gfy_sprite_t *sprite_out);
+gfy_sprite_t *gfy_RotateSpriteC(const gfy_sprite_t *__restrict sprite_in,
+                                gfy_sprite_t *__restrict sprite_out);
 
 /**
  * Rotates a sprite 90 degrees counter clockwise.
@@ -1499,8 +1536,8 @@ gfy_sprite_t *gfy_RotateSpriteC(const gfy_sprite_t *sprite_in,
  * @returns A pointer to sprite_out.
  * @note sprite_in and sprite_out cannot be the same. Ensure sprite_out is allocated.
  */
-gfy_sprite_t *gfy_RotateSpriteCC(const gfy_sprite_t *sprite_in,
-                                gfy_sprite_t *sprite_out);
+gfy_sprite_t *gfy_RotateSpriteCC(const gfy_sprite_t *__restrict sprite_in,
+                                 gfy_sprite_t *__restrict sprite_out);
 
 /**
  * Rotates a sprite 180 degrees.
@@ -1510,8 +1547,8 @@ gfy_sprite_t *gfy_RotateSpriteCC(const gfy_sprite_t *sprite_in,
  * @returns A pointer to sprite_out.
  * @note sprite_in and sprite_out cannot be the same. Ensure sprite_out is allocated.
  */
-gfy_sprite_t *gfy_RotateSpriteHalf(const gfy_sprite_t *sprite_in,
-                                gfy_sprite_t *sprite_out);
+gfy_sprite_t *gfy_RotateSpriteHalf(const gfy_sprite_t *__restrict sprite_in,
+                                   gfy_sprite_t *__restrict sprite_out);
 
 /**
  * Resizes a sprite to new dimensions.
@@ -1523,8 +1560,8 @@ gfy_sprite_t *gfy_RotateSpriteHalf(const gfy_sprite_t *sprite_in,
  * @returns A pointer to \p sprite_out.
  * @note sprite_in and sprite_out cannot be the same. Ensure sprite_out is allocated.
  */
-gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in,
-                            gfy_sprite_t *sprite_out);
+gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *__restrict sprite_in,
+                              gfy_sprite_t *__restrict sprite_out);
 
 /**
  * Fixed Rotation with scaling factor for sprites.
@@ -1542,10 +1579,12 @@ gfy_sprite_t *gfy_ScaleSprite(const gfy_sprite_t *sprite_in,
  * @param[in] angle 256 position angular integer.
  * @param[in] scale Scaling factor; range is about 1% to 400% scale.
  * @returns A pointer to \p sprite_out.
+ * @note Rendering artifacts may occur if the output is larger than 210x210.
+ * @warning The output size cannot be greater than 255x255.
  * @note sprite_in and sprite_out cannot be the same. Ensure sprite_out is allocated.
  */
-gfy_sprite_t *gfy_RotateScaleSprite(const gfy_sprite_t *sprite_in,
-                                    gfy_sprite_t *sprite_out,
+gfy_sprite_t *gfy_RotateScaleSprite(const gfy_sprite_t *__restrict sprite_in,
+                                    gfy_sprite_t *__restrict sprite_out,
                                     uint8_t angle,
                                     uint8_t scale);
 
@@ -1585,7 +1624,7 @@ uint8_t *gfy_SetFontData(const uint8_t *data);
  * @see gfy_SetFontData.
  */
 uint8_t *gfy_SetCharData(uint8_t index,
-                        const uint8_t *data);
+                         const uint8_t *data);
 
 /**
  * Sets the font spacing for each character.
@@ -1619,7 +1658,7 @@ void gfy_SetMonospaceFont(uint8_t spacing);
  * @param[in] string Pointer to a string.
  * @note Takes into account monospacing flag.
  */
-uint24_t gfy_GetStringWidth(const char *string);
+ti_unsigned_int gfy_GetStringWidth(const char *string) __attribute__((__pure__));
 
 /**
  * Gets the pixel width of the given character.
@@ -1628,7 +1667,7 @@ uint24_t gfy_GetStringWidth(const char *string);
  * @returns Width in pixels of character.
  * @note Takes into account monospacing flag.
  */
-uint24_t gfy_GetCharWidth(const char c);
+ti_unsigned_int gfy_GetCharWidth(const char c) __attribute__((__pure__));
 
 /**
  * Sets the dimensions of the drawing window for all clipped routines.
@@ -1638,7 +1677,7 @@ uint24_t gfy_GetCharWidth(const char c);
  * @param[in] xmax Maximum x coordinate, exclusive (default 320).
  * @param[in] ymax Maximum y coordinate, exclusive (default 240).
  */
-void gfy_SetClipRegion(int24_t xmin, int24_t ymin, int24_t xmax, int24_t ymax);
+void gfy_SetClipRegion(ti_int xmin, ti_int ymin, ti_int xmax, ti_int ymax);
 
 /**
  * Clips a region to fit within the drawing window using Cohen-Sutherland.
@@ -1669,7 +1708,7 @@ void gfy_ShiftUp(uint8_t pixels);
  * @param[in] pixels Number of pixels to shift.
  * @note Remnant data after a shift is undefined.
  */
-void gfy_ShiftLeft(uint24_t pixels);
+void gfy_ShiftLeft(ti_unsigned_int pixels);
 
 /**
  * Shifts/Slides the drawing window right.
@@ -1677,7 +1716,7 @@ void gfy_ShiftLeft(uint24_t pixels);
  * @param[in] pixels Number of pixels to shift.
  * @note Remnant data after a shift is undefined.
  */
-void gfy_ShiftRight(uint24_t pixels);
+void gfy_ShiftRight(ti_unsigned_int pixels);
 
 /**
  * Lightens a given 1555 color; useful for palette color conversions.
@@ -1688,7 +1727,8 @@ void gfy_ShiftRight(uint24_t pixels);
  * @note 0 returns full white, 255 returns original color.
  */
 uint16_t gfy_Lighten(uint16_t color,
-                    uint8_t amount);
+                     uint8_t amount
+                     ) __attribute__((__const__));
 
 /**
  * Darkens a given 1555 color; useful for palette color conversions.
@@ -1699,7 +1739,8 @@ uint16_t gfy_Lighten(uint16_t color,
  * @note 0 returns full black, 255 returns original color.
  */
 uint16_t gfy_Darken(uint16_t color,
-                    uint8_t amount);
+                    uint8_t amount
+                    ) __attribute__((__const__));
 
 /**
  * Fills an area with a color.
@@ -1711,9 +1752,9 @@ uint16_t gfy_Darken(uint16_t color,
  * @note This routine performs clipping to stay within the window,
  *       but you must ensure it starts in the window.
  */
-void gfy_FloodFill(uint24_t x,
-                uint8_t y,
-                uint8_t color);
+void gfy_FloodFill(ti_unsigned_int x,
+                   uint8_t y,
+                   uint8_t color);
 
 /**
  * Draws a sprite with RLE transparency.
@@ -1723,8 +1764,8 @@ void gfy_FloodFill(uint24_t x,
  * @param[in] y Y coordinate.
  */
 void gfy_RLETSprite(const gfy_rletsprite_t *sprite,
-                    int24_t x,
-                    int24_t y);
+                    ti_int x,
+                    ti_int y);
 
 /**
  * Draws an unclipped sprite with RLE transparency.
@@ -1734,8 +1775,8 @@ void gfy_RLETSprite(const gfy_rletsprite_t *sprite,
  * @param[in] y Y coordinate.
  */
 void gfy_RLETSprite_NoClip(const gfy_rletsprite_t *sprite,
-                        uint24_t x,
-                        uint8_t y);
+                           ti_unsigned_int x,
+                           uint8_t y);
 
 /**
  * Converts a sprite with RLE transparency to a sprite with normal transparency.
@@ -1783,7 +1824,7 @@ gfy_sprite_t *gfy_ConvertFromRLETSprite(const gfy_rletsprite_t *sprite_in,
  * @see gfy_ConvertFromRLETSprite.
  */
 gfy_rletsprite_t *gfy_ConvertToRLETSprite(const gfy_sprite_t *sprite_in,
-                                        gfy_rletsprite_t *sprite_out);
+                                          gfy_rletsprite_t *sprite_out);
 
 /**
  * Converts a sprite with normal transparency to a sprite with RLE transparency,
@@ -1809,7 +1850,8 @@ gfy_rletsprite_t *gfy_ConvertToRLETSprite(const gfy_sprite_t *sprite_in,
  * @see gfy_ConvertFromRLETSprite.
  */
 gfy_rletsprite_t *gfy_ConvertToNewRLETSprite(const gfy_sprite_t *sprite_in,
-                                            void *(*malloc_routine)(size_t));
+                                             void *(*malloc_routine)(size_t)
+                                             ) __attribute__((__nonnull__(2)));
 
 /* Compatibility defines (don't use please) */
 /* @cond */
@@ -1830,4 +1872,4 @@ gfy_rletsprite_t *gfy_ConvertToNewRLETSprite(const gfy_sprite_t *sprite_in,
 }
 #endif
 
-#endif
+#endif /* GRAPHY_H */

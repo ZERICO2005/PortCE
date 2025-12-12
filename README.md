@@ -34,9 +34,12 @@ EXTRA_C_SOURCES += ./src_PortCE/PortCE_include/graphy/graphy.c
 
 3. Pointers and Integers
 
-You *MUST* convert `int`, `unsigned int`, `long`, and others to types provided by `PortCE.h`, otherwise your code may not work, or increment pointers by the wrong amount.. For example, `unsigned int` may become `ti_unsigned_int`, `uint24_t`, or `uintptr_t`. If you have a packed array of `uint24_t*`, you may have to use `packed_uint24_t*` to ensure that each element is exactly 3 bytes instead of 4 bytes.
+You *MUST* convert `int`, `unsigned int`, `long`, and others to types provided by `PortCE.h`, otherwise your code may not work, or increment pointers by the wrong amount. For example, `unsigned int` may become `ti_unsigned_int`, `ez80_unsigned_int`, `uint24_t`, or `uintptr_t`. If you have a packed array of `uint24_t*`, you may have to use `packed_uint24_t*` to ensure that each element is exactly 3 bytes instead of 4 bytes.
 
 If you are directly accessing any pointers, you will need to wrap them in the `RAM_ADDRESS()` or `RAM_OFFSET()` macros. They should have no effect when compiled for the ti84ce.
+
+`ez80_int` will alias `int24_t`.
+`ti_int` can be configued to alias `int24_t` or `int32_t` and is only used for libraries and routines from TICE or the CE C/C++ toolchain.
 
 The `RAM_ADDRESS()` macro returns a `void*` pointer to `simulated_ram[16777216]`. Example useage:
 ```c

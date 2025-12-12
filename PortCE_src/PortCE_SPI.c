@@ -135,7 +135,7 @@ static const void* SPI_vertical_scrolling_definition(SPI_State* const state, con
 
 /** Command `0x36` */
 static const void* SPI_memory_data_access_control(SPI_State* const state, const void* const args) {
-    const size_t copy_size =  sizeof(state->memory_data_access);
+    const size_t copy_size = sizeof(state->memory_data_access);
     memcpy(&state->memory_data_access, args, copy_size);
     return (const void*)((const uint8_t*)args + copy_size);
 }
@@ -208,12 +208,12 @@ static const void* SPI_partial_control(SPI_State* const state, const void* const
     return (const void*)((const uint8_t*)args + copy_size);
 }
 
-/** Command `0xB7` */
-static const void* SPI_gate_control(SPI_State* const state, const void* const args) {
-    const size_t copy_size = sizeof(state->gate_control);
-    memcpy(&state->gate_control, args, copy_size);
-    return (const void*)((const uint8_t*)args + copy_size);
-}
+// /** Command `0xB7` */
+// static const void* SPI_gate_control(SPI_State* const state, const void* const args) {
+//     const size_t copy_size = sizeof(state->gate_control);
+//     memcpy(&state->gate_control, args, copy_size);
+//     return (const void*)((const uint8_t*)args + copy_size);
+// }
 
 /** Command `0xBA` */
 static const void* SPI_digital_gamma_enable(SPI_State* const state, const void* const args) {
@@ -221,11 +221,11 @@ static const void* SPI_digital_gamma_enable(SPI_State* const state, const void* 
     return (const void*)((const uint8_t*)args + sizeof(uint8_t));
 }
 
-/** Command `0xBB` */
-static const void* SPI_VCOM_setting(SPI_State* const state, const void* const args) {
-    state->VCOM_setting = *((const uint8_t*)args);
-    return (const void*)((const uint8_t*)args + sizeof(uint8_t));
-}
+// /** Command `0xBB` */
+// static const void* SPI_VCOM_setting(SPI_State* const state, const void* const args) {
+//     state->VCOM_setting = *((const uint8_t*)args);
+//     return (const void*)((const uint8_t*)args + sizeof(uint8_t));
+// }
 
 /** Command `0xC0` */
 static const void* SPI_LCM_control(SPI_State* const state, const void* const args) {
@@ -309,11 +309,10 @@ void PortCE_reset_SPI_state(const bool TiOS_defaults) {
 /* Query SPI */
 
 bool PortCE_query_column_major(void) {
-    return false;
-    // (
-    //     PortCE_SPI_State.memory_data_access.page_column_order !=
-    //     PortCE_SPI_State.LCM_control.invert_page_column_order
-    // );
+    return !(
+        PortCE_SPI_State.memory_data_access.page_column_order !=
+        PortCE_SPI_State.LCM_control.invert_page_column_order
+    );
 }
 
 /* <lcddrvce.h> */
@@ -331,7 +330,6 @@ void lcd_Wait(void) {
 
 void lcd_Cleanup(void) {
     PortCE_update_registers();
-    PortCE_reset_SPI_state(true);
     return;
 }
 
@@ -385,10 +383,10 @@ void lcd_SetScrollAddress(uint16_t VSP_addr) {
 }
 #endif
 
-const void* lcd_SendCommandRaw(uint16_t sized_cmd, const void* params) {
+const void* lcd_SendSizedCommandRaw(uint16_t sized_cmd, const void* params) {
     const uint8_t command = (uint8_t)(sized_cmd & 0xFF);
     SPI_State* const state = &PortCE_SPI_State;
-        switch (command) {
+    switch (command) {
         case LCD_CMD_NOP       :  /**< No operation */
             params = SPI_no_operation(state, params);
             break;
@@ -516,17 +514,17 @@ const void* lcd_SendCommandRaw(uint16_t sized_cmd, const void* params) {
         case LCD_CMD_PARCTRL   :  /**< Partial control */
             params = SPI_partial_control(state, params);
             break;
-        case LCD_CMD_GCTRL     :  /**< Gate control */
-            params = SPI_gate_control(state, params);
-            break;
+        // case LCD_CMD_GCTRL     :  /**< Gate control */
+        //     params = SPI_gate_control(state, params);
+        //     break;
         case LCD_CMD_GTADJ     :  /**< Gate on timing adjustment */
             // break;
         case LCD_CMD_DGMEN     :  /**< Digital gamma enable */
             params = SPI_digital_gamma_enable(state, params);
             break;
-        case LCD_CMD_VCOMS     :  /**< VCOM setting */
-            params = SPI_VCOM_setting(state, params);
-            break;
+        // case LCD_CMD_VCOMS     :  /**< VCOM setting */
+        //     params = SPI_VCOM_setting(state, params);
+        //     break;
         case LCD_CMD_POWSAVE   :  /**< Power saving mode */
             break;
         case LCD_CMD_DLPOFFSAVE:  /**< Display off power save */
@@ -602,16 +600,16 @@ const void *lcd_SendParamsRaw(
     return NULL;
 }
 void lcd_SendCommand(uint8_t cmd) {
-    lcd_SendCommandRaw(cmd | (sizeof(uint8_t) << 8), (const void*)&cmd);
+    lcd_SendSizedCommandRaw(cmd | (sizeof(uint8_t) << 8), (const void*)&cmd);
 }
 void lcd_SendCommand1(uint8_t cmd, uint8_t param) {
-    lcd_SendCommandRaw(cmd | (sizeof(uint8_t) << 8), (const void*)&param);
+    lcd_SendSizedCommandRaw(cmd | (sizeof(uint8_t) << 8), (const void*)&param);
 }
 void lcd_SendCommand2(uint8_t cmd, uint8_t param1, uint8_t param2) {
     uint8_t params[2] = {param1, param2};
-    lcd_SendCommandRaw(cmd | ((sizeof(uint8_t) * 2) << 8), (const void*)&params);
+    lcd_SendSizedCommandRaw(cmd | ((sizeof(uint8_t) * 2) << 8), (const void*)&params);
 }
-void lcd_SendCommandBytes(uint16_t sized_cmd, ...) {
+void lcd_SendSizedCommandBytes(unsigned int sized_cmd, ...) {
     uint8_t params[256];
     va_list args;
     va_start(args, sized_cmd);
@@ -620,9 +618,9 @@ void lcd_SendCommandBytes(uint16_t sized_cmd, ...) {
         params[i] = (uint8_t)va_arg(args, int);
     }
     va_end(args);
-    lcd_SendCommandRaw(sized_cmd, (const void*)params);
+    lcd_SendSizedCommandRaw(sized_cmd, (const void*)params);
 }
-void lcd_SendCommandWords(uint16_t sized_cmd, ...) {
+void lcd_SendSizedCommandWords(unsigned int sized_cmd, ...) {
     uint16_t params[256];
     va_list args;
     va_start(args, sized_cmd);
@@ -631,7 +629,7 @@ void lcd_SendCommandWords(uint16_t sized_cmd, ...) {
         params[i] = (uint16_t)va_arg(args, int);
     }
     va_end(args);
-    lcd_SendCommandRaw(sized_cmd, (const void*)params);
+    lcd_SendSizedCommandRaw(sized_cmd, (const void*)params);
 }
 void lcd_SetUniformGamma(void) {
     // Gamma of 1.0 is probably incorrect for this function

@@ -146,12 +146,12 @@ void fontlib_ShiftCursorPosition(int x, int y) {
 }
 
 void fontlib_HomeUp() {
-    textY = 0;
+    textY = textYMin;
 }
 
 void fontlib_Home() {
-    textX = 0;
-    textY = 0;
+    textX = textXMin;
+    textY = textYMin;
 }
 
 /* color */
@@ -683,23 +683,26 @@ checkPreClear:
     return false;
 }
 
-void fontlib_ScrollWindowUp(void) {
+void fontlib_ScrollWindowDown(void) {
+    if (textXMax <= textXMin || textYMax <= textYMin) {
+        return;
+    }
     const size_t width = fontlib_GetWindowWidth();
     const uint8_t height = fontlib_GetCurrentFontHeight();
     int lines = (textYMax - textYMin - height);
     if (lines <= 0) {
         return;
     }
-    if (lines - (int)height < 0) {
+    if (lines < (int)height) {
         return;
     }
-    printf("WU%d\n", __LINE__);
     const size_t line_count = (size_t)lines;
     const size_t x_pos = (size_t)textXMin;
     const uint8_t y_pos = (uint8_t)textYMin;
 
-    uint8_t const * src = CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
-    uint8_t * dst = (uint8_t*)src + (GFX_LCD_WIDTH * height);
+    uint8_t const * const buf = CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
+    uint8_t * dst = (uint8_t*)buf;
+    uint8_t const * src = buf + (GFX_LCD_WIDTH * height);
     gfx_Wait();
     for (size_t i = 0; i < line_count; i++) {
         memcpy(dst, src, width);
@@ -708,28 +711,31 @@ void fontlib_ScrollWindowUp(void) {
     }
 }
 
-void fontlib_ScrollWindowDown(void) {
+void fontlib_ScrollWindowUp(void) {
+    if (textXMax <= textXMin || textYMax <= textYMin) {
+        return;
+    }
     const size_t width = fontlib_GetWindowWidth();
     const uint8_t height = fontlib_GetCurrentFontHeight();
     int lines = (textYMax - textYMin - height);
     if (lines <= 0) {
         return;
     }
-    if (lines - (int)height < 0) {
+    if (lines < (int)height) {
         return;
     }
-    printf("WD%d\n", __LINE__);
     const size_t line_count = (size_t)lines;
     const size_t x_pos = (size_t)textXMin;
-    const uint8_t y_pos = (uint8_t)textYMin;
+    const uint8_t y_pos = (uint8_t)(textYMax - 1);
 
-    uint8_t * dst = CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
-    uint8_t const * src = (uint8_t const *)dst + (GFX_LCD_WIDTH * height);
+    uint8_t const * const buf = CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
+    uint8_t * dst = (uint8_t*)buf;
+    uint8_t const * src = buf - (GFX_LCD_WIDTH * height);
     gfx_Wait();
     for (size_t i = 0; i < line_count; i++) {
         memcpy(dst, src, width);
-        dst += GFX_LCD_WIDTH;
-        src += GFX_LCD_WIDTH;
+        dst -= GFX_LCD_WIDTH;
+        src -= GFX_LCD_WIDTH;
     }
 }
 

@@ -7,6 +7,7 @@
 #include <fontlibc.h>
 #include <graphx.h>
 #include <stdio.h>
+#include <sys/lcd.h>
 
 __attribute__((__unused__)) static char const * fontPackHeaderString = "FONTPACK";
 
@@ -48,7 +49,7 @@ static fontlib_font_t currentFont = {0};
 static uint8_t const * widthsTablePtr = NULL;
 static uint16_t const * bitmapsTablePtr = NULL;
 
-#define CurrentBuffer (*(uint8_t * volatile *)RAM_ADDRESS(0xE30014))
+#define CurrentBuffer ((uint8_t*)RAM_ADDRESS(lcd_LpBase))
 
 //------------------------------------------------------------------------------
 // utilities
@@ -403,17 +404,15 @@ static void util_DrawGlyph(uint8_t ch) {
     uint8_t *__restrict const buf = (uint8_t *__restrict)CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
 
     uint16_t const *__restrict const bitmap_table_ptr = (uint16_t const *__restrict)bitmapsTablePtr;
-    uint8_t const *__restrict src = bitmap_table_ptr[(unsigned char)ch] + (uint8_t *__restrict)currentFontRoot;
+    uint8_t const *__restrict src = (uint8_t *__restrict)currentFontRoot + bitmap_table_ptr[(unsigned char)ch];
 
     const uint8_t font_jump = ((uint8_t)(width - 1) >> 3) + 1;
 
     textX += (width - currentFont.italic_space_adjust);
-
     if (is_transparent) {
         uint8_t *__restrict dst = buf;
         const size_t line_jump = GFX_LCD_WIDTH - width;
         dst += space_above * GFX_LCD_WIDTH;
-
         for (uint8_t y = 0; y < height; y++) {
             uint24_t HL = *(uint24_t const *__restrict)src;
             for (uint8_t x = 0; x < width; x++) {
@@ -475,35 +474,42 @@ ti_unsigned_int fontlib_DrawStringL(const char *str, size_t max_characters) {
     if (max_characters > UINT24_MAX) {
         max_characters = UINT24_MAX;
     }
-    newlineControl &= ~bWasNewline;
+    newlineControl &= ~mWasNewline;
     strReadPtr = (str - 1);
     charactersLeft = max_characters;
 restartX:
     gfx_Wait();
 mainLoop:
     if (charactersLeft == 0) {
+        printf("L%d\n", __LINE__);
         return textX;
     }
     --charactersLeft;
     strReadPtr++;
     unsigned char ch = *strReadPtr;
+
     if (ch < firstPrintableCodePoint) {
         if (ch == '\0') {
+            printf("L%d\n", __LINE__);
             return textX;
         }
         if (ch == newLineCode) {
             goto printNewLine;
         }
+        printf("L%d\n", __LINE__);
         return textX;
     }
     if (ch == alternateStopCode) {
+        printf("L%d\n", __LINE__);
         return textX;
     }
     if (ch < currentFont.first_glyph) {
+        printf("L%d\n", __LINE__);
         return textX;
     }
     ch -= currentFont.first_glyph;
-    if (ch < fontlib_GetTotalGlyphs()) {
+    if (ch >= fontlib_GetTotalGlyphs()) {
+        printf("L%d\n", __LINE__);
         return textX;
     }
     int width = widthsTablePtr[ch];
@@ -519,14 +525,17 @@ printNewLine:
     newlineControl |= mWasNewline;
 newLine:
     if (newlineControl & mWasNewline) {
+        printf("D%d\n", __LINE__);
         goto doNewLine;
     }
     if (!(newlineControl & mEnableAutoWrap)) {
+        printf("L%d %02X\n", __LINE__, newlineControl);
         return textX;
     }
 doNewLine:
     bool newline_status = fontlib_Newline();
     if (newline_status) {
+        printf("L%d\n", __LINE__);
         return textX;
     }
     bool was_new_line = (newlineControl & mWasNewline);
@@ -625,6 +634,7 @@ void fontlib_ClearWindow(void) {
 
 bool fontlib_Newline(void) {
     if (newlineControl & mAutoClearToEOL) {
+        printf("E%d\n", __LINE__);
         fontlib_ClearEOL();
     }
     textX = textXMin;
@@ -651,18 +661,22 @@ outOfSpace:
 //------------------------------------------------------------------------------
 noScroll:
     if (!(newLineCode & mEnableAutoWrap)) {
+        printf("N%d\n", __LINE__);
         return true;
     }
     textY = textYMin;
+    printf("N%d\n", __LINE__);
     return true;
 //------------------------------------------------------------------------------
 writeCursorY:
     textY = height_cmp - font_height;
 checkPreClear:
     if (!(newlineControl & mPreclearNewline)) {
+        printf("N%d\n", __LINE__);
         return false;
     }
     fontlib_ClearEOL();
+    printf("N%d\n", __LINE__);
     return false;
 }
 

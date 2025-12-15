@@ -37,7 +37,7 @@ static char const * strReadPtr = NULL;
 static size_t charactersLeft = 0;
 static unsigned char alternateStopCode = '\0';
 static unsigned char firstPrintableCodePoint = 0x10;
-static unsigned char newLineCode = 0x0A;
+static unsigned char drawNewLine = '\n';
 static unsigned char drawIntMinus = '-';
 static unsigned char drawIntZero = '0';
 
@@ -212,11 +212,11 @@ char fontlib_GetFirstGlyph(void) {
 }
 
 void fontlib_SetNewlineCode(char code_point) {
-    newLineCode = code_point;
+    drawNewLine = code_point;
 }
 
 char fontlib_GetNewlineCode(void) {
-    return (char)newLineCode;
+    return (char)drawNewLine;
 }
 
 void fontlib_SetAlternateStopCode(char code_point) {
@@ -305,10 +305,17 @@ bool fontlib_SetFont(const fontlib_font_t *font_data, fontlib_load_options_t fla
         return false;
     }
     bitmapsTablePtr = (uint16_t * const)((uint8_t * const)currentFontRoot + (size_t)currentFont.bitmaps);
+#if 0
     if (flags == FONTLIB_IGNORE_LINE_SPACING || (int)flags != 0) {
         currentFont.space_above = 0;
         currentFont.space_below = 0;
     }
+#else
+    if (flags == FONTLIB_IGNORE_LINE_SPACING || (int)flags != 0 || true) {
+        currentFont.space_above = 0;
+        currentFont.space_below = 0;
+    }
+#endif
     return true;
 }
 
@@ -365,7 +372,7 @@ ti_unsigned_int fontlib_GetStringWidthL(const char *str, size_t max_characters) 
             break;
         }
         ch -= currentFont.first_glyph;
-        if (ch < fontlib_GetTotalGlyphs()) {
+        if (ch >= fontlib_GetTotalGlyphs()) {
             break;
         }
         ++str;
@@ -377,7 +384,7 @@ ti_unsigned_int fontlib_GetStringWidthL(const char *str, size_t max_characters) 
     strReadPtr = str;
     int adjust = currentFont.italic_space_adjust;
     total_width -= adjust;
-    return total_width;
+    return (ti_unsigned_int)total_width;
 }
 
 ti_unsigned_int fontlib_GetStringWidth(const char *str) {
@@ -385,11 +392,7 @@ ti_unsigned_int fontlib_GetStringWidth(const char *str) {
 }
 
 // assumes ch is already decremented by currentFont.first_glyph
-static void util_DrawGlyph(uint8_t ch) {
-
-    uint8_t const *__restrict const width_table_ptr = (uint8_t const *__restrict)widthsTablePtr;
-    const uint8_t width = width_table_ptr[ch];
-
+static uint8_t util_DrawGlyphRawKnownWidth(uint8_t ch, uint8_t *__restrict const buf, uint8_t width) {
     const uint8_t space_above = currentFont.space_above;
     const uint8_t space_below = currentFont.space_below;
     const uint8_t height = currentFont.height;
@@ -398,17 +401,11 @@ static void util_DrawGlyph(uint8_t ch) {
     const uint8_t fg_color = TEXT_FG_COLOR;
     const bool is_transparent = textTransparentMode;
 
-    int x_pos = textX;
-    int y_pos = textY;
-    x_pos -= currentFont.italic_space_adjust;
-    uint8_t *__restrict const buf = (uint8_t *__restrict)CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
-
     uint16_t const *__restrict const bitmap_table_ptr = (uint16_t const *__restrict)bitmapsTablePtr;
     uint8_t const *__restrict src = (uint8_t *__restrict)currentFontRoot + bitmap_table_ptr[(unsigned char)ch];
 
     const uint8_t font_jump = ((uint8_t)(width - 1) >> 3) + 1;
 
-    textX += (width - currentFont.italic_space_adjust);
     if (is_transparent) {
         uint8_t *__restrict dst = buf;
         const size_t line_jump = GFX_LCD_WIDTH - width;
@@ -425,7 +422,7 @@ static void util_DrawGlyph(uint8_t ch) {
             src += font_jump;
             dst += line_jump;
         }
-        return;
+        return width;
     }
     /* opaque */ {
         uint8_t *__restrict dst = buf;
@@ -461,63 +458,69 @@ static void util_DrawGlyph(uint8_t ch) {
             below += GFX_LCD_WIDTH;
         }
     }
+    return width;
+}
+
+static uint8_t util_DrawGlyphRaw(unsigned char ch, uint8_t *__restrict const buf) {
+    ch -= currentFont.first_glyph;
+    uint8_t const *__restrict const width_table_ptr = (uint8_t const *__restrict)widthsTablePtr;
+    const uint8_t width = width_table_ptr[ch];
+    gfx_Wait();
+    return util_DrawGlyphRawKnownWidth(ch, buf, width);
 }
 
 ti_unsigned_int fontlib_DrawGlyph(unsigned char ch) {
-    gfx_Wait();
-    ch -= currentFont.first_glyph;
-    util_DrawGlyph(ch);
+    uint8_t *__restrict buf = (uint8_t *__restrict)CurrentBuffer + textX + (textY * GFX_LCD_WIDTH);
+    uint8_t width = util_DrawGlyphRaw(ch, buf);
+    textX += width;
+    textX -= currentFont.italic_space_adjust;
     return (ti_unsigned_int)textX;
 }
 
-ti_unsigned_int fontlib_DrawStringL(const char *str, size_t max_characters) {
-    if (max_characters > UINT24_MAX) {
-        max_characters = UINT24_MAX;
-    }
+static void util_DrawStringL(const char *str, size_t max_characters) {
     newlineControl &= ~mWasNewline;
     strReadPtr = (str - 1);
     charactersLeft = max_characters;
 restartX:
     gfx_Wait();
+    uint8_t *__restrict buf = (uint8_t *__restrict)CurrentBuffer + textX + (textY * GFX_LCD_WIDTH);
 mainLoop:
     if (charactersLeft == 0) {
-        printf("L%d\n", __LINE__);
-        return textX;
+        return;
     }
     --charactersLeft;
-    strReadPtr++;
+    ++strReadPtr;
     unsigned char ch = *strReadPtr;
 
     if (ch < firstPrintableCodePoint) {
         if (ch == '\0') {
-            printf("L%d\n", __LINE__);
-            return textX;
+            return;
         }
-        if (ch == newLineCode) {
+        if (ch == drawNewLine) {
             goto printNewLine;
         }
-        printf("L%d\n", __LINE__);
-        return textX;
+        return;
     }
     if (ch == alternateStopCode) {
-        printf("L%d\n", __LINE__);
-        return textX;
+        return;
     }
     if (ch < currentFont.first_glyph) {
-        printf("L%d\n", __LINE__);
-        return textX;
+        return;
     }
     ch -= currentFont.first_glyph;
     if (ch >= fontlib_GetTotalGlyphs()) {
-        printf("L%d\n", __LINE__);
-        return textX;
+        return;
     }
     int width = widthsTablePtr[ch];
     int x_pos = textX + width;
     if ((unsigned int)x_pos > textXMax) {
         goto newLine;
     }
-    util_DrawGlyph(ch);
+    int adjust = currentFont.italic_space_adjust;
+    x_pos -= adjust;
+    textX = x_pos;
+    buf += util_DrawGlyphRawKnownWidth(ch, buf, width);
+    buf -= adjust;
     goto mainLoop;
 
 //------------------------------------------------------------------------------
@@ -525,18 +528,15 @@ printNewLine:
     newlineControl |= mWasNewline;
 newLine:
     if (newlineControl & mWasNewline) {
-        printf("D%d\n", __LINE__);
         goto doNewLine;
     }
     if (!(newlineControl & mEnableAutoWrap)) {
-        printf("L%d %02X\n", __LINE__, newlineControl);
-        return textX;
+        return;
     }
 doNewLine:
     bool newline_status = fontlib_Newline();
     if (newline_status) {
-        printf("L%d\n", __LINE__);
-        return textX;
+        return;
     }
     bool was_new_line = (newlineControl & mWasNewline);
     newlineControl &= ~mWasNewline;
@@ -545,6 +545,14 @@ doNewLine:
     }
     --strReadPtr;
     goto restartX;
+}
+
+ti_unsigned_int fontlib_DrawStringL(const char *str, size_t max_characters) {
+    if (max_characters > UINT24_MAX) {
+        max_characters = UINT24_MAX;
+    }
+    util_DrawStringL(str, max_characters);
+    return (ti_unsigned_int)textX;
 }
 
 ti_unsigned_int fontlib_DrawString(const char *str) {
@@ -634,7 +642,6 @@ void fontlib_ClearWindow(void) {
 
 bool fontlib_Newline(void) {
     if (newlineControl & mAutoClearToEOL) {
-        printf("E%d\n", __LINE__);
         fontlib_ClearEOL();
     }
     textX = textXMin;
@@ -653,30 +660,26 @@ bool fontlib_Newline(void) {
     }
 
 outOfSpace:
-    if (!(newLineCode & mAutoScroll)) {
+    if (!(newlineControl & mAutoScroll)) {
         goto noScroll;
     }
     fontlib_ScrollWindowDown();
     goto checkPreClear;
 //------------------------------------------------------------------------------
 noScroll:
-    if (!(newLineCode & mEnableAutoWrap)) {
-        printf("N%d\n", __LINE__);
+    if (!(newlineControl & mEnableAutoWrap)) {
         return true;
     }
     textY = textYMin;
-    printf("N%d\n", __LINE__);
     return true;
 //------------------------------------------------------------------------------
 writeCursorY:
     textY = height_cmp - font_height;
 checkPreClear:
     if (!(newlineControl & mPreclearNewline)) {
-        printf("N%d\n", __LINE__);
         return false;
     }
     fontlib_ClearEOL();
-    printf("N%d\n", __LINE__);
     return false;
 }
 
@@ -690,15 +693,16 @@ void fontlib_ScrollWindowUp(void) {
     if (lines - (int)height < 0) {
         return;
     }
+    printf("WU%d\n", __LINE__);
     const size_t line_count = (size_t)lines;
     const size_t x_pos = (size_t)textXMin;
     const uint8_t y_pos = (uint8_t)textYMin;
 
     uint8_t const * src = CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
-    uint8_t * dst = (uint8_t*)src + GFX_LCD_WIDTH;
+    uint8_t * dst = (uint8_t*)src + (GFX_LCD_WIDTH * height);
     gfx_Wait();
-    for (size_t i = 1; i < width; i++) {
-        memcpy(dst, src, line_count);
+    for (size_t i = 0; i < line_count; i++) {
+        memcpy(dst, src, width);
         dst += GFX_LCD_WIDTH;
         src += GFX_LCD_WIDTH;
     }
@@ -714,15 +718,16 @@ void fontlib_ScrollWindowDown(void) {
     if (lines - (int)height < 0) {
         return;
     }
+    printf("WD%d\n", __LINE__);
     const size_t line_count = (size_t)lines;
     const size_t x_pos = (size_t)textXMin;
     const uint8_t y_pos = (uint8_t)textYMin;
 
     uint8_t * dst = CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
-    uint8_t const * src = (uint8_t const *)dst + GFX_LCD_WIDTH;
+    uint8_t const * src = (uint8_t const *)dst + (GFX_LCD_WIDTH * height);
     gfx_Wait();
-    for (size_t i = 1; i < width; i++) {
-        memcpy(dst, src, line_count);
+    for (size_t i = 0; i < line_count; i++) {
+        memcpy(dst, src, width);
         dst += GFX_LCD_WIDTH;
         src += GFX_LCD_WIDTH;
     }

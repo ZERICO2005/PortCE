@@ -1,5 +1,5 @@
-#ifndef GRAPHXY_PALETTE_H
-#define GRAPHXY_PALETTE_H
+#ifndef GRAPHZ_PALETTE_H
+#define GRAPHZ_PALETTE_H
 
 #include <stdint.h>
 
@@ -38,4 +38,4 @@ static const uint8_t default_palette_8bpp[256 * sizeof(uint16_t)] = {
 /* 0xF8 */ 0x78, 0xfc, 0xf9, 0xfc, 0x7a, 0xfd, 0xfb, 0xfd, 0x7c, 0xfe, 0xfd, 0xfe, 0x7e, 0xff, 0xff, 0xff,
 };
 
-#endif /* GRAPHXY_PALETTE_H*/
+#endif /* GRAPHZ_PALETTE_H*/

@@ -759,7 +759,7 @@ void gfy_SetDefaultPalette(gfy_mode_t mode);
  * @param[in] offset Palette index to insert at.
  */
 void gfy_SetPalette(const void *palette,
-                    uint24_t size,
+                    size_t size,
                     uint8_t offset);
 
 /**

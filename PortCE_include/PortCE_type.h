@@ -168,6 +168,34 @@ typedef struct __attribute__((__packed__)) packed_int48_t {
 #endif
 
 //------------------------------------------------------------------------------
+// absolute value
+//------------------------------------------------------------------------------
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+inline int48_t i48abs(int48_t value) {
+    return (value < 0) ? -value : value;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+
+inline int24_t abs(int24_t value) {
+    return (value < 0) ? -value : value;
+}
+
+inline int48_t abs(int48_t value) {
+    return i48abs(value);
+}
+
+#endif /* __cplusplus */
+
+//------------------------------------------------------------------------------
 // (experimental) extended integer types
 //------------------------------------------------------------------------------
 

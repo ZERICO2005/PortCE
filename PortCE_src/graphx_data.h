@@ -1,7 +1,6 @@
 #ifndef GRAPHX_DATA_H
 #define GRAPHX_DATA_H
 
-#include "graphxy_palette.h"
 #include <stdint.h>
 
 static const uint8_t gfx_DefaultCharSpacing[] = {

@@ -12,35 +12,16 @@
 #define lcd_BGR8bit 0x927
 #define lcd_BGR16bit 0x92D
 
-struct GraphX : GraphZ {
-    using GraphZ::GraphZ;
-
-    void gfz_SetPixel_NoClip(uint24_t x, uint8_t y, uint8_t color) {
-        if (x < GFX_LCD_WIDTH && y < GFX_LCD_HEIGHT) {
-            ((uint8_t*)RAM_ADDRESS(CurrentBuffer))[(uint24_t)x + (y * GFX_LCD_WIDTH)] = color;
-        }
-    }
-    void gfz_SetPixel(uint24_t x, uint8_t y) {
-        if (x < GFX_LCD_WIDTH && y < GFX_LCD_HEIGHT) {
-            gfz_SetPixel_NoClip(x, y, Color);
-        }
-    }
-};
+typedef GraphZ<int> GraphX;
 
 template<>
-void GraphZ<GraphX>::gfz_ShiftDown(uint8_t pixels) {
-    uint8_t *buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
-    for (uint24_t y = GFX_LCD_HEIGHT - 1; y >= pixels; y--) {
-        memcpy(buffer + (y * GFX_LCD_WIDTH), buffer + ((y - pixels) * GFX_LCD_WIDTH), GFX_LCD_WIDTH);
+void GraphX::gfz_SetPixel_NoClip(ti_unsigned_int x, uint8_t y, uint8_t color) {
+    if (x < GFX_LCD_WIDTH && y < GFX_LCD_HEIGHT) {
+        ((uint8_t*)RAM_ADDRESS(CurrentBuffer))[(uint24_t)x + (y * GFX_LCD_WIDTH)] = color;
     }
 }
 
-template<>
-uint8_t GraphZ<GraphX>::gfz_GetPixel(uint24_t x, uint8_t y) {
-    return ((uint8_t*)RAM_ADDRESS(CurrentBuffer))[(x & 0xFFFF) + ((uint24_t)y * GFX_LCD_WIDTH)];
-}
-
-static GraphX lib("graphx");
+static GraphX lib("graphx", gfx_DefaultCharSpacing, gfx_DefaultTextData);
 
 //------------------------------------------------------------------------------
 // Colors and Palette
@@ -70,8 +51,8 @@ void gfx_SetPalette(const void *palette, size_t palette_size, uint8_t offset) {
     lib.gfz_SetPalette(palette, palette_size, offset);
 }
 
-void gfx_SetDefaultPalette(__attribute__((unused)) gfx_mode_t mode) {
-    lib.gfz_SetDefaultPalette();
+void gfx_SetDefaultPalette(gfx_mode_t mode) {
+    lib.gfz_SetDefaultPalette(static_cast<gfz_mode_t>(mode));
 }
 
 uint16_t gfx_Darken(uint16_t color, uint8_t amount) {
@@ -118,7 +99,7 @@ void gfx_SetDraw(uint8_t location) {
 // Clipping
 //------------------------------------------------------------------------------
 
-void gfx_SetClipRegion(int24_t xmin, int24_t ymin, int24_t xmax, int24_t ymax) {
+void gfx_SetClipRegion(ti_int xmin, ti_int ymin, ti_int xmax, ti_int ymax) {
     lib.gfz_SetClipRegion(xmin, ymin, xmax, ymax);
 }
 
@@ -206,11 +187,11 @@ void gfx_ShiftDown(uint8_t pixels) {
     const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(CurrentBuffer) + lib.ClipXMin + (lib.ClipYMin * GFX_LCD_WIDTH);
     uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + lib.ClipXMin + ((lib.ClipYMin + (int8_t)pixels) * GFX_LCD_WIDTH);
     const size_t copySize = lib.ClipXMax - lib.ClipXMin;
-    int24_t y0 = lib.ClipYMin + (int8_t)pixels;
-    int24_t y1 = lib.ClipYMax;
+    ti_int y0 = lib.ClipYMin + (int8_t)pixels;
+    ti_int y1 = lib.ClipYMax;
     src_buf += pixels * GFX_LCD_WIDTH;
     dst_buf += pixels * GFX_LCD_WIDTH;
-    for (int24_t y = y0; y < y1; y++) {
+    for (ti_int y = y0; y < y1; y++) {
         memcpy(dst_buf, src_buf, copySize);
         src_buf -= GFX_LCD_WIDTH;
         dst_buf -= GFX_LCD_WIDTH;
@@ -221,13 +202,13 @@ void gfx_ShiftUp(uint8_t pixels) {
     if (pixels == 0) { return; }
     const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(CurrentBuffer) + lib.ClipXMin + (lib.ClipYMin * GFX_LCD_WIDTH);
     uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + lib.ClipXMin + ((lib.ClipYMin - (int8_t)pixels) * GFX_LCD_WIDTH);
-    const int24_t copySize = lib.ClipXMax - lib.ClipXMin - (int24_t)pixels;
+    const ti_int copySize = lib.ClipXMax - lib.ClipXMin - (ti_int)pixels;
     if (copySize <= 0) { return; }
-    int24_t y0 = lib.ClipYMin + (int8_t)pixels;
-    int24_t y1 = lib.ClipYMax;
+    ti_int y0 = lib.ClipYMin + (int8_t)pixels;
+    ti_int y1 = lib.ClipYMax;
     src_buf -= pixels * GFX_LCD_WIDTH;
     dst_buf -= pixels * GFX_LCD_WIDTH;
-    for (int24_t y = y0; y < y1; y++) {
+    for (ti_int y = y0; y < y1; y++) {
         memcpy(dst_buf, src_buf, (size_t)copySize);
         src_buf += GFX_LCD_WIDTH;
         dst_buf += GFX_LCD_WIDTH;
@@ -237,12 +218,12 @@ void gfx_ShiftUp(uint8_t pixels) {
 void gfx_ShiftLeft(uint24_t pixels) {
     if (pixels == 0) { return; }
     const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(CurrentBuffer) + lib.ClipXMin + (lib.ClipYMin * GFX_LCD_WIDTH);
-    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (lib.ClipXMin - (int24_t)pixels) + (lib.ClipYMin * GFX_LCD_WIDTH);
-    const int24_t copySize = lib.ClipXMax - lib.ClipXMin - (int24_t)pixels;
+    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (lib.ClipXMin - (ti_int)pixels) + (lib.ClipYMin * GFX_LCD_WIDTH);
+    const ti_int copySize = lib.ClipXMax - lib.ClipXMin - (ti_int)pixels;
     if (copySize <= 0) { return; }
-    int24_t y0 = lib.ClipYMin;
-    int24_t y1 = lib.ClipYMax;
-    for (int24_t y = y0; y < y1; y++) {
+    ti_int y0 = lib.ClipYMin;
+    ti_int y1 = lib.ClipYMax;
+    for (ti_int y = y0; y < y1; y++) {
         memmove(dst_buf, src_buf, (size_t)copySize); // memcpy would be UB
         src_buf += GFX_LCD_WIDTH;
         dst_buf += GFX_LCD_WIDTH;
@@ -252,11 +233,11 @@ void gfx_ShiftLeft(uint24_t pixels) {
 void gfx_ShiftRight(uint24_t pixels) {
     if (pixels == 0) { return; }
     const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(CurrentBuffer) + lib.ClipXMin + (lib.ClipYMin * GFX_LCD_WIDTH);
-    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (lib.ClipXMin + (int24_t)pixels) + (lib.ClipYMin * GFX_LCD_WIDTH);
+    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (lib.ClipXMin + (ti_int)pixels) + (lib.ClipYMin * GFX_LCD_WIDTH);
     const size_t copySize = lib.ClipXMax - lib.ClipXMin - pixels;
-    int24_t y0 = lib.ClipYMin;
-    int24_t y1 = lib.ClipYMax;
-    for (int24_t y = y0; y < y1; y++) {
+    ti_int y0 = lib.ClipYMin;
+    ti_int y1 = lib.ClipYMax;
+    for (ti_int y = y0; y < y1; y++) {
         memmove(dst_buf, src_buf, copySize); // memcpy would be UB
         src_buf += GFX_LCD_WIDTH;
         dst_buf += GFX_LCD_WIDTH;
@@ -266,6 +247,18 @@ void gfx_ShiftRight(uint24_t pixels) {
 //------------------------------------------------------------------------------
 // Pixel Functions
 //------------------------------------------------------------------------------
+
+template<>
+uint8_t GraphX::gfz_GetPixel(ti_unsigned_int x, uint8_t y) {
+    return ((uint8_t*)RAM_ADDRESS(CurrentBuffer))[(x & 0xFFFF) + ((uint24_t)y * GFX_LCD_WIDTH)];
+}
+
+template<>
+void GraphX::gfz_SetPixel(ti_unsigned_int x, uint8_t y) {
+    if (x < GFX_LCD_WIDTH && y < GFX_LCD_HEIGHT) {
+        gfz_SetPixel_NoClip(x, y, Color);
+    }
+}
 
 void gfx_SetPixel(uint24_t x, uint8_t y) {
     if (x < GFX_LCD_WIDTH && y < GFX_LCD_HEIGHT) {
@@ -298,7 +291,7 @@ void gfx_HorizLine_NoClip(uint24_t x, uint8_t y, uint24_t length) { //x start, y
     memset(fill, lib.Color, length);
 }
 
-void gfx_HorizLine(int24_t x, int24_t y, int24_t length) {
+void gfx_HorizLine(ti_int x, ti_int y, ti_int length) {
     if (y < lib.ClipYMin || y >= lib.ClipYMax || x >= lib.ClipXMax) {
         return;
     }
@@ -325,7 +318,7 @@ void gfx_VertLine_NoClip(uint24_t x, uint8_t y, uint24_t length) { //x postion, 
     }
 }
 
-void gfx_VertLine(int24_t x, int24_t y, int24_t length) {
+void gfx_VertLine(ti_int x, ti_int y, ti_int length) {
     if (x < lib.ClipXMin || x >= lib.ClipXMax || y >= lib.ClipYMax) {
         return;
     }
@@ -355,7 +348,7 @@ void gfx_FillRectangle_NoClip(uint24_t x, uint8_t y, uint24_t width, uint8_t hei
     }
 }
 
-void gfx_FillRectangle(int24_t x, int24_t y, int24_t width, int24_t height) {
+void gfx_FillRectangle(ti_int x, ti_int y, ti_int width, ti_int height) {
     if (x < lib.ClipXMin) {
         width -= lib.ClipXMin - x;
         x = 0;
@@ -383,7 +376,7 @@ void gfx_Rectangle_NoClip(uint24_t x, uint8_t y, uint24_t width, uint8_t height)
     gfx_VertLine_NoClip (x + width - 1, y             , height);
 }
 
-void gfx_Rectangle(int24_t x, int24_t y, int24_t width, int24_t height) {
+void gfx_Rectangle(ti_int x, ti_int y, ti_int width, ti_int height) {
     gfx_HorizLine(x            , y             , width );
     gfx_HorizLine(x            , y + height - 1, width );
     gfx_VertLine (x            , y             , height);
@@ -411,17 +404,17 @@ void gfx_SetTextConfig(uint8_t config) {
     lib.PrintChar_Clip = config;
 }
 
-void gfx_SetTextXY(int24_t x, int24_t y) {
+void gfx_SetTextXY(ti_int x, ti_int y) {
     lib.TextXPos = x;
     lib.TextYPos = y;
     lib.test_state();
 }
 
-int24_t gfx_GetTextY(void) {
+ti_int gfx_GetTextY(void) {
     return lib.TextYPos;
 }
 
-int24_t gfx_GetTextX(void) {
+ti_int gfx_GetTextX(void) {
     return lib.TextXPos;
 }
 
@@ -601,7 +594,7 @@ void gfx_PrintString(const char *string) {
     }
 }
 
-void gfx_PrintStringXY(const char *string, int24_t x, int24_t y) {
+void gfx_PrintStringXY(const char *string, ti_int x, ti_int y) {
     gfx_SetTextXY(x, y);
     gfx_PrintString(string);
 }
@@ -627,7 +620,7 @@ void gfx_Line_NoClip(uint24_t x0, uint8_t y0, uint24_t x1, uint8_t y1) {
 // Clipped Lines
 //------------------------------------------------------------------------------
 
-void gfx_Line(int24_t x0, int24_t y0, int24_t x1, int24_t y1) {
+void gfx_Line(ti_int x0, ti_int y0, ti_int x1, ti_int y1) {
     lib.gfz_Line(x0, y0, x1, y1);
 }
 
@@ -638,13 +631,13 @@ void gfx_Line(int24_t x0, int24_t y0, int24_t x1, int24_t y1) {
 // https://zingl.github.io/bresenham.html
 /** @todo make function pixel perfect */
 void gfx_Circle(
-    const int24_t x, const int24_t y, const uint24_t radius
+    const ti_int x, const ti_int y, const uint24_t radius
 ) {
-    int24_t r = radius;
+    ti_int r = radius;
 
-    int24_t x_pos = -r;
-    int24_t y_pos = 0;
-    int24_t err = 2 - 2 * r;
+    ti_int x_pos = -r;
+    ti_int y_pos = 0;
+    ti_int err = 2 - 2 * r;
     do {
         lib.gfz_SetPixel_RegionClip(x - x_pos, y + y_pos, lib.Color);
         lib.gfz_SetPixel_RegionClip(x - y_pos, y - x_pos, lib.Color);
@@ -663,13 +656,13 @@ void gfx_Circle(
 // https://zingl.github.io/bresenham.html
 /** @todo make function pixel perfect */
 void gfx_FillCircle(
-    const int24_t x, const int24_t y, const uint24_t radius
+    const ti_int x, const ti_int y, const uint24_t radius
 ) {
-    int24_t r = radius;
+    ti_int r = radius;
 
-    int24_t x_pos = -r;
-    int24_t y_pos = 0;
-    int24_t err = 2 - 2 * r;
+    ti_int x_pos = -r;
+    ti_int y_pos = 0;
+    ti_int err = 2 - 2 * r;
     do {
         gfx_HorizLine(x + x_pos, y - y_pos, -x_pos * 2 + 1);
         gfx_HorizLine(x + x_pos, y + y_pos, -x_pos * 2 + 1);
@@ -690,11 +683,11 @@ void gfx_FillCircle(
 void gfx_FillCircle_NoClip(
     const uint24_t x, const uint8_t y, const uint24_t radius
 ) {
-    int24_t r = radius;
+    ti_int r = radius;
 
-    int24_t x_pos = -r;
-    int24_t y_pos = 0;
-    int24_t err = 2 - 2 * r;
+    ti_int x_pos = -r;
+    ti_int y_pos = 0;
+    ti_int err = 2 - 2 * r;
     do {
         gfx_HorizLine_NoClip(x + x_pos, (uint8_t)(y - y_pos), -x_pos * 2 + 1);
         gfx_HorizLine_NoClip(x + x_pos, (uint8_t)(y + y_pos), -x_pos * 2 + 1);
@@ -715,7 +708,7 @@ void gfx_FillCircle_NoClip(
 //------------------------------------------------------------------------------
 
 static void gfx_internal_Ellipse_dual_point(
-    int24_t x, int24_t y, int24_t xc, int24_t yc
+    ti_int x, ti_int y, ti_int xc, ti_int yc
 ) {
     lib.gfz_SetPixel_RegionClip(x - xc, y - yc, lib.Color);
     lib.gfz_SetPixel_RegionClip(x + xc, y - yc, lib.Color);
@@ -724,7 +717,7 @@ static void gfx_internal_Ellipse_dual_point(
 }
 
 static void gfx_internal_Ellipse_dual_point_NoClip(
-    int24_t x, int24_t y, int24_t xc, int24_t yc
+    ti_int x, ti_int y, ti_int xc, ti_int yc
 ) {
     lib.gfz_SetPixel_NoClip(x - xc, y - yc, lib.Color);
     lib.gfz_SetPixel_NoClip(x + xc, y - yc, lib.Color);
@@ -733,14 +726,14 @@ static void gfx_internal_Ellipse_dual_point_NoClip(
 }
 
 static void gfx_internal_Ellipse_dual_line(
-    int24_t x, int24_t y, int24_t xc, int24_t yc
+    ti_int x, ti_int y, ti_int xc, ti_int yc
 ) {
     gfx_HorizLine(x - xc, y - yc, 2 * xc);
     gfx_HorizLine(x - xc, y + yc, 2 * xc);
 }
 
 static void gfx_internal_Ellipse_dual_line_NoClip(
-    int24_t x, int24_t y, int24_t xc, int24_t yc
+    ti_int x, ti_int y, ti_int xc, ti_int yc
 ) {
     gfx_HorizLine_NoClip(x - xc, (uint8_t)(y - yc), 2 * xc);
     gfx_HorizLine_NoClip(x - xc, (uint8_t)(y + yc), 2 * xc);

@@ -616,7 +616,7 @@ gfx_ConvertToNewRLETSprite(sprite_in, malloc)
  *
  * This function should be called before any other `graphx` library routines.
  */
-void gfx_Begin();
+void gfx_Begin(void);
 
 /**
  * Ends the `graphx` library context.
@@ -972,7 +972,7 @@ void gfx_FillEllipse_NoClip(ti_unsigned_int x, ti_unsigned_int y, uint8_t a, uin
  * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
  * @param[in] b The vertical radius of the ellipse (current maximum is 128).
  */
-void gfx_FillEllipse(int24_t x, int24_t y, ti_unsigned_int a, ti_unsigned_int b);
+void gfx_FillEllipse(ti_int x, ti_int y, ti_unsigned_int a, ti_unsigned_int b);
 
 /**
  * Draws an unclipped ellipse.
@@ -992,7 +992,7 @@ void gfx_Ellipse_NoClip(ti_unsigned_int x, ti_unsigned_int y, uint8_t a, uint8_t
  * @param[in] a The horizontal radius of the ellipse (current maximum is 128).
  * @param[in] b The vertical radius of the ellipse (current maximum is 128).
  */
-void gfx_Ellipse(int24_t x, int24_t y, ti_unsigned_int a, ti_unsigned_int b);
+void gfx_Ellipse(ti_int x, ti_int y, ti_unsigned_int a, ti_unsigned_int b);
 
 /**
  * Draws a clipped polygon outline.
@@ -1245,12 +1245,12 @@ void gfx_PrintStringXY(const char *string, ti_int x, ti_int y);
 /**
  * @returns The current text cursor X position.
  */
-int24_t gfx_GetTextX(void) __attribute__((__pure__));
+ti_int gfx_GetTextX(void) __attribute__((__pure__));
 
 /**
  * @returns The current text cursor Y position.
  */
-int24_t gfx_GetTextY(void) __attribute__((__pure__));
+ti_int gfx_GetTextY(void) __attribute__((__pure__));
 
 /**
  * Sets the text cursor X and Y positions.

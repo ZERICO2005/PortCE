@@ -12,16 +12,27 @@
 #define lcd_BGR8bit 0x927
 #define lcd_BGR16bit 0x92D
 
-typedef GraphZ<int> GraphX;
+struct GraphY_Type {
+    using region = gfy_region_t;
+    using sprite = gfy_sprite_t;
+    using rletsprite = gfy_rletsprite_t;
+    using tilemap_type = gfy_tilemap_type_t;
+    using tilemap = gfy_tilemap_t;
+    using mode = gfy_mode_t;
+    using location = gfy_location_t;
+    using text_options = gfy_text_options_t;
+};
+
+typedef GraphZ<GraphY_Type> GraphY;
 
 template<>
-void GraphX::gfz_SetPixel_NoClip(ti_unsigned_int x, uint8_t y, uint8_t color) {
+void GraphY::gfz_SetPixel_NoClip(ti_unsigned_int x, uint8_t y, uint8_t color) {
     if (x < GFY_LCD_WIDTH && y < GFY_LCD_HEIGHT) {
         ((uint8_t*)RAM_ADDRESS(CurrentBuffer))[(uint24_t)x + (y * GFY_LCD_WIDTH)] = color;
     }
 }
 
-static GraphX lib("graphy", gfy_DefaultCharSpacing, gfy_DefaultTextData);
+static GraphY lib("graphy", gfy_DefaultCharSpacing, gfy_DefaultTextData);
 
 //------------------------------------------------------------------------------
 // Wrapper Functions

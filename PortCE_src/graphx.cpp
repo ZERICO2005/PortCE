@@ -12,7 +12,18 @@
 #define lcd_BGR8bit 0x927
 #define lcd_BGR16bit 0x92D
 
-typedef GraphZ<int> GraphX;
+struct GraphX_Type {
+    using region = gfx_region_t;
+    using sprite = gfx_sprite_t;
+    using rletsprite = gfx_rletsprite_t;
+    using tilemap_type = gfx_tilemap_type_t;
+    using tilemap = gfx_tilemap_t;
+    using mode = gfx_mode_t;
+    using location = gfx_location_t;
+    using text_options = gfx_text_options_t;
+};
+
+typedef GraphZ<GraphX_Type> GraphX;
 
 template<>
 void GraphX::gfz_SetPixel_NoClip(ti_unsigned_int x, uint8_t y, uint8_t color) {

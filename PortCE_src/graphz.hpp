@@ -104,7 +104,7 @@ gfz_Blit(gfz_buffer)
 
 #define CurrentBuffer lcd_LpBase
 
-
+template <typename T>
 struct GraphZ {
 public:
 const char * library_name;
@@ -187,6 +187,206 @@ void test_state(void) {
         );
     }
 }
+
+
+
+void gfx_Begin();
+
+void gfx_End(void);
+
+gfx_sprite_t *gfx_AllocSprite(uint8_t width, uint8_t height, void *(*malloc_routine)(size_t));
+
+void gfx_Tilemap(const gfx_tilemap_t *tilemap, ti_unsigned_int x_offset, ti_unsigned_int y_offset);
+
+void gfx_Tilemap_NoClip(const gfx_tilemap_t *tilemap, ti_unsigned_int x_offset, ti_unsigned_int y_offset);
+
+void gfx_TransparentTilemap(const gfx_tilemap_t *tilemap, ti_unsigned_int x_offset, ti_unsigned_int y_offset);
+
+void gfx_TransparentTilemap_NoClip(const gfx_tilemap_t *tilemap, ti_unsigned_int x_offset, ti_unsigned_int y_offset);
+
+uint8_t *gfx_TilePtr(const gfx_tilemap_t *tilemap, ti_unsigned_int x_offset, ti_unsigned_int y_offset);
+
+uint8_t *gfx_TilePtrMapped(const gfx_tilemap_t *tilemap, uint8_t col, uint8_t row);
+
+uint8_t gfx_SetColor(uint8_t index);
+
+uint8_t gfx_SetTransparentColor(uint8_t index);
+
+void gfx_SetDefaultPalette(gfx_mode_t mode);
+
+void gfx_SetPalette(const void *palette, size_t size, uint8_t offset);
+
+void gfx_FillScreen(uint8_t index);
+
+void gfx_ZeroScreen(void);
+
+void gfx_SetPixel(ti_unsigned_int x, uint8_t y);
+
+uint8_t gfx_GetPixel(ti_unsigned_int x, uint8_t y);
+
+void gfx_Line(ti_int x0, ti_int y0, ti_int x1, ti_int y1);
+
+void gfx_Line_NoClip(ti_unsigned_int x0, uint8_t y0, ti_unsigned_int x1, uint8_t y1);
+
+void gfx_HorizLine(ti_int x, ti_int y, ti_int length);
+
+void gfx_HorizLine_NoClip(ti_unsigned_int x, uint8_t y, ti_unsigned_int length);
+
+void gfx_VertLine(ti_int x, ti_int y, ti_int length);
+
+void gfx_VertLine_NoClip(ti_unsigned_int x, uint8_t y, ti_unsigned_int length);
+
+void gfx_Rectangle(ti_int x, ti_int y, ti_int width, ti_int height);
+
+void gfx_Rectangle_NoClip(ti_unsigned_int x, uint8_t y, ti_unsigned_int width, uint8_t height);
+
+void gfx_FillRectangle(ti_int x, ti_int y, ti_int width, ti_int height);
+
+void gfx_FillRectangle_NoClip(ti_unsigned_int x, uint8_t y, ti_unsigned_int width, uint8_t height);
+
+void gfx_Circle(ti_int x, ti_int y, ti_unsigned_int radius);
+
+void gfx_FillCircle(ti_int x, ti_int y, ti_unsigned_int radius);
+
+void gfx_FillCircle_NoClip(ti_unsigned_int x, uint8_t y, ti_unsigned_int radius);
+
+void gfx_FillEllipse_NoClip(ti_unsigned_int x, ti_unsigned_int y, uint8_t a, uint8_t b);
+
+void gfx_FillEllipse(int24_t x, int24_t y, ti_unsigned_int a, ti_unsigned_int b);
+
+void gfx_Ellipse_NoClip(ti_unsigned_int x, ti_unsigned_int y, uint8_t a, uint8_t b);
+
+void gfx_Ellipse(int24_t x, int24_t y, ti_unsigned_int a, ti_unsigned_int b);
+
+void gfx_Polygon(const ti_int *points, size_t num_points);
+
+void gfx_Polygon_NoClip(const ti_int *points, size_t num_points);
+
+void gfx_FillTriangle(ti_int x0, ti_int y0, ti_int x1, ti_int y1, ti_int x2, ti_int y2);
+
+void gfx_FillTriangle_NoClip(ti_int x0, ti_int y0, ti_int x1, ti_int y1, ti_int x2, ti_int y2);
+
+void gfx_SetDraw(uint8_t location);
+
+uint8_t gfx_GetDraw(void);
+
+void gfx_SwapDraw(void);
+
+void gfx_Wait(void);
+
+void gfx_Blit(gfx_location_t src);
+
+void gfx_BlitLines(gfx_location_t src, uint8_t y_loc, uint8_t num_lines);
+
+void gfx_BlitRectangle(gfx_location_t src, ti_unsigned_int x, uint8_t y, ti_unsigned_int width, ti_unsigned_int height);
+
+void gfx_CopyRectangle(gfx_location_t src, gfx_location_t dst, ti_unsigned_int src_x, uint8_t src_y, ti_unsigned_int dst_x, uint8_t dst_y, ti_unsigned_int width, uint8_t height);
+
+void gfx_SetTextScale(uint8_t width_scale, uint8_t height_scale);
+
+void gfx_PrintChar(const char c);
+
+void gfx_PrintInt(int24_t n, uint8_t length);
+
+void gfx_PrintUInt(uint24_t n, uint8_t length);
+
+void gfx_PrintString(const char *string);
+
+void gfx_PrintStringXY(const char *string, ti_int x, ti_int y);
+
+int24_t gfx_GetTextX(void);
+
+int24_t gfx_GetTextY(void);
+
+void gfx_SetTextXY(ti_int x, ti_int y);
+
+void gfx_SetTextConfig(uint8_t config);
+
+uint8_t gfx_SetTextFGColor(uint8_t color);
+
+uint8_t gfx_SetTextBGColor(uint8_t color);
+
+uint8_t gfx_SetTextTransparentColor(uint8_t color);
+
+void gfx_Sprite(const gfx_sprite_t *sprite, ti_int x, ti_int y);
+
+void gfx_Sprite_NoClip(const gfx_sprite_t *sprite, ti_unsigned_int x, uint8_t y);
+
+void gfx_TransparentSprite(const gfx_sprite_t *sprite, ti_int x, ti_int y);
+
+void gfx_TransparentSprite_NoClip(const gfx_sprite_t *sprite, ti_unsigned_int x, uint8_t y);
+
+gfx_sprite_t *gfx_GetSprite(gfx_sprite_t *sprite_buffer, ti_int x, ti_int y);
+
+void gfx_ScaledSprite_NoClip(const gfx_sprite_t *sprite, ti_unsigned_int x, uint8_t y, uint8_t width_scale, uint8_t height_scale);
+
+void gfx_ScaledTransparentSprite_NoClip(const gfx_sprite_t *sprite, ti_unsigned_int x, uint8_t y, uint8_t width_scale, uint8_t height_scale);
+
+uint8_t gfx_RotatedScaledTransparentSprite_NoClip(const gfx_sprite_t *sprite, ti_unsigned_int x, uint8_t y, uint8_t angle, uint8_t scale);
+
+uint8_t gfx_RotatedScaledSprite_NoClip(const gfx_sprite_t *sprite, ti_unsigned_int x, uint8_t y, uint8_t angle, uint8_t scale);
+
+uint8_t gfx_RotatedScaledTransparentSprite(const gfx_sprite_t *sprite, ti_int x, ti_int y, uint8_t angle, uint8_t scale);
+
+uint8_t gfx_RotatedScaledSprite(const gfx_sprite_t *sprite, ti_int x, ti_int y, uint8_t angle, uint8_t scale);
+
+gfx_sprite_t *gfx_FlipSpriteX(const gfx_sprite_t *__restrict sprite_in, gfx_sprite_t *__restrict sprite_out);
+
+gfx_sprite_t *gfx_FlipSpriteY(const gfx_sprite_t *__restrict sprite_in, gfx_sprite_t *__restrict sprite_out);
+
+gfx_sprite_t *gfx_RotateSpriteC(const gfx_sprite_t *__restrict sprite_in, gfx_sprite_t *__restrict sprite_out);
+
+gfx_sprite_t *gfx_RotateSpriteCC(const gfx_sprite_t *__restrict sprite_in, gfx_sprite_t *__restrict sprite_out);
+
+gfx_sprite_t *gfx_RotateSpriteHalf(const gfx_sprite_t *__restrict sprite_in, gfx_sprite_t *__restrict sprite_out);
+
+gfx_sprite_t *gfx_ScaleSprite(const gfx_sprite_t *__restrict sprite_in, gfx_sprite_t *__restrict sprite_out);
+
+gfx_sprite_t *gfx_RotateScaleSprite(const gfx_sprite_t *__restrict sprite_in, gfx_sprite_t *__restrict sprite_out, uint8_t angle, uint8_t scale);
+
+gfx_sprite_t *gfx_GetSpriteChar(char c);
+
+uint8_t *gfx_SetFontData(const uint8_t *data);
+
+uint8_t *gfx_SetCharData(uint8_t index, const uint8_t *data);
+
+void gfx_SetFontSpacing(const uint8_t *spacing);
+
+uint8_t gfx_SetFontHeight(uint8_t height);
+
+void gfx_SetMonospaceFont(uint8_t spacing);
+
+ti_unsigned_int gfx_GetStringWidth(const char *string);
+
+ti_unsigned_int gfx_GetCharWidth(const char c);
+
+void gfx_SetClipRegion(ti_int xmin, ti_int ymin, ti_int xmax, ti_int ymax);
+
+bool gfx_GetClipRegion(gfx_region_t *region);
+
+void gfx_ShiftDown(uint8_t pixels);
+
+void gfx_ShiftUp(uint8_t pixels);
+
+void gfx_ShiftLeft(ti_unsigned_int pixels);
+
+void gfx_ShiftRight(ti_unsigned_int pixels);
+
+uint16_t gfx_Lighten(uint16_t color, uint8_t amount);
+
+uint16_t gfx_Darken(uint16_t color, uint8_t amount);
+
+void gfx_FloodFill(ti_unsigned_int x, uint8_t y, uint8_t color);
+
+void gfx_RLETSprite(const gfx_rletsprite_t *sprite, ti_int x, ti_int y);
+
+void gfx_RLETSprite_NoClip(const gfx_rletsprite_t *sprite, ti_unsigned_int x, uint8_t y);
+
+gfx_sprite_t *gfx_ConvertFromRLETSprite(const gfx_rletsprite_t *sprite_in, gfx_sprite_t *sprite_out);
+
+gfx_rletsprite_t *gfx_ConvertToRLETSprite(const gfx_sprite_t *sprite_in, gfx_rletsprite_t *sprite_out);
+
+gfx_rletsprite_t *gfx_ConvertToNewRLETSprite(const gfx_sprite_t *sprite_in, void *(*malloc_routine)(size_t));
 
 //------------------------------------------------------------------------------
 // Colors and Palette

@@ -12,10 +12,8 @@
 #define lcd_BGR8bit 0x927
 #define lcd_BGR16bit 0x92D
 
-
-struct GraphX : public GraphZ {
+struct GraphX : GraphZ {
     using GraphZ::GraphZ;
-
 
     void gfz_SetPixel_NoClip(uint24_t x, uint8_t y, uint8_t color) {
         if (x < GFX_LCD_WIDTH && y < GFX_LCD_HEIGHT) {
@@ -29,14 +27,23 @@ struct GraphX : public GraphZ {
     }
 };
 
-uint8_t GraphZ::gfz_GetPixel(uint24_t x, uint8_t y) {
+template<>
+void GraphZ<GraphX>::gfz_ShiftDown(uint8_t pixels) {
+    uint8_t *buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
+    for (uint24_t y = GFX_LCD_HEIGHT - 1; y >= pixels; y--) {
+        memcpy(buffer + (y * GFX_LCD_WIDTH), buffer + ((y - pixels) * GFX_LCD_WIDTH), GFX_LCD_WIDTH);
+    }
+}
+
+template<>
+uint8_t GraphZ<GraphX>::gfz_GetPixel(uint24_t x, uint8_t y) {
     return ((uint8_t*)RAM_ADDRESS(CurrentBuffer))[(x & 0xFFFF) + ((uint24_t)y * GFX_LCD_WIDTH)];
 }
 
 static GraphX lib("graphx");
 
 //------------------------------------------------------------------------------
-// Wrapper Functions
+// Colors and Palette
 //------------------------------------------------------------------------------
 
 uint8_t gfx_SetColor(uint8_t index) {
@@ -256,7 +263,6 @@ void gfx_ShiftRight(uint24_t pixels) {
     }
 }
 
-
 //------------------------------------------------------------------------------
 // Pixel Functions
 //------------------------------------------------------------------------------
@@ -276,12 +282,11 @@ uint8_t gfx_GetPixel(uint24_t x, uint8_t y) {
 //------------------------------------------------------------------------------
 
 void gfx_FillScreen(uint8_t index) {
-    memset(RAM_ADDRESS(CurrentBuffer), index, GFX_LCD_WIDTH * GFX_LCD_HEIGHT);
-    gfx_Wait();
+    lib.gfz_FillScreen(index);
 }
 
 void gfx_ZeroScreen(void) {
-    gfx_FillScreen(0);
+    lib.gfz_ZeroScreen();
 }
 
 //------------------------------------------------------------------------------
@@ -816,6 +821,9 @@ void gfx_FillEllipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b) {
     );
 }
 
+//------------------------------------------------------------------------------
+// Triangles
+//------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 // Triangles
 //------------------------------------------------------------------------------

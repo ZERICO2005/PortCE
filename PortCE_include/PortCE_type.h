@@ -95,21 +95,39 @@
 
 #endif
 
-/* Integer types */
+/* eZ80 Integer types */
+
+    typedef int16_t ez80_short;
+    typedef int24_t ez80_int; /** @note Remember to account for integer promotion */
+    typedef int32_t ez80_long;
+    typedef int64_t ez80_long_long;
+
+    typedef int16_t ez80_signed_short;
+    typedef int24_t ez80_signed_int; /** @note Remember to account for integer promotion */
+    typedef int32_t ez80_signed_long;
+    typedef int64_t ez80_signed_long_long;
+
+    typedef uint16_t ez80_unsigned_short;
+    typedef uint24_t ez80_unsigned_int; /** @note Remember to account for integer promotion */
+    typedef uint32_t ez80_unsigned_long;
+    typedef uint64_t ez80_unsigned_long_long;
+
+/* TI Integer types */
+
     typedef int16_t ti_short;
     typedef int24_t ti_int; /** @note Remember to account for integer promotion */
     typedef int32_t ti_long;
-    typedef int64_t ti_long_long;
+    typedef int64_t ti_long_long __attribute__((__deprecated__("use ez80_long_long instead")));
 
     typedef int16_t ti_signed_short;
     typedef int24_t ti_signed_int; /** @note Remember to account for integer promotion */
     typedef int32_t ti_signed_long;
-    typedef int64_t ti_signed_long_long;
+    typedef int64_t ti_signed_long_long __attribute__((__deprecated__("use ez80_signed_long_long instead")));
 
     typedef uint16_t ti_unsigned_short;
     typedef uint24_t ti_unsigned_int; /** @note Remember to account for integer promotion */
     typedef uint32_t ti_unsigned_long;
-    typedef uint64_t ti_unsigned_long_long;
+    typedef uint64_t ti_unsigned_long_long __attribute__((__deprecated__("use ez80_unsigned_long_long instead")));
 
 #ifdef _EZ80
 

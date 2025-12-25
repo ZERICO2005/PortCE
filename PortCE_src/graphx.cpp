@@ -1,3 +1,13 @@
+#include "lib_graphx.hpp"
+
+template<>
+void GraphX::gfz_SetPixel_NoClip(uint32_t x, uint8_t y, uint8_t color) const {
+    if (x < GFX_LCD_WIDTH && y < GFX_LCD_HEIGHT) {
+        ((uint8_t*)RAM_ADDRESS(CurrentBuffer))[(uint24_t)x + (y * GFX_LCD_WIDTH)] = color;
+    }
+}
+
+#if 0
 #include <PortCE.h>
 
 #include <graphx.h>
@@ -16,7 +26,7 @@ struct GraphX_Type {
     // using region = gfx_region_t;
     // using sprite = gfx_sprite_t;
     // using rletsprite = gfx_rletsprite_t;
-    // using tilemap = gfx_tilemap_t;
+    // using tilemap = gfx_tilemap_t;cd
 };
 
 typedef GraphZ<GraphX_Type> GraphX;
@@ -1674,3 +1684,5 @@ uint8_t *gfx_TilePtrMapped(const gfx_tilemap_t *tilemap, uint8_t col, uint8_t ro
 
 
 //------------------------------------------------------------------------------
+
+#endif

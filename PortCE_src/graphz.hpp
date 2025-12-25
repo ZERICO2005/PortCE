@@ -12,6 +12,13 @@
 
 #include "graphz_palette.h"
 
+#define lcd_Control              (*(volatile uint24_t*)RAM_ADDRESS(0xE30018))
+#define lcd_VideoMode            (*(volatile uint16_t*)RAM_ADDRESS(0xE30018))
+#define lcd_UpBase               (*(volatile uint24_t*)RAM_ADDRESS(0xE30010))
+#define lcd_LpBase               (*(volatile uint24_t*)RAM_ADDRESS(0xE30014))
+#define lcd_BGR8bit 0x927
+#define lcd_BGR16bit 0x92D
+
 //------------------------------------------------------------------------------
 // Common types and macros
 //------------------------------------------------------------------------------
@@ -277,9 +284,9 @@ void gfz_Ellipse_NoClip(uint32_t x, uint32_t y, uint8_t a, uint8_t b) const;
 
 void gfz_Ellipse(int32_t x, int32_t y, uint32_t a, uint32_t b) const;
 
-void gfz_Polygon(const int32_t *points, size_t num_points) const;
+void gfz_Polygon(const ti_int *points, size_t num_points) const;
 
-void gfz_Polygon_NoClip(const int32_t *points, size_t num_points) const;
+void gfz_Polygon_NoClip(const ti_int *points, size_t num_points) const;
 
 void gfz_FillTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2) const;
 
@@ -1412,7 +1419,7 @@ void GraphZ<T>::gfz_FillTriangle_NoClip(
 //------------------------------------------------------------------------------
 
 template<typename T>
-void GraphZ<T>::gfz_Polygon(const int32_t *points, size_t num_points) const {
+void GraphZ<T>::gfz_Polygon(const ti_int *points, size_t num_points) const {
     if (num_points < 2) {
         return;
     }
@@ -1429,7 +1436,7 @@ void GraphZ<T>::gfz_Polygon(const int32_t *points, size_t num_points) const {
 }
 
 template<typename T>
-void GraphZ<T>::gfz_Polygon_NoClip(const int32_t *points, size_t num_points) const {
+void GraphZ<T>::gfz_Polygon_NoClip(const ti_int *points, size_t num_points) const {
     if (num_points < 2) {
         return;
     }

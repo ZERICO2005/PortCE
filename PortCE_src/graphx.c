@@ -1,3 +1,4 @@
+#if 0
 /**
 * @file
 *
@@ -2075,3 +2076,4 @@ uint8_t *gfx_TilePtrMapped(const gfx_tilemap_t *tilemap, uint8_t col, uint8_t ro
 
 
 //------------------------------------------------------------------------------
+#endif

@@ -13,20 +13,16 @@
 #define lcd_BGR16bit 0x92D
 
 struct GraphY_Type {
-    using region = gfy_region_t;
-    using sprite = gfy_sprite_t;
-    using rletsprite = gfy_rletsprite_t;
-    using tilemap_type = gfy_tilemap_type_t;
-    using tilemap = gfy_tilemap_t;
-    using mode = gfy_mode_t;
-    using location = gfy_location_t;
-    using text_options = gfy_text_options_t;
+    // using region = gfy_region_t;
+    // using sprite = gfy_sprite_t;
+    // using rletsprite = gfy_rletsprite_t;
+    // using tilemap = gfy_tilemap_t;
 };
 
 typedef GraphZ<GraphY_Type> GraphY;
 
 template<>
-void GraphY::gfz_SetPixel_NoClip(ti_unsigned_int x, uint8_t y, uint8_t color) {
+void GraphY::gfz_SetPixel_NoClip(ti_unsigned_int x, uint8_t y, uint8_t color) const {
     if (x < GFY_LCD_WIDTH && y < GFY_LCD_HEIGHT) {
         ((uint8_t*)RAM_ADDRESS(CurrentBuffer))[(uint24_t)x + (y * GFY_LCD_WIDTH)] = color;
     }
@@ -51,7 +47,9 @@ gfy_sprite_t *gfy_AllocSprite(
     uint8_t height,
     void *(*malloc_routine)(size_t)
 ) {
-    return lib.gfz_AllocSprite(width, height, malloc_routine);
+    return reinterpret_cast<gfy_sprite_t*>(
+        lib.gfz_AllocSprite(width, height, malloc_routine)
+    );
 }
 
 void gfy_Tilemap(
@@ -60,9 +58,8 @@ void gfy_Tilemap(
     ti_unsigned_int y_offset
 ) {
     lib.gfz_Tilemap(
-        tilemap,
-        static_cast<uint32_t>(x_offset),
-        static_cast<uint32_t>(y_offset)
+        reinterpret_cast<const gfz_tilemap_t*>(tilemap),
+        x_offset, y_offset
     );
 }
 
@@ -72,9 +69,8 @@ void gfy_Tilemap_NoClip(
     ti_unsigned_int y_offset
 ) {
     lib.gfz_Tilemap_NoClip(
-        tilemap,
-        static_cast<uint32_t>(x_offset),
-        static_cast<uint32_t>(y_offset)
+        reinterpret_cast<const gfz_tilemap_t*>(tilemap),
+        x_offset, y_offset
     );
 }
 
@@ -84,9 +80,8 @@ void gfy_TransparentTilemap(
     ti_unsigned_int y_offset
 ) {
     lib.gfz_TransparentTilemap(
-        tilemap,
-        static_cast<uint32_t>(x_offset),
-        static_cast<uint32_t>(y_offset)
+        reinterpret_cast<const gfz_tilemap_t*>(tilemap),
+        x_offset, y_offset
     );
 }
 
@@ -96,9 +91,8 @@ void gfy_TransparentTilemap_NoClip(
     ti_unsigned_int y_offset
 ) {
     lib.gfz_TransparentTilemap_NoClip(
-        tilemap,
-        static_cast<uint32_t>(x_offset),
-        static_cast<uint32_t>(y_offset)
+        reinterpret_cast<const gfz_tilemap_t*>(tilemap),
+        x_offset, y_offset
     );
 }
 
@@ -107,7 +101,10 @@ uint8_t *gfy_TilePtr(
     ti_unsigned_int x_offset,
     ti_unsigned_int y_offset
 ) {
-    return lib.gfz_TilePtr(tilemap, static_cast<uint32_t>(x_offset), y_offset);
+    return lib.gfz_TilePtr(
+        reinterpret_cast<const gfz_tilemap_t*>(tilemap),
+        x_offset, y_offset
+    );
 }
 
 uint8_t *gfy_TilePtrMapped(
@@ -115,7 +112,10 @@ uint8_t *gfy_TilePtrMapped(
     uint8_t col,
     uint8_t row
 ) {
-    return lib.gfz_TilePtrMapped(tilemap, col, row);
+    return lib.gfz_TilePtrMapped(
+        reinterpret_cast<const gfz_tilemap_t*>(tilemap),
+        col, row
+    );
 }
 
 uint8_t gfy_SetColor(uint8_t index) {
@@ -127,7 +127,7 @@ uint8_t gfy_SetTransparentColor(uint8_t index) {
 }
 
 void gfy_SetDefaultPalette(gfy_mode_t mode) {
-    lib.gfz_SetDefaultPalette(mode);
+    lib.gfz_SetDefaultPalette(static_cast<gfz_mode_t>(mode));
 }
 
 void gfy_SetPalette(const void *palette, size_t size, uint8_t offset) {
@@ -143,169 +143,118 @@ void gfy_ZeroScreen(void) {
 }
 
 void gfy_SetPixel(ti_unsigned_int x, uint8_t y) {
-    lib.gfz_SetPixel(static_cast<uint32_t>(x), y);
+    lib.gfz_SetPixel(x, y);
 }
 
 uint8_t gfy_GetPixel(ti_unsigned_int x, uint8_t y) {
-    return lib.gfz_GetPixel(static_cast<uint32_t>(x), y);
+    return lib.gfz_GetPixel(x, y);
 }
 
 void gfy_Line(
-    ti_int x0,ti_int y0,
+    ti_int x0, ti_int y0,
     ti_int x1, ti_int y1
 ) {
-    lib.gfz_Line(
-        static_cast<int32_t>(x0), static_cast<int32_t>(y0),
-        static_cast<int32_t>(x1), static_cast<int32_t>(y1)
-    );
+    lib.gfz_Line(x0, y0, x1, y1);
 }
 
 void gfy_Line_NoClip(
     ti_unsigned_int x0, uint8_t y0,
     ti_unsigned_int x1, uint8_t y1
 ) {
-    lib.gfz_Line_NoClip(
-        static_cast<uint32_t>(x0), y0,
-        static_cast<uint32_t>(x1), y1
-    );
+    lib.gfz_Line_NoClip(x0, y0, x1, y1);
 }
 
 void gfy_HorizLine(ti_int x, ti_int y, ti_int length) {
-    lib.gfz_HorizLine(
-        static_cast<int32_t>(x), static_cast<int32_t>(y),
-        static_cast<int32_t>(length)
-    );
+    lib.gfz_HorizLine(x, y, length);
 }
 
 void gfy_HorizLine_NoClip(ti_unsigned_int x, uint8_t y, ti_unsigned_int length) {
-    lib.gfz_HorizLine_NoClip(
-        static_cast<uint32_t>(x), y,
-        static_cast<uint32_t>(length)
-    );
+    lib.gfz_HorizLine_NoClip(x, y, length);
 }
 
 void gfy_VertLine(ti_int x, ti_int y, ti_int length) {
-    lib.gfz_VertLine(
-        static_cast<int32_t>(x), static_cast<int32_t>(y),
-        static_cast<int32_t>(length)
-    );
+    lib.gfz_VertLine(x, y, length);
 }
 
 void gfy_VertLine_NoClip(ti_unsigned_int x, uint8_t y, ti_unsigned_int length) {
-    lib.gfz_VertLine_NoClip(
-        static_cast<uint32_t>(x), y,
-        static_cast<uint32_t>(length)
-    );
+    lib.gfz_VertLine_NoClip(x, y, length);
 }
 
 void gfy_Rectangle(
     ti_int x, ti_int y,
     ti_int width, ti_int height
 ) {
-    lib.gfz_Rectangle(
-        static_cast<int32_t>(x), static_cast<int32_t>(y),
-        static_cast<int32_t>(width), static_cast<int32_t>(height)
-    );
+    lib.gfz_Rectangle(x, y, width, height);
 }
 
 void gfy_Rectangle_NoClip(
     ti_unsigned_int x, uint8_t y,
     ti_unsigned_int width, uint8_t height
 ) {
-    lib.gfz_Rectangle_NoClip(
-        static_cast<uint32_t>(x), y,
-        static_cast<uint32_t>(width), height
-    );
+    lib.gfz_Rectangle_NoClip(x, y, width, height);
 }
 
 void gfy_FillRectangle(
     ti_int x, ti_int y,
     ti_int width, ti_int height
 ) {
-    lib.gfz_FillRectangle(
-        static_cast<int32_t>(x), static_cast<int32_t>(y),
-        static_cast<int32_t>(width), static_cast<int32_t>(height)
-    );
+    lib.gfz_FillRectangle(x, y, width, height);
 }
 
 void gfy_FillRectangle_NoClip(
     ti_unsigned_int x, uint8_t y,
     ti_unsigned_int width, uint8_t height
 ) {
-    lib.gfz_FillRectangle_NoClip(
-        static_cast<uint32_t>(x), y,
-        static_cast<uint32_t>(width), height
-    );
+    lib.gfz_FillRectangle_NoClip(x, y, width, height);
 }
 
 void gfy_Circle(
     ti_int x, ti_int y,
     ti_unsigned_int radius
 ) {
-    lib.gfz_Circle(
-        static_cast<int32_t>(x), static_cast<int32_t>(y),
-        static_cast<uint32_t>(radius)
-    );
+    lib.gfz_Circle(x, y, radius);
 }
 
 void gfy_FillCircle(
     ti_int x, ti_int y,
     ti_unsigned_int radius
 ) {
-    lib.gfz_FillCircle(
-        static_cast<int32_t>(x), static_cast<int32_t>(y),
-        static_cast<uint32_t>(radius)
-    );
+    lib.gfz_FillCircle(x, y, radius);
 }
 
 void gfy_FillCircle_NoClip(
     ti_unsigned_int x, uint8_t y,
     ti_unsigned_int radius
 ) {
-    lib.gfz_FillCircle_NoClip(
-        static_cast<uint32_t>(x), y,
-        static_cast<uint32_t>(radius)
-    );
+    lib.gfz_FillCircle_NoClip(x, y, radius);
 }
 
 void gfy_FillEllipse_NoClip(
     ti_unsigned_int x, ti_unsigned_int y,
     uint8_t a, uint8_t b
 ) {
-    lib.gfz_FillEllipse_NoClip(
-        static_cast<uint32_t>(x), static_cast<uint32_t>(y),
-        a, b
-    );
+    lib.gfz_FillEllipse_NoClip(x, y, a, b);
 }
 
 void gfy_FillEllipse(
     ti_int x, ti_int y,
     ti_unsigned_int a, ti_unsigned_int b
 ) {
-    lib.gfz_FillEllipse(
-        static_cast<int32_t>(x), static_cast<int32_t>(y),
-        static_cast<uint32_t>(a), static_cast<uint32_t>(b)
-    );
+    lib.gfz_FillEllipse(x, y, a, b);
 }
 
 void gfy_Ellipse_NoClip(
     ti_unsigned_int x, ti_unsigned_int y,
     uint8_t a, uint8_t b
 ) {
-    lib.gfz_Ellipse_NoClip(
-        static_cast<uint32_t>(x), static_cast<uint32_t>(y),
-        a, b
-    );
+    lib.gfz_Ellipse_NoClip(x, y, a, b);
 }
 
 void gfy_Ellipse(
     ti_int x, ti_int y,
     ti_unsigned_int a, ti_unsigned_int b
 ) {
-    lib.gfz_Ellipse(
-        static_cast<int32_t>(x), static_cast<int32_t>(y),
-        static_cast<uint32_t>(a), static_cast<uint32_t>(b)
-    );
+    lib.gfz_Ellipse(x, y, a, b);
 }
 
 void gfy_Polygon(const ti_int *points, size_t num_points) {
@@ -322,9 +271,9 @@ void gfy_FillTriangle(
     ti_int x2, ti_int y2
 ) {
     lib.gfz_FillTriangle(
-        static_cast<int32_t>(x0), static_cast<int32_t>(y0),
-        static_cast<int32_t>(x1), static_cast<int32_t>(y1),
-        static_cast<int32_t>(x2), static_cast<int32_t>(y2)
+        x0, y0,
+        x1, y1,
+        x2, y2
     );
 }
 
@@ -334,9 +283,9 @@ void gfy_FillTriangle_NoClip(
     ti_int x2, ti_int y2
 ) {
     lib.gfz_FillTriangle_NoClip(
-        static_cast<int32_t>(x0), static_cast<int32_t>(y0),
-        static_cast<int32_t>(x1), static_cast<int32_t>(y1),
-        static_cast<int32_t>(x2), static_cast<int32_t>(y2)
+        x0, y0,
+        x1, y1,
+        x2, y2
     );
 }
 
@@ -357,11 +306,11 @@ void gfy_Wait(void) {
 }
 
 void gfy_Blit(gfy_location_t src) {
-    lib.gfz_Blit(src);
+    lib.gfz_Blit(static_cast<gfz_location_t>(src));
 }
 
 void gfy_BlitColumns(gfy_location_t src, uint8_t y_loc, uint8_t num_lines) {
-    lib.gfz_BlitColumns(src, y_loc, num_lines);
+    lib.gfz_BlitColumns(static_cast<gfz_location_t>(src), y_loc, num_lines);
 }
 
 void gfy_BlitRectangle(
@@ -370,11 +319,9 @@ void gfy_BlitRectangle(
     ti_unsigned_int width, ti_unsigned_int height
 ) {
     lib.gfz_BlitRectangle(
-        src,
-        static_cast<uint32_t>(x),
-        y,
-        static_cast<uint32_t>(width),
-        static_cast<uint32_t>(height)
+        static_cast<gfz_location_t>(src),
+        x, y,
+        width, height
     );
 }
 
@@ -385,10 +332,10 @@ void gfy_CopyRectangle(
     ti_unsigned_int width, uint8_t height
 ) {
     lib.gfz_CopyRectangle(
-        src, dst,
-        static_cast<uint32_t>(src_x), src_y,
-        static_cast<uint32_t>(dst_x), dst_y,
-        static_cast<uint32_t>(width), height
+        static_cast<gfz_location_t>(src), static_cast<gfz_location_t>(dst),
+        src_x, src_y,
+        dst_x, dst_y,
+        width, height
     );
 }
 
@@ -415,7 +362,7 @@ void gfy_PrintString(const char *string) {
 void gfy_PrintStringXY(const char *string, ti_int x, ti_int y) {
     lib.gfz_PrintStringXY(
         string,
-        static_cast<int32_t>(x), static_cast<int32_t>(y)
+        x, y
     );
 }
 
@@ -428,7 +375,7 @@ ti_int gfy_GetTextY(void) {
 }
 
 void gfy_SetTextXY(ti_int x, ti_int y) {
-    lib.gfz_SetTextXY(static_cast<int32_t>(x), static_cast<int32_t>(y));
+    lib.gfz_SetTextXY(x, y);
 }
 
 void gfy_SetTextConfig(uint8_t config) {
@@ -452,8 +399,8 @@ void gfy_Sprite(
     ti_int x, ti_int y
 ) {
     lib.gfz_Sprite(
-        sprite,
-        static_cast<int32_t>(x), static_cast<int32_t>(y)
+        reinterpret_cast<const gfz_sprite_t*>(sprite),
+        x, y
     );
 }
 
@@ -462,8 +409,8 @@ void gfy_Sprite_NoClip(
     ti_unsigned_int x, uint8_t y
 ) {
     lib.gfz_Sprite_NoClip(
-        sprite,
-        static_cast<uint32_t>(x), y
+        reinterpret_cast<const gfz_sprite_t*>(sprite),
+        x, y
     );
 }
 
@@ -472,8 +419,8 @@ void gfy_TransparentSprite(
     ti_int x, ti_int y
 ) {
     lib.gfz_TransparentSprite(
-        sprite,
-        static_cast<int32_t>(x), static_cast<int32_t>(y)
+        reinterpret_cast<const gfz_sprite_t*>(sprite),
+        x, y
     );
 }
 
@@ -482,8 +429,8 @@ void gfy_TransparentSprite_NoClip(
     ti_unsigned_int x,uint8_t y
 ) {
     lib.gfz_TransparentSprite_NoClip(
-        sprite,
-        static_cast<uint32_t>(x), y
+        reinterpret_cast<const gfz_sprite_t*>(sprite),
+        x, y
     );
 }
 
@@ -491,9 +438,11 @@ gfy_sprite_t *gfy_GetSprite(
     gfy_sprite_t *sprite_buffer,
     ti_int x, ti_int y
 ) {
-    return lib.gfz_GetSprite(
-        sprite_buffer,
-        static_cast<int32_t>(x), static_cast<int32_t>(y)
+    return reinterpret_cast<gfy_sprite_t*>(
+        lib.gfz_GetSprite(
+            reinterpret_cast<gfz_sprite_t*>(sprite_buffer),
+            x, y
+        )
     );
 }
 
@@ -503,8 +452,8 @@ void gfy_ScaledSprite_NoClip(
     uint8_t width_scale, uint8_t height_scale
 ) {
     lib.gfz_ScaledSprite_NoClip(
-        sprite,
-        static_cast<uint32_t>(x), y,
+        reinterpret_cast<const gfz_sprite_t*>(sprite),
+        x, y,
         width_scale, height_scale
     );
 }
@@ -515,8 +464,8 @@ void gfy_ScaledTransparentSprite_NoClip(
     uint8_t width_scale, uint8_t height_scale
 ) {
     lib.gfz_ScaledTransparentSprite_NoClip(
-        sprite,
-        static_cast<uint32_t>(x), y,
+        reinterpret_cast<const gfz_sprite_t*>(sprite),
+        x, y,
         width_scale, height_scale
     );
 }
@@ -527,8 +476,8 @@ uint8_t gfy_RotatedScaledTransparentSprite_NoClip(
     uint8_t angle, uint8_t scale
 ) {
     return lib.gfz_RotatedScaledTransparentSprite_NoClip(
-        sprite,
-        static_cast<uint32_t>(x), y,
+        reinterpret_cast<const gfz_sprite_t*>(sprite),
+        x, y,
         angle, scale
     );
 }
@@ -539,8 +488,8 @@ uint8_t gfy_RotatedScaledSprite_NoClip(
     uint8_t angle, uint8_t scale
 ) {
     return lib.gfz_RotatedScaledSprite_NoClip(
-        sprite,
-        static_cast<uint32_t>(x), y,
+        reinterpret_cast<const gfz_sprite_t*>(sprite),
+        x, y,
         angle, scale
     );
 }
@@ -551,8 +500,8 @@ uint8_t gfy_RotatedScaledTransparentSprite(
     uint8_t angle, uint8_t scale
 ) {
     return lib.gfz_RotatedScaledTransparentSprite(
-        sprite,
-        static_cast<int32_t>(x), static_cast<int32_t>(y),
+        reinterpret_cast<const gfz_sprite_t*>(sprite),
+        x, y,
         angle, scale
     );
 }
@@ -563,8 +512,8 @@ uint8_t gfy_RotatedScaledSprite(
     uint8_t angle, uint8_t scale
 ) {
     return lib.gfz_RotatedScaledSprite(
-        sprite,
-        static_cast<int32_t>(x), static_cast<int32_t>(y),
+        reinterpret_cast<const gfz_sprite_t*>(sprite),
+        x, y,
         angle, scale
     );
 }
@@ -573,42 +522,72 @@ gfy_sprite_t *gfy_FlipSpriteX(
     const gfy_sprite_t *__restrict sprite_in,
     gfy_sprite_t *__restrict sprite_out
 ) {
-    return lib.gfz_FlipSpriteX(sprite_in, sprite_out);
+    return reinterpret_cast<gfy_sprite_t*>(
+        lib.gfz_FlipSpriteX(
+            reinterpret_cast<const gfz_sprite_t *__restrict>(sprite_in),
+            reinterpret_cast<gfz_sprite_t *__restrict>(sprite_out)
+        )
+    );
 }
 
 gfy_sprite_t *gfy_FlipSpriteY(
     const gfy_sprite_t *__restrict sprite_in,
     gfy_sprite_t *__restrict sprite_out
 ) {
-    return lib.gfz_FlipSpriteY(sprite_in, sprite_out);
+    return reinterpret_cast<gfy_sprite_t*>(
+        lib.gfz_FlipSpriteY(
+            reinterpret_cast<const gfz_sprite_t *__restrict>(sprite_in),
+            reinterpret_cast<gfz_sprite_t *__restrict>(sprite_out)
+        )
+    );
 }
 
 gfy_sprite_t *gfy_RotateSpriteC(
     const gfy_sprite_t *__restrict sprite_in,
     gfy_sprite_t *__restrict sprite_out
 ) {
-    return lib.gfz_RotateSpriteC(sprite_in, sprite_out);
+    return reinterpret_cast<gfy_sprite_t*>(
+        lib.gfz_RotateSpriteC(
+            reinterpret_cast<const gfz_sprite_t *__restrict>(sprite_in),
+            reinterpret_cast<gfz_sprite_t *__restrict>(sprite_out)
+        )
+    );
 }
 
 gfy_sprite_t *gfy_RotateSpriteCC(
     const gfy_sprite_t *__restrict sprite_in,
     gfy_sprite_t *__restrict sprite_out
 ) {
-    return lib.gfz_RotateSpriteCC(sprite_in, sprite_out);
+    return reinterpret_cast<gfy_sprite_t*>(
+        lib.gfz_RotateSpriteCC(
+            reinterpret_cast<const gfz_sprite_t *__restrict>(sprite_in),
+            reinterpret_cast<gfz_sprite_t *__restrict>(sprite_out)
+        )
+    );
 }
 
 gfy_sprite_t *gfy_RotateSpriteHalf(
     const gfy_sprite_t *__restrict sprite_in,
     gfy_sprite_t *__restrict sprite_out
 ) {
-    return lib.gfz_RotateSpriteHalf(sprite_in, sprite_out);
+    return reinterpret_cast<gfy_sprite_t*>(
+        lib.gfz_RotateSpriteHalf(
+            reinterpret_cast<const gfz_sprite_t *__restrict>(sprite_in),
+            reinterpret_cast<gfz_sprite_t *__restrict>(sprite_out)
+        )
+    );
 }
 
 gfy_sprite_t *gfy_ScaleSprite(
     const gfy_sprite_t *__restrict sprite_in,
     gfy_sprite_t *__restrict sprite_out
 ) {
-    return lib.gfz_ScaleSprite(sprite_in, sprite_out);
+    return reinterpret_cast<gfy_sprite_t*>(
+        lib.gfz_ScaleSprite(
+            reinterpret_cast<const gfz_sprite_t *__restrict>(sprite_in),
+            reinterpret_cast<gfz_sprite_t *__restrict>(sprite_out)
+        )
+    );
 }
 
 gfy_sprite_t *gfy_RotateScaleSprite(
@@ -617,11 +596,17 @@ gfy_sprite_t *gfy_RotateScaleSprite(
     uint8_t angle,
     uint8_t scale
 ) {
-    return lib.gfz_RotateScaleSprite(sprite_in, sprite_out, angle, scale);
+    return reinterpret_cast<gfy_sprite_t*>(
+        lib.gfz_RotateScaleSprite(
+            reinterpret_cast<const gfz_sprite_t *__restrict>(sprite_in),
+            reinterpret_cast<gfz_sprite_t *__restrict>(sprite_out),
+            angle, scale
+        )
+    );
 }
 
 gfy_sprite_t *gfy_GetSpriteChar(char c) {
-    return lib.gfz_GetSpriteChar(c);
+    return reinterpret_cast<gfy_sprite_t*>(lib.gfz_GetSpriteChar(c));
 }
 
 uint8_t *gfy_SetFontData(const uint8_t *data) {
@@ -653,16 +638,11 @@ ti_unsigned_int gfy_GetCharWidth(const char c) {
 }
 
 void gfy_SetClipRegion(ti_int xmin, ti_int ymin, ti_int xmax, ti_int ymax) {
-    lib.gfz_SetClipRegion(
-        static_cast<int32_t>(xmin),
-        static_cast<int32_t>(ymin),
-        static_cast<int32_t>(xmax),
-        static_cast<int32_t>(ymax)
-    );
+    lib.gfz_SetClipRegion(xmin, ymin, xmax, ymax);
 }
 
 bool gfy_GetClipRegion(gfy_region_t *region) {
-    return lib.gfz_GetClipRegion(region);
+    return lib.gfz_GetClipRegion(reinterpret_cast<gfz_region_t*>(region));
 }
 
 void gfy_ShiftDown(uint8_t pixels) {
@@ -674,11 +654,11 @@ void gfy_ShiftUp(uint8_t pixels) {
 }
 
 void gfy_ShiftLeft(ti_unsigned_int pixels) {
-    lib.gfz_ShiftLeft(static_cast<uint32_t>(pixels));
+    lib.gfz_ShiftLeft(pixels);
 }
 
 void gfy_ShiftRight(ti_unsigned_int pixels) {
-    lib.gfz_ShiftRight(static_cast<uint32_t>(pixels));
+    lib.gfz_ShiftRight(pixels);
 }
 
 uint16_t gfy_Lighten(uint16_t color, uint8_t amount) {
@@ -690,7 +670,7 @@ uint16_t gfy_Darken(uint16_t color, uint8_t amount) {
 }
 
 void gfy_FloodFill(ti_unsigned_int x, uint8_t y, uint8_t color) {
-    lib.gfz_FloodFill(static_cast<uint32_t>(x), y, color);
+    lib.gfz_FloodFill(x, y, color);
 }
 
 void gfy_RLETSprite(
@@ -698,8 +678,8 @@ void gfy_RLETSprite(
     ti_int x, ti_int y
 ) {
     lib.gfz_RLETSprite(
-        sprite,
-        static_cast<int32_t>(x), static_cast<int32_t>(y)
+        reinterpret_cast<const gfz_rletsprite_t*>(sprite),
+        x, y
     );
 }
 
@@ -708,8 +688,8 @@ void gfy_RLETSprite_NoClip(
     ti_unsigned_int x, uint8_t y
 ) {
     lib.gfz_RLETSprite_NoClip(
-        sprite,
-        static_cast<uint32_t>(x), y
+        reinterpret_cast<const gfz_rletsprite_t*>(sprite),
+        x, y
     );
 }
 
@@ -717,21 +697,36 @@ gfy_sprite_t *gfy_ConvertFromRLETSprite(
     const gfy_rletsprite_t *sprite_in,
     gfy_sprite_t *sprite_out
 ) {
-    return lib.gfz_ConvertFromRLETSprite(sprite_in, sprite_out);
+    return reinterpret_cast<gfy_sprite_t*>(
+        lib.gfz_ConvertFromRLETSprite(
+            reinterpret_cast<const gfz_rletsprite_t *__restrict>(sprite_in),
+            reinterpret_cast<gfz_sprite_t *__restrict>(sprite_out)
+        )
+    );
 }
 
 gfy_rletsprite_t *gfy_ConvertToRLETSprite(
     const gfy_sprite_t *sprite_in,
     gfy_rletsprite_t *sprite_out
 ) {
-    return lib.gfz_ConvertToRLETSprite(sprite_in, sprite_out);
+    return reinterpret_cast<gfy_rletsprite_t*>(
+        lib.gfz_ConvertToRLETSprite(
+            reinterpret_cast<const gfz_sprite_t *__restrict>(sprite_in),
+            reinterpret_cast<gfz_rletsprite_t *__restrict>(sprite_out)
+        )
+    );
 }
 
 gfy_rletsprite_t *gfy_ConvertToNewRLETSprite(
     const gfy_sprite_t *sprite_in,
     void *(*malloc_routine)(size_t)
 ) {
-    return lib.gfz_ConvertToNewRLETSprite(sprite_in, malloc_routine);
+    return reinterpret_cast<gfy_rletsprite_t*>(
+        lib.gfz_ConvertToNewRLETSprite(
+            reinterpret_cast<const gfz_sprite_t*>(sprite_in),
+            malloc_routine
+        )
+    );
 }
 
 //------------------------------------------------------------------------------

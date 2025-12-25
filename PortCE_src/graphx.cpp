@@ -13,14 +13,10 @@
 #define lcd_BGR16bit 0x92D
 
 struct GraphX_Type {
-    using region = gfx_region_t;
-    using sprite = gfx_sprite_t;
-    using rletsprite = gfx_rletsprite_t;
-    using tilemap_type = gfx_tilemap_type_t;
-    using tilemap = gfx_tilemap_t;
-    using mode = gfx_mode_t;
-    using location = gfx_location_t;
-    using text_options = gfx_text_options_t;
+    // using region = gfx_region_t;
+    // using sprite = gfx_sprite_t;
+    // using rletsprite = gfx_rletsprite_t;
+    // using tilemap = gfx_tilemap_t;
 };
 
 typedef GraphZ<GraphX_Type> GraphX;

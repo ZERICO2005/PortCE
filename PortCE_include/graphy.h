@@ -1,7 +1,7 @@
 /**
  * @file
  *
- * The below example template shows the best graphx buffer usage pattern:
+ * The below example template shows the best graphy buffer usage pattern:
  * @code{.cpp}
  * // Standard #includes omitted
  *
@@ -38,8 +38,8 @@
  *          "grosged"
  */
 
-#ifndef GRAPHX_H
-#define GRAPHX_H
+#ifndef GRAPHY_H
+#define GRAPHY_H
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -199,13 +199,13 @@ typedef enum {
 /**
  * Number of pixels wide the screen is.
  */
-#define GFX_LCD_WIDTH \
+#define GFY_LCD_WIDTH \
 (320)
 
 /**
  * Number of pixels high the screen is.
  */
-#define GFX_LCD_HEIGHT \
+#define GFY_LCD_HEIGHT \
 (240)
 
 /**
@@ -612,14 +612,14 @@ gfy_ConvertToNewRLETSprite(sprite_in, malloc)
     })
 
 /**
- * Initializes the `graphx` library context.
+ * Initializes the `graphy` library context.
  *
- * This function should be called before any other `graphx` library routines.
+ * This function should be called before any other `graphy` library routines.
  */
 void gfy_Begin(void);
 
 /**
- * Ends the `graphx` library context.
+ * Ends the `graphy` library context.
  *
  * Restores the LCD to 16bpp and clears the screen.
  * 16bpp is used by the OS, so if you don't call this, the screen will look
@@ -1083,7 +1083,7 @@ uint8_t gfy_GetDraw(void);
  * Swaps the roles of the screen and drawing buffers.
  *
  * Does not wait for the old screen buffer to finish being displayed. Instead,
- * the next invocation of a graphx drawing function will block, (pause program
+ * the next invocation of a graphy drawing function will block, (pause program
  * execution) waiting for this event. To block and wait explicitly, use gfy_Wait().
  *
  * The LCD driver maintains its own screen buffer pointer for the duration of a
@@ -1092,7 +1092,7 @@ uint8_t gfy_GetDraw(void);
  *
  * @remarks
  * In practice, this function should be invoked immediately after finishing
- * drawing a frame to the drawing buffer, and invocation of the first graphx
+ * drawing a frame to the drawing buffer, and invocation of the first graphy
  * drawing function for the next frame should be scheduled as late as possible
  * relative to non-drawing logic. Non-drawing logic can execute during time when
  * a drawing function may otherwise block.
@@ -1872,4 +1872,4 @@ gfy_rletsprite_t *gfy_ConvertToNewRLETSprite(const gfy_sprite_t *sprite_in,
 }
 #endif
 
-#endif /* GRAPHX_H */
+#endif /* GRAPHY_H */

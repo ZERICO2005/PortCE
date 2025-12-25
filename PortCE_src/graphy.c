@@ -1,3 +1,4 @@
+#if 0
 /**
 * @file
 *
@@ -3184,5 +3185,7 @@ void gfy_FillEllipse_NoClip(uint24_t x, uint24_t y, uint8_t a, uint8_t b) {
 }
 
 #ifdef __cplusplus
+
+#endif
 
 #endif

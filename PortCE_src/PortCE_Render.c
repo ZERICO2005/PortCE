@@ -439,7 +439,7 @@ uint16_t os_GetKey(void) {
     return ((uint16_t)os_KbdGetKy | ((uint16_t)os_KeyExtend << 8));
 }
 
-static void blit16bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
+static void blit16bpp(uint32_t* dst_buf, const uint8_t* src_buf, bool column_major) {
     uint32_t* PreCalc16;
     uint16_t colorMode = (lcd_VideoMode & LCD_MASK_BBP);
     switch (colorMode) {
@@ -461,30 +461,30 @@ static void blit16bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
         for (uint32_t x = 0; x < LCD_RESX; x++) {
             uint32_t c = (uint32_t)((const uint16_t*)src_buf)[z];
             dst_buf[w] = PreCalc16[c]; w++;
-            z += PortCE_query_column_major() ? LCD_RESY : 1;
+            z += column_major ? LCD_RESY : 1;
         }
-        z -= PortCE_query_column_major() ? ((LCD_RESX * LCD_RESY) - 1) : 0;
+        z -= column_major ? ((LCD_RESX * LCD_RESY) - 1) : 0;
     }
 }
 
-static void blit8bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
+static void blit8bpp(uint32_t* dst_buf, const uint8_t* src_buf, bool column_major) {
     size_t w = 0;
     size_t z = 0;
     for (uint32_t y = 0; y < (uint32_t)LCD_RESY; y++) {
         for (uint32_t x = 0; x < (uint32_t)LCD_RESX; x++) {
             uint8_t c = src_buf[z];
             dst_buf[w] = color_LUT[c]; w++;
-            z += PortCE_query_column_major() ? LCD_RESY : 1;
+            z += column_major ? LCD_RESY : 1;
         }
-        z -= PortCE_query_column_major() ? ((LCD_RESX * LCD_RESY) - 1) : 0;
+        z -= column_major ? ((LCD_RESX * LCD_RESY) - 1) : 0;
     }
 }
 
-static void blit4bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
+static void blit4bpp(uint32_t* dst_buf, const uint8_t* src_buf, bool column_major) {
     const uint32_t PixelsPerByte = 2;
     size_t w = 0;
     size_t z = 0;
-    if (PortCE_query_column_major() == false) {
+    if (column_major == false) {
         for (uint32_t y = 0; y < LCD_RESY; y++) {
             for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
                 uint8_t c = src_buf[z];
@@ -510,11 +510,11 @@ static void blit4bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
     }
 }
 
-static void blit2bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
+static void blit2bpp(uint32_t* dst_buf, const uint8_t* src_buf, bool column_major) {
     const uint32_t PixelsPerByte = 4;
     size_t w = 0;
     size_t z = 0;
-    if (PortCE_query_column_major() == false) {
+    if (column_major == false) {
         for (uint32_t y = 0; y < LCD_RESY; y++) {
             for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
                 uint8_t c = src_buf[z];
@@ -542,11 +542,11 @@ static void blit2bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
     }
 }
 
-static void blit1bpp(uint32_t* dst_buf, const uint8_t* src_buf) {
+static void blit1bpp(uint32_t* dst_buf, const uint8_t* src_buf, bool column_major) {
     const uint32_t PixelsPerByte = 8;
     size_t w = 0;
     size_t z = 0;
-    if (PortCE_query_column_major() == false) {
+    if (column_major == false) {
         for (uint32_t y = 0; y < LCD_RESY; y++) {
             for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
                 uint8_t c = src_buf[z];
@@ -721,6 +721,7 @@ void copyFrame(uint32_t* data) {
 
     memcpy(videoCopy,((uint8_t*)&simulated_ram[(0xD00000 | (lcd_UpBase & (0xFFFF << 3)))]),copyAmount);
 
+    bool column_major = PortCE_query_column_major();
 
     // Tests BGR bit
     if (lcd_VideoMode & LCD_MASK_BGR) {
@@ -770,28 +771,28 @@ void copyFrame(uint32_t* data) {
     }
     switch (colorMode) {
         case LCD_MASK_INDEXED1:
-            blit1bpp(data, videoCopy);
+            blit1bpp(data, videoCopy, column_major);
         break;
         case LCD_MASK_INDEXED2:
-            blit2bpp(data, videoCopy);
+            blit2bpp(data, videoCopy, column_major);
         break;
         case LCD_MASK_INDEXED4:
-            blit4bpp(data, videoCopy);
+            blit4bpp(data, videoCopy, column_major);
         break;
         case LCD_MASK_INDEXED8:
-            blit8bpp(data, videoCopy);
+            blit8bpp(data, videoCopy, column_major);
         break;
         case LCD_MASK_COLOR1555:
-            blit16bpp(data, videoCopy);
+            blit16bpp(data, videoCopy, column_major);
         break;
         case LCD_MASK_COLOR565:
-            blit16bpp(data, videoCopy);
+            blit16bpp(data, videoCopy, column_major);
         break;
         case LCD_MASK_COLOR444:
-            blit16bpp(data, videoCopy);
+            blit16bpp(data, videoCopy, column_major);
         break;
         default:
-            blit16bpp(data, videoCopy);
+            blit16bpp(data, videoCopy, column_major);
     };
     renderCursor(data);
     if (PortCE_color_idle_mode) {

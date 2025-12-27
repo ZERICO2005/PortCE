@@ -1,23 +1,6 @@
 #ifndef LIB_GRAPHX_HPP
 #define LIB_GRAPHX_HPP
 
-#include <PortCE.h>
-
-#include <graphx.h>
-
-#include "graphz.hpp"
-#include "graphx_data.h"
-
-struct GraphX_Type {};
-
-typedef GraphZ<GraphX_Type> GraphX;
-
-static GraphX lib("graphx", gfx_DefaultCharSpacing, gfx_DefaultTextData);
-
-//------------------------------------------------------------------------------
-// Wrapper Functions
-//------------------------------------------------------------------------------
-
 void gfx_Begin(void) {
     lib.gfz_Begin();
 }
@@ -293,8 +276,8 @@ void gfx_Blit(gfx_location_t src) {
     lib.gfz_Blit(static_cast<gfz_location_t>(src));
 }
 
-void gfx_BlitColumns(gfx_location_t src, uint8_t y_loc, uint8_t num_lines) {
-    lib.gfz_BlitColumns(static_cast<gfz_location_t>(src), y_loc, num_lines);
+void gfx_BlitRows(gfx_location_t src, uint8_t y_loc, uint8_t num_rows) {
+    lib.gfz_BlitRows(static_cast<gfz_location_t>(src), y_loc, num_rows);
 }
 
 void gfx_BlitRectangle(

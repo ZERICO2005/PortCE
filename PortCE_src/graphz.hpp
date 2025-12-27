@@ -83,10 +83,10 @@ typedef enum {
 } gfz_text_options_t;
 
 #define gfz_palette \
-((uint16_t*)0xE30200)
+((uint16_t*)RAM_ADDRESS(0xE30200))
 
 #define gfz_vram \
-((uint8_t*)0xD40000)
+((uint8_t*)RAM_ADDRESS(0xD40000))
 
 #define GFZ_LCD_WIDTH \
 (320)
@@ -95,7 +95,7 @@ typedef enum {
 (240)
 
 #define gfz_vbuffer \
-(**(uint8_t(**)[240][320])0xE30014)
+(**(uint8_t(**)[240][320])RAM_ADDRESS(0xE30014))
 
 #define gfz_SetDrawBuffer() \
 gfz_SetDraw(gfz_buffer)
@@ -167,7 +167,7 @@ static constexpr int8_t SinTable[65] = {
 };
 
 __attribute__((__format__(__printf__, 2, 3)))
-void print_warning(const char *format, ...) const {
+void print_warning(const char *format, ...) {
     va_list args;
     va_start(args, format);
     fprintf(stderr, "%s", library_name);
@@ -176,7 +176,7 @@ void print_warning(const char *format, ...) const {
     va_end(args);
 }
 
-void test_state(void) const {
+void test_state(void) {
     if (CharSpacing == NULL) {
         print_warning("CharSpacing is NULL");
     }
@@ -220,91 +220,91 @@ void gfz_Begin(void);
 
 void gfz_End(void);
 
-gfz_sprite_t *gfz_AllocSprite(uint8_t width, uint8_t height, void *(*malloc_routine)(size_t)) const;
+gfz_sprite_t *gfz_AllocSprite(uint8_t width, uint8_t height, void *(*malloc_routine)(size_t));
 
-void gfz_Tilemap(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset) const;
+void gfz_Tilemap(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset);
 
-void gfz_Tilemap_NoClip(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset) const;
+void gfz_Tilemap_NoClip(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset);
 
-void gfz_TransparentTilemap(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset) const;
+void gfz_TransparentTilemap(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset);
 
-void gfz_TransparentTilemap_NoClip(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset) const;
+void gfz_TransparentTilemap_NoClip(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset);
 
-uint8_t *gfz_TilePtr(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset) const;
+uint8_t *gfz_TilePtr(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset);
 
-uint8_t *gfz_TilePtrMapped(const gfz_tilemap_t *tilemap, uint8_t col, uint8_t row) const;
+uint8_t *gfz_TilePtrMapped(const gfz_tilemap_t *tilemap, uint8_t col, uint8_t row);
 
 uint8_t gfz_SetColor(uint8_t index);
 
 uint8_t gfz_SetTransparentColor(uint8_t index);
 
-void gfz_SetDefaultPalette(gfz_mode_t mode) const;
+void gfz_SetDefaultPalette(gfz_mode_t mode);
 
 void gfz_SetPalette(const void *palette, size_t size, uint8_t offset);
 
-void gfz_FillScreen(uint8_t index) const;
+void gfz_FillScreen(uint8_t index);
 
-void gfz_ZeroScreen(void) const;
+void gfz_ZeroScreen(void);
 
-void gfz_SetPixel(uint32_t x, uint8_t y) const;
+void gfz_SetPixel(uint32_t x, uint8_t y);
 
-uint8_t gfz_GetPixel(uint32_t x, uint8_t y) const;
+uint8_t gfz_GetPixel(uint32_t x, uint8_t y);
 
-void gfz_Line(int32_t x0, int32_t y0, int32_t x1, int32_t y1) const;
+void gfz_Line(int32_t x0, int32_t y0, int32_t x1, int32_t y1);
 
-void gfz_Line_NoClip(uint32_t x0, uint8_t y0, uint32_t x1, uint8_t y1) const;
+void gfz_Line_NoClip(uint32_t x0, uint8_t y0, uint32_t x1, uint8_t y1);
 
-void gfz_HorizLine(int32_t x, int32_t y, int32_t length) const;
+void gfz_HorizLine(int32_t x, int32_t y, int32_t length);
 
-void gfz_HorizLine_NoClip(uint32_t x, uint8_t y, uint32_t length) const;
+void gfz_HorizLine_NoClip(uint32_t x, uint8_t y, uint32_t length);
 
-void gfz_VertLine(int32_t x, int32_t y, int32_t length) const;
+void gfz_VertLine(int32_t x, int32_t y, int32_t length);
 
-void gfz_VertLine_NoClip(uint32_t x, uint8_t y, uint32_t length) const;
+void gfz_VertLine_NoClip(uint32_t x, uint8_t y, uint32_t length);
 
-void gfz_Rectangle(int32_t x, int32_t y, int32_t width, int32_t height) const;
+void gfz_Rectangle(int32_t x, int32_t y, int32_t width, int32_t height);
 
-void gfz_Rectangle_NoClip(uint32_t x, uint8_t y, uint32_t width, uint8_t height) const;
+void gfz_Rectangle_NoClip(uint32_t x, uint8_t y, uint32_t width, uint8_t height);
 
-void gfz_FillRectangle(int32_t x, int32_t y, int32_t width, int32_t height) const;
+void gfz_FillRectangle(int32_t x, int32_t y, int32_t width, int32_t height);
 
-void gfz_FillRectangle_NoClip(uint32_t x, uint8_t y, uint32_t width, uint8_t height) const;
+void gfz_FillRectangle_NoClip(uint32_t x, uint8_t y, uint32_t width, uint8_t height);
 
-void gfz_Circle(int32_t x, int32_t y, uint32_t radius) const;
+void gfz_Circle(int32_t x, int32_t y, uint32_t radius);
 
-void gfz_FillCircle(int32_t x, int32_t y, uint32_t radius) const;
+void gfz_FillCircle(int32_t x, int32_t y, uint32_t radius);
 
-void gfz_FillCircle_NoClip(uint32_t x, uint8_t y, uint32_t radius) const;
+void gfz_FillCircle_NoClip(uint32_t x, uint8_t y, uint32_t radius);
 
-void gfz_FillEllipse_NoClip(uint32_t x, uint32_t y, uint8_t a, uint8_t b) const;
+void gfz_FillEllipse_NoClip(uint32_t x, uint32_t y, uint8_t a, uint8_t b);
 
-void gfz_FillEllipse(int32_t x, int32_t y, uint32_t a, uint32_t b) const;
+void gfz_FillEllipse(int32_t x, int32_t y, uint32_t a, uint32_t b);
 
-void gfz_Ellipse_NoClip(uint32_t x, uint32_t y, uint8_t a, uint8_t b) const;
+void gfz_Ellipse_NoClip(uint32_t x, uint32_t y, uint8_t a, uint8_t b);
 
-void gfz_Ellipse(int32_t x, int32_t y, uint32_t a, uint32_t b) const;
+void gfz_Ellipse(int32_t x, int32_t y, uint32_t a, uint32_t b);
 
-void gfz_Polygon(const ti_int *points, size_t num_points) const;
+void gfz_Polygon(const ti_int *points, size_t num_points);
 
-void gfz_Polygon_NoClip(const ti_int *points, size_t num_points) const;
+void gfz_Polygon_NoClip(const ti_int *points, size_t num_points);
 
-void gfz_FillTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2) const;
+void gfz_FillTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 
-void gfz_FillTriangle_NoClip(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2) const;
+void gfz_FillTriangle_NoClip(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 
 void gfz_SetDraw(uint8_t location);
 
-uint8_t gfz_GetDraw(void) const;
+uint8_t gfz_GetDraw(void);
 
 void gfz_SwapDraw(void);
 
-void gfz_Wait(void) const;
+void gfz_Wait(void);
 
 void gfz_Blit(gfz_location_t src);
 
-void gfz_BlitRows(gfz_location_t src, uint8_t y_loc, uint8_t num_lines);
+void gfz_BlitRows(gfz_location_t src, uint8_t y_loc, uint8_t num_rows);
 
-void gfz_BlitColumns(gfz_location_t src, uint8_t y_loc, uint8_t num_lines);
+void gfz_BlitColumns(gfz_location_t src, uint32_t x_loc, uint32_t num_columns);
 
 void gfz_BlitRectangle(gfz_location_t src, uint32_t x, uint8_t y, uint32_t width, uint32_t height);
 
@@ -322,9 +322,9 @@ void gfz_PrintString(const char *string);
 
 void gfz_PrintStringXY(const char *string, int32_t x, int32_t y);
 
-int32_t gfz_GetTextX(void) const;
+int32_t gfz_GetTextX(void);
 
-int32_t gfz_GetTextY(void) const;
+int32_t gfz_GetTextY(void);
 
 void gfz_SetTextXY(int32_t x, int32_t y);
 
@@ -336,41 +336,41 @@ uint8_t gfz_SetTextBGColor(uint8_t color);
 
 uint8_t gfz_SetTextTransparentColor(uint8_t color);
 
-void gfz_Sprite(const gfz_sprite_t *sprite, int32_t x, int32_t y) const;
+void gfz_Sprite(const gfz_sprite_t *sprite, int32_t x, int32_t y);
 
-void gfz_Sprite_NoClip(const gfz_sprite_t *sprite, uint32_t x, uint8_t y) const;
+void gfz_Sprite_NoClip(const gfz_sprite_t *sprite, uint32_t x, uint8_t y);
 
-void gfz_TransparentSprite(const gfz_sprite_t *sprite, int32_t x, int32_t y) const;
+void gfz_TransparentSprite(const gfz_sprite_t *sprite, int32_t x, int32_t y);
 
-void gfz_TransparentSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x, uint8_t y) const;
+void gfz_TransparentSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x, uint8_t y);
 
-gfz_sprite_t *gfz_GetSprite(gfz_sprite_t *sprite_buffer, int32_t x, int32_t y) const;
+gfz_sprite_t *gfz_GetSprite(gfz_sprite_t *sprite_buffer, int32_t x, int32_t y);
 
-void gfz_ScaledSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x, uint8_t y, uint8_t width_scale, uint8_t height_scale) const;
+void gfz_ScaledSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x, uint8_t y, uint8_t width_scale, uint8_t height_scale);
 
-void gfz_ScaledTransparentSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x, uint8_t y, uint8_t width_scale, uint8_t height_scale) const;
+void gfz_ScaledTransparentSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x, uint8_t y, uint8_t width_scale, uint8_t height_scale);
 
-uint8_t gfz_RotatedScaledTransparentSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x, uint8_t y, uint8_t angle, uint8_t scale) const;
+uint8_t gfz_RotatedScaledTransparentSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x, uint8_t y, uint8_t angle, uint8_t scale);
 
-uint8_t gfz_RotatedScaledSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x, uint8_t y, uint8_t angle, uint8_t scale) const;
+uint8_t gfz_RotatedScaledSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x, uint8_t y, uint8_t angle, uint8_t scale);
 
-uint8_t gfz_RotatedScaledTransparentSprite(const gfz_sprite_t *sprite, int32_t x, int32_t y, uint8_t angle, uint8_t scale) const;
+uint8_t gfz_RotatedScaledTransparentSprite(const gfz_sprite_t *sprite, int32_t x, int32_t y, uint8_t angle, uint8_t scale);
 
-uint8_t gfz_RotatedScaledSprite(const gfz_sprite_t *sprite, int32_t x, int32_t y, uint8_t angle, uint8_t scale) const;
+uint8_t gfz_RotatedScaledSprite(const gfz_sprite_t *sprite, int32_t x, int32_t y, uint8_t angle, uint8_t scale);
 
-gfz_sprite_t *gfz_FlipSpriteX(const gfz_sprite_t *__restrict sprite_in, gfz_sprite_t *__restrict sprite_out) const;
+gfz_sprite_t *gfz_FlipSpriteX(const gfz_sprite_t *__restrict sprite_in, gfz_sprite_t *__restrict sprite_out);
 
-gfz_sprite_t *gfz_FlipSpriteY(const gfz_sprite_t *__restrict sprite_in, gfz_sprite_t *__restrict sprite_out) const;
+gfz_sprite_t *gfz_FlipSpriteY(const gfz_sprite_t *__restrict sprite_in, gfz_sprite_t *__restrict sprite_out);
 
-gfz_sprite_t *gfz_RotateSpriteC(const gfz_sprite_t *__restrict sprite_in, gfz_sprite_t *__restrict sprite_out) const;
+gfz_sprite_t *gfz_RotateSpriteC(const gfz_sprite_t *__restrict sprite_in, gfz_sprite_t *__restrict sprite_out);
 
-gfz_sprite_t *gfz_RotateSpriteCC(const gfz_sprite_t *__restrict sprite_in, gfz_sprite_t *__restrict sprite_out) const;
+gfz_sprite_t *gfz_RotateSpriteCC(const gfz_sprite_t *__restrict sprite_in, gfz_sprite_t *__restrict sprite_out);
 
-gfz_sprite_t *gfz_RotateSpriteHalf(const gfz_sprite_t *__restrict sprite_in, gfz_sprite_t *__restrict sprite_out) const;
+gfz_sprite_t *gfz_RotateSpriteHalf(const gfz_sprite_t *__restrict sprite_in, gfz_sprite_t *__restrict sprite_out);
 
-gfz_sprite_t *gfz_ScaleSprite(const gfz_sprite_t *__restrict sprite_in, gfz_sprite_t *__restrict sprite_out) const;
+gfz_sprite_t *gfz_ScaleSprite(const gfz_sprite_t *__restrict sprite_in, gfz_sprite_t *__restrict sprite_out);
 
-gfz_sprite_t *gfz_RotateScaleSprite(const gfz_sprite_t *__restrict sprite_in, gfz_sprite_t *__restrict sprite_out, uint8_t angle, uint8_t scale) const;
+gfz_sprite_t *gfz_RotateScaleSprite(const gfz_sprite_t *__restrict sprite_in, gfz_sprite_t *__restrict sprite_out, uint8_t angle, uint8_t scale);
 
 gfz_sprite_t *gfz_GetSpriteChar(char c);
 
@@ -384,43 +384,43 @@ uint8_t gfz_SetFontHeight(uint8_t height);
 
 void gfz_SetMonospaceFont(uint8_t spacing);
 
-uint32_t gfz_GetStringWidth(const char *string) const;
+uint32_t gfz_GetStringWidth(const char *string);
 
-uint32_t gfz_GetCharWidth(const char c) const;
+uint32_t gfz_GetCharWidth(const char c);
 
 void gfz_SetClipRegion(int32_t xmin, int32_t ymin, int32_t xmax, int32_t ymax);
 
 bool gfz_GetClipRegion(gfz_region_t *region);
 
-void gfz_ShiftDown(uint8_t pixels) const;
+void gfz_ShiftDown(uint8_t pixels);
 
-void gfz_ShiftUp(uint8_t pixels) const;
+void gfz_ShiftUp(uint8_t pixels);
 
-void gfz_ShiftLeft(uint32_t pixels) const;
+void gfz_ShiftLeft(uint32_t pixels);
 
-void gfz_ShiftRight(uint32_t pixels) const;
+void gfz_ShiftRight(uint32_t pixels);
 
 uint16_t gfz_Lighten(uint16_t color, uint8_t amount) const;
 
 uint16_t gfz_Darken(uint16_t color, uint8_t amount) const;
 
-void gfz_FloodFill(uint32_t x, uint8_t y, uint8_t color) const;
+void gfz_FloodFill(uint32_t x, uint8_t y, uint8_t color);
 
-void gfz_RLETSprite(const gfz_rletsprite_t *sprite, int32_t x, int32_t y) const;
+void gfz_RLETSprite(const gfz_rletsprite_t *sprite, int32_t x, int32_t y);
 
-void gfz_RLETSprite_NoClip(const gfz_rletsprite_t *sprite, uint32_t x, uint8_t y) const;
+void gfz_RLETSprite_NoClip(const gfz_rletsprite_t *sprite, uint32_t x, uint8_t y);
 
-gfz_sprite_t *gfz_ConvertFromRLETSprite(const gfz_rletsprite_t *sprite_in, gfz_sprite_t *sprite_out) const;
+gfz_sprite_t *gfz_ConvertFromRLETSprite(const gfz_rletsprite_t *sprite_in, gfz_sprite_t *sprite_out);
 
-gfz_rletsprite_t *gfz_ConvertToRLETSprite(const gfz_sprite_t *sprite_in, gfz_rletsprite_t *sprite_out) const;
+gfz_rletsprite_t *gfz_ConvertToRLETSprite(const gfz_sprite_t *sprite_in, gfz_rletsprite_t *sprite_out);
 
-gfz_rletsprite_t *gfz_ConvertToNewRLETSprite(const gfz_sprite_t *sprite_in, void *(*malloc_routine)(size_t)) const;
+gfz_rletsprite_t *gfz_ConvertToNewRLETSprite(const gfz_sprite_t *sprite_in, void *(*malloc_routine)(size_t));
 
 //------------------------------------------------------------------------------
 // External Functions
 //------------------------------------------------------------------------------
 
-void gfz_SetPixel_NoClip(uint32_t x, uint8_t y, uint8_t color) const;
+void gfz_SetPixel_NoClip(uint32_t x, uint8_t y, uint8_t color);
 
 };
 
@@ -476,7 +476,7 @@ void GraphZ<T>::gfz_SetPalette(
 }
 
 template<typename T>
-void GraphZ<T>::gfz_SetDefaultPalette(__attribute__((__unused__)) gfz_mode_t mode) const {
+void GraphZ<T>::gfz_SetDefaultPalette(__attribute__((__unused__)) gfz_mode_t mode) {
     memcpy(lcd_Palette, default_palette_8bpp, sizeof(default_palette_8bpp));
 }
 
@@ -501,48 +501,52 @@ uint16_t GraphZ<T>::gfz_Lighten(uint16_t color, uint8_t amount) const {
 //------------------------------------------------------------------------------
 
 template<typename T>
-void GraphZ<T>::gfz_Begin(void) {
+void util_Begin(GraphZ<T>& lib) {
+    printf("%s begin\n", lib.library_name);
     // ti.boot.ClearVRAM
     memset(gfz_vram, 0xFF, GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT * 2);
-    gfz_SetDefaultPalette(gfz_8bpp);
-    gfz_SetDraw(gfz_screen);
+    lib.gfz_SetDefaultPalette(gfz_8bpp);
+    lib.gfz_SetDraw(gfz_screen);
     lcd_UpBase = RAM_OFFSET(gfz_vram);
     lcd_LpBase = RAM_OFFSET(gfz_vram);
 
     // Resetting temp globals
-    Color = 0;
-    Transparent_Color = 0;
+    lib.Color = 0;
+    lib.Transparent_Color = 0;
 
-    Text_FG_Color = 0;
-    Text_BG_Color = 255;
-    Text_TP_Color = 255;
+    lib.Text_FG_Color = 0;
+    lib.Text_BG_Color = 255;
+    lib.Text_TP_Color = 255;
 
-    TextXPos = 0;
-    TextYPos = 0;
+    lib.TextXPos = 0;
+    lib.TextYPos = 0;
 
-    TextWidthScale = 1;
-    TextHeightScale = 1;
+    lib.TextWidthScale = 1;
+    lib.TextHeightScale = 1;
 
-    PrintChar_Clip = gfz_text_noclip;
-    FontHeight = Maximum_Font_Height;
+    lib.PrintChar_Clip = gfz_text_noclip;
+    lib.FontHeight = lib.Maximum_Font_Height;
 
-    ClipXMin = 0;
-    ClipYMin = 0;
-    ClipXMax = GFZ_LCD_WIDTH;
-    ClipYMax = GFZ_LCD_HEIGHT;
+    lib.ClipXMin = 0;
+    lib.ClipYMin = 0;
+    lib.ClipXMax = GFZ_LCD_WIDTH;
+    lib.ClipYMax = GFZ_LCD_HEIGHT;
 
-    MonospaceFont = 0;
+    lib.CharSpacing = lib.DefaultCharSpacing;
+    lib.TextData = lib.DefaultTextData;
+
+    lib.MonospaceFont = 0;
 }
 
 template<typename T>
-void GraphZ<T>::gfz_End(void) {
+void util_End(__attribute__((__unused__)) GraphZ<T>& lib) {
     lcd_UpBase = RAM_OFFSET(gfz_vram);
     memset(gfz_vram, 0xFF, sizeof(uint16_t) * GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT);
 }
 
 template<typename T>
-void GraphZ<T>::gfz_Wait(void) const {
-    PortCE_new_frame();
+void GraphZ<T>::gfz_Wait(void) {
+    PortCE_update_registers();
 }
 
 template<typename T>
@@ -551,10 +555,11 @@ void GraphZ<T>::gfz_SwapDraw(void) {
     lcd_UpBase = CurrentBuffer;
     CurrentBuffer = temp;
     gfz_Wait();
+    PortCE_new_frame();
 }
 
 template<typename T>
-uint8_t GraphZ<T>::gfz_GetDraw(void) const {
+uint8_t GraphZ<T>::gfz_GetDraw(void) {
     // This is what the assembly does
     // (0xD40000 >> 16) ^ (0xD52C00 >> 16) == 0xD4 ^ 0xD5
     return ((CurrentBuffer >> 16) ^ (RAM_OFFSET(gfz_vram) >> 16)) ? 1 : 0;
@@ -638,14 +643,14 @@ void GraphZ<T>::gfz_Blit(gfz_location_t src) {
 //------------------------------------------------------------------------------
 
 template<typename T>
-void gfz_SetPixel_ScreenClip(const GraphZ<T>& lib, uint32_t x, uint8_t y) {
+void gfz_SetPixel_ScreenClip(GraphZ<T>& lib, uint32_t x, uint8_t y) {
     if (x < GFZ_LCD_WIDTH && y < GFZ_LCD_HEIGHT) {
        lib.gfz_SetPixel_NoClip(x, y, lib.Color);
     }
 }
 
 template<typename T>
-void gfz_SetPixel_RegionClip(const GraphZ<T>& lib, uint32_t x, uint8_t y, uint8_t color) {
+void gfz_SetPixel_RegionClip(GraphZ<T>& lib, uint32_t x, uint8_t y, uint8_t color) {
     if (
         (int32_t)(x) >= lib.ClipXMin && (int32_t)(x) < lib.ClipXMax &&
         (int32_t)(y) >= lib.ClipYMin && (int32_t)(y) < lib.ClipYMax &&
@@ -660,13 +665,13 @@ void gfz_SetPixel_RegionClip(const GraphZ<T>& lib, uint32_t x, uint8_t y, uint8_
 //------------------------------------------------------------------------------
 
 template<typename T>
-void GraphZ<T>::gfz_FillScreen(uint8_t index) const {
+void GraphZ<T>::gfz_FillScreen(uint8_t index) {
     memset(RAM_ADDRESS(CurrentBuffer), index, GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT);
     gfz_Wait();
 }
 
 template<typename T>
-void GraphZ<T>::gfz_ZeroScreen(void) const {
+void GraphZ<T>::gfz_ZeroScreen(void) {
     gfz_FillScreen(0);
 }
 
@@ -675,13 +680,13 @@ void GraphZ<T>::gfz_ZeroScreen(void) const {
 //------------------------------------------------------------------------------
 
 template<typename T>
-void GraphZ<T>::gfz_HorizLine_NoClip(uint32_t x, uint8_t y, uint32_t length) const {
+void GraphZ<T>::gfz_HorizLine_NoClip(uint32_t x, uint8_t y, uint32_t length) {
     uint8_t *fill = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (x + ((uint24_t)y * GFZ_LCD_WIDTH));
     memset(fill, Color, length);
 }
 
 template<typename T>
-void GraphZ<T>::gfz_HorizLine(int32_t x, int32_t y, int32_t length) const {
+void GraphZ<T>::gfz_HorizLine(int32_t x, int32_t y, int32_t length) {
     if (y < ClipYMin || y >= ClipYMax || x >= ClipXMax) {
         return;
     }
@@ -701,7 +706,7 @@ void GraphZ<T>::gfz_HorizLine(int32_t x, int32_t y, int32_t length) const {
 //------------------------------------------------------------------------------
 
 template<typename T>
-void GraphZ<T>::gfz_VertLine(int32_t x, int32_t y, int32_t length) const {
+void GraphZ<T>::gfz_VertLine(int32_t x, int32_t y, int32_t length) {
     if (x < ClipXMin || x >= ClipXMax || y >= ClipYMax) {
         return;
     }
@@ -721,7 +726,7 @@ void GraphZ<T>::gfz_VertLine(int32_t x, int32_t y, int32_t length) const {
 //------------------------------------------------------------------------------
 
 template<typename T>
-void GraphZ<T>::gfz_FillRectangle(int32_t x, int32_t y, int32_t width, int32_t height) const {
+void GraphZ<T>::gfz_FillRectangle(int32_t x, int32_t y, int32_t width, int32_t height) {
     if (x < ClipXMin) {
         width -= ClipXMin - x;
         x = 0;
@@ -743,7 +748,7 @@ void GraphZ<T>::gfz_FillRectangle(int32_t x, int32_t y, int32_t width, int32_t h
 //------------------------------------------------------------------------------
 
 template<typename T>
-void GraphZ<T>::gfz_Rectangle_NoClip(uint32_t x, uint8_t y, uint32_t width, uint8_t height) const {
+void GraphZ<T>::gfz_Rectangle_NoClip(uint32_t x, uint8_t y, uint32_t width, uint8_t height) {
     gfz_HorizLine_NoClip(x            , y             , width );
     gfz_HorizLine_NoClip(x            , y + height - 1, width );
     gfz_VertLine_NoClip (x            , y             , height);
@@ -751,7 +756,7 @@ void GraphZ<T>::gfz_Rectangle_NoClip(uint32_t x, uint8_t y, uint32_t width, uint
 }
 
 template<typename T>
-void GraphZ<T>::gfz_Rectangle(int32_t x, int32_t y, int32_t width, int32_t height) const {
+void GraphZ<T>::gfz_Rectangle(int32_t x, int32_t y, int32_t width, int32_t height) {
     gfz_HorizLine(x            , y             , width );
     gfz_HorizLine(x            , y + height - 1, width );
     gfz_VertLine (x            , y             , height);
@@ -790,12 +795,12 @@ void GraphZ<T>::gfz_SetTextXY(int32_t x, int32_t y) {
 }
 
 template<typename T>
-int32_t GraphZ<T>::gfz_GetTextY(void) const {
+int32_t GraphZ<T>::gfz_GetTextY(void) {
     return TextYPos;
 }
 
 template<typename T>
-int32_t GraphZ<T>::gfz_GetTextX(void) const {
+int32_t GraphZ<T>::gfz_GetTextX(void) {
     return TextXPos;
 }
 
@@ -819,7 +824,7 @@ uint8_t *GraphZ<T>::gfz_SetCharData(uint8_t index, const uint8_t *data) {
 }
 
 template<typename T>
-uint32_t GraphZ<T>::gfz_GetCharWidth(char c) const {
+uint32_t GraphZ<T>::gfz_GetCharWidth(char c) {
     return (MonospaceFont != 0) ? MonospaceFont : CharSpacing[(unsigned char)c];
 }
 
@@ -839,7 +844,7 @@ void GraphZ<T>::gfz_SetTextScale(uint8_t width_scale, uint8_t height_scale) {
 //------------------------------------------------------------------------------
 
 template<typename T>
-uint32_t GraphZ<T>::gfz_GetStringWidth(const char *string) const {
+uint32_t GraphZ<T>::gfz_GetStringWidth(const char *string) {
     uint32_t len = 0;
     while (*string != '\0') {
         len += gfz_GetCharWidth(*string);
@@ -932,7 +937,7 @@ void GraphZ<T>::gfz_PrintStringXY(const char *string, int32_t x, int32_t y) {
 //------------------------------------------------------------------------------
 
 template<typename T>
-void gfz_internal_Line0_NoClip(const GraphZ<T>& lib, int32_t x0, int32_t y0, int32_t x1, int32_t y1) {
+void gfz_internal_Line0_NoClip(GraphZ<T>& lib, int32_t x0, int32_t y0, int32_t x1, int32_t y1) {
     int32_t dX = x1 - x0;
     int32_t dY = y1 - y0;
     int32_t yI = 1;
@@ -956,7 +961,7 @@ void gfz_internal_Line0_NoClip(const GraphZ<T>& lib, int32_t x0, int32_t y0, int
 }
 
 template<typename T>
-void gfz_internal_Line1_NoClip(const GraphZ<T>& lib, int32_t x0, int32_t y0, int32_t x1, int32_t y1) {
+void gfz_internal_Line1_NoClip(GraphZ<T>& lib, int32_t x0, int32_t y0, int32_t x1, int32_t y1) {
     int32_t dX = x1 - x0;
     int32_t dY = y1 - y0;
     int32_t xI = 1;
@@ -981,7 +986,7 @@ void gfz_internal_Line1_NoClip(const GraphZ<T>& lib, int32_t x0, int32_t y0, int
 }
 
 template<typename T>
-void GraphZ<T>::gfz_Line_NoClip(uint32_t x0, uint8_t y0, uint32_t x1, uint8_t y1) const {
+void GraphZ<T>::gfz_Line_NoClip(uint32_t x0, uint8_t y0, uint32_t x1, uint8_t y1) {
 
     if (abs((int32_t)y1 - (int32_t)y0) < abs((int32_t)x1 - (int32_t)x0)) {
         if (x0 > x1) {
@@ -1003,7 +1008,7 @@ void GraphZ<T>::gfz_Line_NoClip(uint32_t x0, uint8_t y0, uint32_t x1, uint8_t y1
 //------------------------------------------------------------------------------
 
 template<typename T>
-void gfz_internal_Line0(const GraphZ<T>& lib, int32_t x0, int32_t y0, int32_t x1, int32_t y1) {
+void gfz_internal_Line0(GraphZ<T>& lib, int32_t x0, int32_t y0, int32_t x1, int32_t y1) {
     int32_t dX = x1 - x0;
     int32_t dY = y1 - y0;
     int32_t yI = 1;
@@ -1027,7 +1032,7 @@ void gfz_internal_Line0(const GraphZ<T>& lib, int32_t x0, int32_t y0, int32_t x1
 }
 
 template<typename T>
-void gfz_internal_Line1(const GraphZ<T>& lib, int32_t x0, int32_t y0, int32_t x1, int32_t y1) {
+void gfz_internal_Line1(GraphZ<T>& lib, int32_t x0, int32_t y0, int32_t x1, int32_t y1) {
     int32_t dX = x1 - x0;
     int32_t dY = y1 - y0;
     int32_t xI = 1;
@@ -1052,7 +1057,7 @@ void gfz_internal_Line1(const GraphZ<T>& lib, int32_t x0, int32_t y0, int32_t x1
 }
 
 template<typename T>
-void GraphZ<T>::gfz_Line(int32_t x0, int32_t y0, int32_t x1, int32_t y1) const {
+void GraphZ<T>::gfz_Line(int32_t x0, int32_t y0, int32_t x1, int32_t y1) {
     if (abs(y1 - y0) < abs(x1 - x0)) {
         if (x0 > x1) {
             gfz_internal_Line0(*this, x1, y1, x0, y0);
@@ -1077,7 +1082,7 @@ void GraphZ<T>::gfz_Line(int32_t x0, int32_t y0, int32_t x1, int32_t y1) const {
 template<typename T>
 void GraphZ<T>::gfz_Circle(
     const int32_t x, const int32_t y, const uint32_t radius
-) const {
+) {
     int32_t r = radius;
 
     int32_t x_pos = -r;
@@ -1103,7 +1108,7 @@ void GraphZ<T>::gfz_Circle(
 template<typename T>
 void GraphZ<T>::gfz_FillCircle(
     const int32_t x, const int32_t y, const uint32_t radius
-) const {
+) {
     int32_t r = radius;
 
     int32_t x_pos = -r;
@@ -1129,7 +1134,7 @@ void GraphZ<T>::gfz_FillCircle(
 template<typename T>
 void GraphZ<T>::gfz_FillCircle_NoClip(
     const uint32_t x, const uint8_t y, const uint32_t radius
-) const {
+) {
     int32_t r = radius;
 
     int32_t x_pos = -r;
@@ -1156,7 +1161,7 @@ void GraphZ<T>::gfz_FillCircle_NoClip(
 
 template<typename T>
 void gfz_internal_Ellipse_dual_point(
-    const GraphZ<T>& lib, int32_t x, int32_t y, int32_t xc, int32_t yc
+    GraphZ<T>& lib, int32_t x, int32_t y, int32_t xc, int32_t yc
 ) {
     gfz_SetPixel_RegionClip(lib, x - xc, y - yc, lib.Color);
     gfz_SetPixel_RegionClip(lib, x + xc, y - yc, lib.Color);
@@ -1166,7 +1171,7 @@ void gfz_internal_Ellipse_dual_point(
 
 template<typename T>
 void gfz_internal_Ellipse_dual_point_NoClip(
-    const GraphZ<T>& lib, int32_t x, int32_t y, int32_t xc, int32_t yc
+    GraphZ<T>& lib, int32_t x, int32_t y, int32_t xc, int32_t yc
 ) {
     lib.gfz_SetPixel_NoClip(x - xc, y - yc, lib.Color);
     lib.gfz_SetPixel_NoClip(x + xc, y - yc, lib.Color);
@@ -1176,7 +1181,7 @@ void gfz_internal_Ellipse_dual_point_NoClip(
 
 template<typename T>
 void gfz_internal_Ellipse_dual_line(
-    const GraphZ<T>& lib, int32_t x, int32_t y, int32_t xc, int32_t yc
+    GraphZ<T>& lib, int32_t x, int32_t y, int32_t xc, int32_t yc
 ) {
     lib.gfz_HorizLine(x - xc, y - yc, 2 * xc);
     lib.gfz_HorizLine(x - xc, y + yc, 2 * xc);
@@ -1184,7 +1189,7 @@ void gfz_internal_Ellipse_dual_line(
 
 template<typename T>
 void gfz_internal_Ellipse_dual_line_NoClip(
-    const GraphZ<T>& lib, int32_t x, int32_t y, int32_t xc, int32_t yc
+    GraphZ<T>& lib, int32_t x, int32_t y, int32_t xc, int32_t yc
 ) {
     lib.gfz_HorizLine_NoClip(x - xc, (uint8_t)(y - yc), 2 * xc);
     lib.gfz_HorizLine_NoClip(x - xc, (uint8_t)(y + yc), 2 * xc);
@@ -1193,8 +1198,8 @@ void gfz_internal_Ellipse_dual_line_NoClip(
 // Derived from graphx.asm
 template<typename T>
 void gfz_internal_Ellipse(
-    const GraphZ<T>& lib, int32_t x, int32_t y, uint32_t a, uint32_t b,
-    void (*plot_function)(const GraphZ<T>&, int32_t, int32_t, int32_t, int32_t)
+    GraphZ<T>& lib, int32_t x, int32_t y, uint32_t a, uint32_t b,
+    void (*plot_function)(GraphZ<T>&, int32_t, int32_t, int32_t, int32_t)
 ) {
     int32_t a2 = a * a;
     int32_t fa2 = 4 * a2;
@@ -1239,7 +1244,7 @@ void gfz_internal_Ellipse(
 }
 
 template<typename T>
-void GraphZ<T>::gfz_Ellipse(int32_t x, int32_t y, uint32_t a, uint32_t b) const {
+void GraphZ<T>::gfz_Ellipse(int32_t x, int32_t y, uint32_t a, uint32_t b) {
     gfz_internal_Ellipse(
         *this, x, y, a, b,
         &gfz_internal_Ellipse_dual_point
@@ -1247,7 +1252,7 @@ void GraphZ<T>::gfz_Ellipse(int32_t x, int32_t y, uint32_t a, uint32_t b) const 
 }
 
 template<typename T>
-void GraphZ<T>::gfz_Ellipse_NoClip(uint32_t x, uint32_t y, uint8_t a, uint8_t b) const {
+void GraphZ<T>::gfz_Ellipse_NoClip(uint32_t x, uint32_t y, uint8_t a, uint8_t b) {
     gfz_internal_Ellipse(
         *this, x, y, a, b,
         &gfz_internal_Ellipse_dual_point_NoClip
@@ -1255,7 +1260,7 @@ void GraphZ<T>::gfz_Ellipse_NoClip(uint32_t x, uint32_t y, uint8_t a, uint8_t b)
 }
 
 template<typename T>
-void GraphZ<T>::gfz_FillEllipse(int32_t x, int32_t y, uint32_t a, uint32_t b) const {
+void GraphZ<T>::gfz_FillEllipse(int32_t x, int32_t y, uint32_t a, uint32_t b) {
     gfz_internal_Ellipse(
         *this, x, y, a, b,
         &gfz_internal_Ellipse_dual_line
@@ -1263,7 +1268,7 @@ void GraphZ<T>::gfz_FillEllipse(int32_t x, int32_t y, uint32_t a, uint32_t b) co
 }
 
 template<typename T>
-void GraphZ<T>::gfz_FillEllipse_NoClip(uint32_t x, uint32_t y, uint8_t a, uint8_t b) const {
+void GraphZ<T>::gfz_FillEllipse_NoClip(uint32_t x, uint32_t y, uint8_t a, uint8_t b) {
     gfz_internal_Ellipse(
         *this, x, y, a, b,
         &gfz_internal_Ellipse_dual_line_NoClip
@@ -1299,7 +1304,7 @@ void GraphZ<T>::gfz_FillTriangle(
     int32_t x0, int32_t y0,
     int32_t x1, int32_t y1,
     int32_t x2, int32_t y2
-) const {
+) {
     gfz_internal_triangle_sort(
         x0, y0,
         x1, y1,
@@ -1359,7 +1364,7 @@ void GraphZ<T>::gfz_FillTriangle_NoClip(
     int32_t x0, int32_t y0,
     int32_t x1, int32_t y1,
     int32_t x2, int32_t y2
-) const {
+) {
     gfz_internal_triangle_sort(
         x0, y0,
         x1, y1,
@@ -1419,7 +1424,7 @@ void GraphZ<T>::gfz_FillTriangle_NoClip(
 //------------------------------------------------------------------------------
 
 template<typename T>
-void GraphZ<T>::gfz_Polygon(const ti_int *points, size_t num_points) const {
+void GraphZ<T>::gfz_Polygon(const ti_int *points, size_t num_points) {
     if (num_points < 2) {
         return;
     }
@@ -1436,7 +1441,7 @@ void GraphZ<T>::gfz_Polygon(const ti_int *points, size_t num_points) const {
 }
 
 template<typename T>
-void GraphZ<T>::gfz_Polygon_NoClip(const ti_int *points, size_t num_points) const {
+void GraphZ<T>::gfz_Polygon_NoClip(const ti_int *points, size_t num_points) {
     if (num_points < 2) {
         return;
     }
@@ -1465,7 +1470,7 @@ gfz_sprite_t *GraphZ<T>::gfz_AllocSprite(
     uint8_t width,
     uint8_t height,
     void *(*malloc_routine)(size_t)
-) const {
+) {
     if (width == 0 || height == 0) {
         print_warning("sprites with zero width/height are undefined");
     }
@@ -1483,39 +1488,7 @@ gfz_sprite_t *GraphZ<T>::gfz_AllocSprite(
 //------------------------------------------------------------------------------
 
 template<typename T>
-gfz_sprite_t *GraphZ<T>::gfz_FlipSpriteY(const gfz_sprite_t *sprite_in, gfz_sprite_t *sprite_out) const {
-    sprite_out->width = sprite_in->width;
-    sprite_out->height = sprite_in->height;
-    const uint8_t* src_buf = sprite_in->data + (sprite_in->width - 1);
-    uint8_t* dst_buf = sprite_out->data;
-    const uint24_t src_jump = (2 * sprite_in->width);
-    for (uint8_t y = 0; y < sprite_in->height; y++) {
-        for (uint8_t x = 0; x < sprite_in->width; x++) {
-            *dst_buf = *src_buf;
-            src_buf--;
-            dst_buf++;
-        }
-        src_buf += src_jump;
-    }
-    return sprite_out;
-}
-
-template<typename T>
-gfz_sprite_t *GraphZ<T>::gfz_FlipSpriteX(const gfz_sprite_t *sprite_in, gfz_sprite_t *sprite_out) const {
-    sprite_out->width = sprite_in->width;
-    sprite_out->height = sprite_in->height;
-    const uint8_t* src_buf = sprite_in->data + (sprite_in->width * (sprite_in->height - 1));
-    uint8_t* dst_buf = sprite_out->data;
-    for (uint8_t y = 0; y < sprite_in->height; y++) {
-        memcpy(dst_buf, src_buf, sprite_in->width);
-        src_buf -= sprite_in->width;
-        dst_buf += sprite_in->width;
-    }
-    return sprite_out;
-}
-
-template<typename T>
-gfz_sprite_t *GraphZ<T>::gfz_RotateSpriteHalf(const gfz_sprite_t *sprite_in, gfz_sprite_t *sprite_out) const {
+gfz_sprite_t *GraphZ<T>::gfz_RotateSpriteHalf(const gfz_sprite_t *sprite_in, gfz_sprite_t *sprite_out) {
     const uint8_t* src_buf = sprite_in->data;
     uint8_t* dst_buf = sprite_out->data + (sprite_in->width * sprite_in->height);
     while (dst_buf != sprite_out->data) {
@@ -1545,7 +1518,7 @@ gfz_sprite_t *GraphZ<T>::gfz_RotateSpriteHalf(const gfz_sprite_t *sprite_in, gfz
 //------------------------------------------------------------------------------
 
 template<typename T>
-void GraphZ<T>::gfz_Tilemap(const gfz_tilemap_t* tilemap, uint32_t x_offset, uint32_t y_offset) const {
+void GraphZ<T>::gfz_Tilemap(const gfz_tilemap_t* tilemap, uint32_t x_offset, uint32_t y_offset) {
     // Unoptimized and overclips a bit
     uint32_t map_row = x_offset / tilemap->tile_width;
     uint32_t map_col = y_offset / tilemap->tile_height;
@@ -1601,7 +1574,7 @@ void GraphZ<T>::gfz_Tilemap(const gfz_tilemap_t* tilemap, uint32_t x_offset, uin
 }
 
 template<typename T>
-void GraphZ<T>::gfz_Tilemap_NoClip(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset) const {
+void GraphZ<T>::gfz_Tilemap_NoClip(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset) {
     uint32_t map_row = x_offset / tilemap->tile_width;
     uint32_t map_col = y_offset / tilemap->tile_height;
 
@@ -1625,7 +1598,7 @@ void GraphZ<T>::gfz_Tilemap_NoClip(const gfz_tilemap_t *tilemap, uint32_t x_offs
 }
 
 template<typename T>
-void GraphZ<T>::gfz_TransparentTilemap(const gfz_tilemap_t* tilemap, uint32_t x_offset, uint32_t y_offset) const {
+void GraphZ<T>::gfz_TransparentTilemap(const gfz_tilemap_t* tilemap, uint32_t x_offset, uint32_t y_offset) {
     // Unoptimized and overclips a bit
     uint32_t map_row = x_offset / tilemap->tile_width;
     uint32_t map_col = y_offset / tilemap->tile_height;
@@ -1681,7 +1654,7 @@ void GraphZ<T>::gfz_TransparentTilemap(const gfz_tilemap_t* tilemap, uint32_t x_
 }
 
 template<typename T>
-void GraphZ<T>::gfz_TransparentTilemap_NoClip(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset) const {
+void GraphZ<T>::gfz_TransparentTilemap_NoClip(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset) {
     uint32_t map_row = x_offset / tilemap->tile_width;
     uint32_t map_col = y_offset / tilemap->tile_height;
     uint32_t map_index = map_row + (map_col * tilemap->width);
@@ -1705,7 +1678,7 @@ void GraphZ<T>::gfz_TransparentTilemap_NoClip(const gfz_tilemap_t *tilemap, uint
 
 /** @todo Validate that this is correct for graphx */
 template<typename T>
-uint8_t *GraphZ<T>::gfz_TilePtr(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset) const {
+uint8_t *GraphZ<T>::gfz_TilePtr(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset) {
     uint32_t map_row = x_offset / tilemap->tile_width;
     uint32_t map_col = y_offset / tilemap->tile_height;
 
@@ -1715,7 +1688,7 @@ uint8_t *GraphZ<T>::gfz_TilePtr(const gfz_tilemap_t *tilemap, uint32_t x_offset,
 
 /** @todo Validate that this is correct for graphx */
 template<typename T>
-uint8_t *GraphZ<T>::gfz_TilePtrMapped(const gfz_tilemap_t *tilemap, uint8_t col, uint8_t row) const {
+uint8_t *GraphZ<T>::gfz_TilePtrMapped(const gfz_tilemap_t *tilemap, uint8_t col, uint8_t row) {
     uint32_t map_index = row + (col * tilemap->width);
     return &(tilemap->map[map_index]);
 }

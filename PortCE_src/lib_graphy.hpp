@@ -1,23 +1,6 @@
 #ifndef LIB_GRAPHY_HPP
 #define LIB_GRAPHY_HPP
 
-#include <PortCE.h>
-
-#include <graphy.h>
-
-#include "graphz.hpp"
-#include "graphy_data.h"
-
-struct GraphY_Type {};
-
-typedef GraphZ<GraphY_Type> GraphY;
-
-static GraphY lib("graphy", gfy_DefaultCharSpacing, gfy_DefaultTextData);
-
-//------------------------------------------------------------------------------
-// Wrapper Functions
-//------------------------------------------------------------------------------
-
 void gfy_Begin(void) {
     lib.gfz_Begin();
 }
@@ -293,8 +276,8 @@ void gfy_Blit(gfy_location_t src) {
     lib.gfz_Blit(static_cast<gfz_location_t>(src));
 }
 
-void gfy_BlitColumns(gfy_location_t src, uint8_t y_loc, uint8_t num_lines) {
-    lib.gfz_BlitColumns(static_cast<gfz_location_t>(src), y_loc, num_lines);
+void gfy_BlitColumns(gfy_location_t src, ti_unsigned_int x_loc, ti_unsigned_int num_columns) {
+    lib.gfz_BlitColumns(static_cast<gfz_location_t>(src), x_loc, num_columns);
 }
 
 void gfy_BlitRectangle(

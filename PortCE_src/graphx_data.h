@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-static const uint8_t gfx_DefaultCharSpacing[] = {
+static const uint8_t graphx_DefaultCharSpacing[] = {
     /* X    0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F*/
     /* 0 */ 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
     /* 1 */ 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
@@ -17,7 +17,7 @@ static const uint8_t gfx_DefaultCharSpacing[] = {
     /* 9 */ 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8
 };
 
-static const uint8_t gfx_DefaultTextData[] = {
+static const uint8_t graphx_DefaultTextData[] = {
 /* 0x00   */ 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 /* 0x01 ☺ */ 0x7E,0x81,0xA5,0x81,0xBD,0xBD,0x81,0x7E,
 /* 0x02 ☻ */ 0x7E,0xFF,0xDB,0xFF,0xC3,0xC3,0xFF,0x7E,

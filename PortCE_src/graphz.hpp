@@ -24,19 +24,19 @@
 //------------------------------------------------------------------------------
 
 typedef struct gfz_region_t {
-    int32_t xmin;
-    int32_t ymin;
-    int32_t xmax;
-    int32_t ymax;
+    ti_int xmin;
+    ti_int ymin;
+    ti_int xmax;
+    ti_int ymax;
 } gfz_region_t;
 
-typedef struct gfz_sprite_t {
+typedef struct __attribute__((__packed__)) gfz_sprite_t {
     uint8_t width;
     uint8_t height;
     uint8_t data[];
 } gfz_sprite_t;
 
-typedef struct gfz_rletsprite_t {
+typedef struct __attribute__((__packed__)) gfz_rletsprite_t {
     uint8_t width;
     uint8_t height;
     uint8_t data[];
@@ -444,22 +444,22 @@ uint8_t GraphZ<T>::gfz_SetTransparentColor(uint8_t index) {
 
 template<typename T>
 uint8_t GraphZ<T>::gfz_SetTextFGColor(uint8_t color) {
-    uint8_t prev = Color;
-    Color = color;
+    uint8_t prev = Text_FG_Color;
+    Text_FG_Color = color;
     return prev;
 }
 
 template<typename T>
 uint8_t GraphZ<T>::gfz_SetTextBGColor(uint8_t color) {
-    uint8_t prev = Color;
-    Color = color;
+    uint8_t prev = Text_BG_Color;
+    Text_BG_Color = color;
     return prev;
 }
 
 template<typename T>
 uint8_t GraphZ<T>::gfz_SetTextTransparentColor(uint8_t color) {
-    uint8_t prev = Color;
-    Color = color;
+    uint8_t prev = Text_TP_Color;
+    Text_TP_Color = color;
     return prev;
 }
 
@@ -1429,13 +1429,13 @@ void GraphZ<T>::gfz_Polygon(const ti_int *points, size_t num_points) {
         return;
     }
     gfz_Line(
-        points[num_points * 2 - 2], points[num_points * 2 - 1],
-        points[0], points[1]
+        (int24_t)points[num_points * 2 - 2], (int24_t)points[num_points * 2 - 1],
+        (int24_t)points[0], (int24_t)points[1]
     );
-    for (size_t i = 2; i < 2 * num_points; i += 2) {
+    for (size_t i = 0; i < 2 * num_points - 2; i += 2) {
         gfz_Line(
-            points[i + 0], points[i + 1],
-            points[i + 2], points[i + 3]
+            (int24_t)points[i + 0], (int24_t)points[i + 1],
+            (int24_t)points[i + 2], (int24_t)points[i + 3]
         );
     }
 }
@@ -1446,13 +1446,13 @@ void GraphZ<T>::gfz_Polygon_NoClip(const ti_int *points, size_t num_points) {
         return;
     }
     gfz_Line_NoClip(
-        points[num_points * 2 - 2], points[num_points * 2 - 1],
-        points[0], points[1]
+        (int24_t)points[num_points * 2 - 2], (int24_t)points[num_points * 2 - 1],
+        (int24_t)points[0], (int24_t)points[1]
     );
-    for (size_t i = 2; i < 2 * num_points; i += 2) {
+    for (size_t i = 0; i < 2 * num_points - 2; i += 2) {
         gfz_Line_NoClip(
-            points[i + 0], points[i + 1],
-            points[i + 2], points[i + 3]
+            (int24_t)points[i + 0], (int24_t)points[i + 1],
+            (int24_t)points[i + 2], (int24_t)points[i + 3]
         );
     }
 }

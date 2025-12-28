@@ -76,7 +76,7 @@ void GraphY::gfz_BlitRectangle(
     }
     src_buf += y + (x * GFZ_LCD_HEIGHT);
     dst_buf += y + (x * GFZ_LCD_HEIGHT);
-    for (uint24_t x_cord = 0; x_cord < width; x_cord++) {
+    for (uint32_t x_cord = 0; x_cord < width; x_cord++) {
         memcpy(dst_buf, src_buf, height);
         src_buf += GFZ_LCD_HEIGHT;
         dst_buf += GFZ_LCD_HEIGHT;
@@ -119,29 +119,75 @@ void GraphY::gfz_CopyRectangle(
 
 template<>
 void GraphY::gfz_ShiftDown(uint8_t pixels) {
-    if (pixels == 0) {
-        return;
+    if (pixels == 0) { return; }
+    gfz_Wait();
+    uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
+    const uint8_t* src_buf = buffer + lib.ClipYMin + (lib.ClipXMin * GFZ_LCD_HEIGHT);
+    uint8_t* dst_buf = buffer + (lib.ClipYMin + (int32_t)pixels) + (lib.ClipXMin * GFZ_LCD_HEIGHT);
+    const int32_t copySize = lib.ClipYMax - lib.ClipYMin - (int32_t)pixels;
+    if (copySize <= 0) { return; }
+    int32_t x0 = lib.ClipXMin;
+    int32_t x1 = lib.ClipXMax;
+    for (int32_t x = x0; x < x1; x++) {
+        memmove(dst_buf, src_buf, (size_t)copySize); // memcpy would be UB
+        src_buf += GFZ_LCD_HEIGHT;
+        dst_buf += GFZ_LCD_HEIGHT;
     }
 }
 
 template<>
 void GraphY::gfz_ShiftUp(uint8_t pixels) {
-    if (pixels == 0) {
-        return;
+    if (pixels == 0) { return; }
+    gfz_Wait();
+    uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
+    const uint8_t* src_buf = buffer + lib.ClipYMin + (lib.ClipXMin * GFZ_LCD_HEIGHT);
+    uint8_t* dst_buf = buffer + (lib.ClipYMin - (int32_t)pixels) + (lib.ClipXMin * GFZ_LCD_HEIGHT);
+    const int32_t copySize = lib.ClipYMax - lib.ClipYMin - (int32_t)pixels;
+    if (copySize <= 0) { return; }
+    int32_t x0 = lib.ClipXMin;
+    int32_t x1 = lib.ClipXMax;
+    for (int32_t x = x0; x < x1; x++) {
+        memmove(dst_buf, src_buf, (size_t)copySize); // memcpy would be UB
+        src_buf += GFZ_LCD_HEIGHT;
+        dst_buf += GFZ_LCD_HEIGHT;
     }
 }
 
 template<>
 void GraphY::gfz_ShiftLeft(uint32_t pixels) {
-    if (pixels == 0) {
-        return;
+    if (pixels == 0) { return; }
+    gfz_Wait();
+    uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
+    const uint8_t* src_buf = buffer + lib.ClipYMin + (lib.ClipXMin * GFZ_LCD_HEIGHT);
+    uint8_t* dst_buf = buffer + lib.ClipYMin + ((lib.ClipXMin - (int32_t)pixels) * GFZ_LCD_HEIGHT);
+    const size_t copySize = lib.ClipYMax - lib.ClipYMin;
+    int32_t x0 = lib.ClipXMin + pixels;
+    int32_t x1 = lib.ClipXMax;
+    src_buf += pixels * GFZ_LCD_HEIGHT;
+    dst_buf += pixels * GFZ_LCD_HEIGHT;
+    for (int32_t x = x0; x < x1; x++) {
+        memcpy(dst_buf, src_buf, copySize);
+        src_buf += GFZ_LCD_HEIGHT;
+        dst_buf += GFZ_LCD_HEIGHT;
     }
 }
 
 template<>
 void GraphY::gfz_ShiftRight(uint32_t pixels) {
-    if (pixels == 0) {
-        return;
+    if (pixels == 0) { return; }
+    gfz_Wait();
+    uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
+    const uint8_t* src_buf = buffer + lib.ClipYMin + (lib.ClipXMin * GFZ_LCD_HEIGHT);
+    uint8_t* dst_buf = buffer + lib.ClipYMin + ((lib.ClipXMin - (int32_t)pixels) * GFZ_LCD_HEIGHT);
+    const size_t copySize = lib.ClipYMax - lib.ClipYMin;
+    int32_t x0 = lib.ClipXMin + pixels;
+    int32_t x1 = lib.ClipXMax;
+    src_buf += pixels * GFZ_LCD_HEIGHT;
+    dst_buf += pixels * GFZ_LCD_HEIGHT;
+    for (int32_t x = x0; x < x1; x++) {
+        memcpy(dst_buf, src_buf, copySize);
+        src_buf += GFZ_LCD_HEIGHT;
+        dst_buf += GFZ_LCD_HEIGHT;
     }
 }
 
@@ -178,8 +224,8 @@ uint8_t GraphY::gfz_GetPixel(uint32_t x, uint8_t y) {
 
 template<>
 void GraphY::gfz_HorizLine_NoClip(uint32_t x, uint8_t y, uint32_t length) {
-    uint8_t *fill = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (x * GFZ_LCD_HEIGHT) + (uint24_t)y;
-    for (uint24_t x_cord = 0; x_cord < length; x_cord++) {
+    uint8_t *fill = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (x * GFZ_LCD_HEIGHT) + (uint32_t)y;
+    for (uint32_t x_cord = 0; x_cord < length; x_cord++) {
         *fill = lib.Color;
         fill += GFZ_LCD_HEIGHT;
     }
@@ -191,7 +237,7 @@ void GraphY::gfz_HorizLine_NoClip(uint32_t x, uint8_t y, uint32_t length) {
 
 template<>
 void GraphY::gfz_VertLine_NoClip(uint32_t x, uint8_t y, uint32_t length) {
-    uint8_t *fill = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + ((uint24_t)y + (x * GFZ_LCD_HEIGHT));
+    uint8_t *fill = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + ((uint32_t)y + (x * GFZ_LCD_HEIGHT));
     memset(fill, lib.Color, length);
 }
 
@@ -205,8 +251,8 @@ void GraphY::gfz_FillRectangle_NoClip(uint32_t x, uint8_t y, uint32_t width, uin
         return;
     }
     printf("L%d\n", __LINE__);
-    uint8_t *fill = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + ((uint24_t)y + (x * GFZ_LCD_HEIGHT));
-    for (uint24_t x_cord = 0; x_cord < width; x_cord++) {
+    uint8_t *fill = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + ((uint32_t)y + (x * GFZ_LCD_HEIGHT));
+    for (uint32_t x_cord = 0; x_cord < width; x_cord++) {
         memset(fill, lib.Color, height);
         fill += GFZ_LCD_HEIGHT;
     }
@@ -225,43 +271,40 @@ void GraphY::gfz_FillRectangle_NoClip(uint32_t x, uint8_t y, uint32_t width, uin
 //------------------------------------------------------------------------------
 
 static void gfz_internal_PrintChar_NoClip(const char c, const uint8_t charWidth) {
-    const uint8_t *bitImage = lib.TextData + lib.Maximum_Font_Height * (uint24_t)((unsigned char)c);
-    uint8_t *fillLinePtr = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (lib.TextYPos + (lib.TextXPos * GFY_LCD_HEIGHT));
-    uint8_t b = (1 << 7);
+    const uint8_t *bitImage = lib.TextData + lib.Maximum_Font_Height * (uint32_t)((unsigned char)c);
+    uint8_t *fillLinePtr = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (lib.TextYPos + (lib.TextXPos * GFZ_LCD_HEIGHT));
+
     lib.TextXPos += charWidth * lib.TextWidthScale;
+
     for (uint8_t x = 0; x < charWidth; x++) {
         for (uint8_t u = 0; u < lib.TextWidthScale; u++) {
             uint8_t *fillPtr = fillLinePtr;
+            uint8_t b = (1 << 7);
             for (uint8_t y = 0; y < lib.FontHeight; y++) {
                 const uint8_t fillColor = *bitImage & b ? lib.Text_FG_Color : lib.Text_BG_Color;
-                bitImage++;
-                if (fillColor == lib.Text_TP_Color) {
+                b >>= 1;
 
+                if (fillColor == lib.Text_TP_Color) {
                     fillPtr += lib.TextHeightScale;
                     continue;
                 }
+
                 for (uint8_t v = 0; v < lib.TextHeightScale; v++) {
                     *fillPtr = fillColor;
                     fillPtr++;
                 }
             }
-            fillLinePtr += GFY_LCD_HEIGHT;
-            bitImage -= lib.FontHeight;
+            fillLinePtr += GFZ_LCD_HEIGHT;
         }
-        b >>= 1;
+        bitImage++;
     }
 }
 
-
 template<>
 void GraphY::gfz_PrintChar(const char c) {
-    if (lib.TextWidthScale == 0 || lib.TextHeightScale == 0) {
-        return;
-    }
-    gfz_Wait();
-    const uint8_t charWidth = gfz_GetCharWidth(c) / lib.TextWidthScale;
+    const uint8_t charWidth = gfz_GetCharWidth(c);
     const uint8_t textSizeX = charWidth * lib.TextWidthScale;
-    const uint8_t textSizeY = Maximum_Font_Height * lib.TextHeightScale;
+    const uint8_t textSizeY = lib.Maximum_Font_Height * lib.TextHeightScale;
     if (
         lib.PrintChar_Clip == gfz_text_noclip ||
         /* Otherwise, if clipping is enabled */
@@ -272,37 +315,37 @@ void GraphY::gfz_PrintChar(const char c) {
         gfz_internal_PrintChar_NoClip(c, charWidth);
         return;
     }
-    uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
-    const uint8_t *bitImage = lib.TextData + lib.Maximum_Font_Height * (uint24_t)((unsigned char)c);
-    uint8_t *fillLinePtr = buffer + (lib.TextYPos + (lib.TextXPos * GFY_LCD_HEIGHT));
-    uint8_t b = (1 << 7);
+    const uint8_t *bitImage = lib.TextData + lib.Maximum_Font_Height * (uint32_t)((unsigned char)c);
+    uint8_t *fillLinePtr = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (lib.TextYPos + (lib.TextXPos * GFZ_LCD_HEIGHT));
     lib.TextXPos += charWidth * lib.TextWidthScale;
-    uint8_t const * const lo_addr = buffer;
-    uint8_t const * const hi_addr = buffer + GFY_LCD_WIDTH * GFY_LCD_HEIGHT;
+
     for (uint8_t x = 0; x < charWidth; x++) {
         for (uint8_t u = 0; u < lib.TextWidthScale; u++) {
             uint8_t *fillPtr = fillLinePtr;
+            uint8_t b = (1 << 7);
             for (uint8_t y = 0; y < lib.FontHeight; y++) {
                 const uint8_t fillColor = *bitImage & b ? lib.Text_FG_Color : lib.Text_BG_Color;
-                bitImage++;
+                b >>= 1;
                 if (fillColor == lib.Text_TP_Color) {
                     fillPtr += lib.TextHeightScale;
                     continue;
                 }
+
                 for (uint8_t v = 0; v < lib.TextHeightScale; v++) {
-                    if (fillPtr >= lo_addr && fillPtr < hi_addr) {
+                    if (
+                        fillPtr >= (uint8_t*)RAM_ADDRESS(CurrentBuffer) &&
+                        fillPtr < (uint8_t*)RAM_ADDRESS(CurrentBuffer + GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT)
+                    ) {
                         *fillPtr = fillColor;
                     }
                     fillPtr++;
                 }
             }
-            fillLinePtr += GFY_LCD_HEIGHT;
-            bitImage -= lib.FontHeight;
+            fillLinePtr += GFZ_LCD_HEIGHT;
         }
-        b >>= 1;
+        bitImage++;
     }
 }
-
 
 //------------------------------------------------------------------------------
 // String Functions
@@ -565,7 +608,7 @@ void GraphY::gfz_Sprite(const gfz_sprite_t * sprite, int32_t x, int32_t y) {
         x + sprite->width <= lib.ClipXMax &&
         y + sprite->height <= lib.ClipYMax
     ) {
-        gfz_Sprite_NoClip(sprite, (uint24_t)x, (uint8_t)y);
+        gfz_Sprite_NoClip(sprite, (uint32_t)x, (uint8_t)y);
         return;
     }
     gfz_Wait();
@@ -593,7 +636,7 @@ void GraphY::gfz_TransparentSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x
     gfz_Wait();
     const uint8_t* src_buf = sprite->data;
     uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + y + (x * GFZ_LCD_HEIGHT);
-    const uint24_t dst_jump = GFZ_LCD_HEIGHT - sprite->height;
+    const uint32_t dst_jump = GFZ_LCD_HEIGHT - sprite->height;
 
     for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
         for (uint8_t y_cord = 0; y_cord < sprite->height; y_cord++) {
@@ -623,7 +666,7 @@ void GraphY::gfz_TransparentSprite(const gfz_sprite_t * sprite, int32_t x, int32
         x + sprite->width <= lib.ClipXMax &&
         y + sprite->height <= lib.ClipYMax
     ) {
-        gfz_TransparentSprite_NoClip(sprite, (uint24_t)x, (uint8_t)y);
+        gfz_TransparentSprite_NoClip(sprite, (uint32_t)x, (uint8_t)y);
         return;
     }
     gfz_Wait();
@@ -638,7 +681,7 @@ void GraphY::gfz_TransparentSprite(const gfz_sprite_t * sprite, int32_t x, int32
     const uint8_t clip_jumpY = min_clipY + max_clipY;
 
     uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (y + min_clipY) + ((x + min_clipX) * GFZ_LCD_HEIGHT);
-    const uint24_t dst_jump = GFZ_LCD_HEIGHT - sizeY;
+    const uint32_t dst_jump = GFZ_LCD_HEIGHT - sizeY;
 
     for (uint8_t x_cord = 0; x_cord < sizeX; x_cord++) {
         for (uint8_t y_cord = 0; y_cord < sizeY; y_cord++) {
@@ -672,7 +715,7 @@ void GraphY::gfz_ScaledSprite_NoClip(
     const uint8_t* src_buf = sprite->data;
     uint8_t* buf_start = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + y + (x * GFZ_LCD_HEIGHT);
     uint8_t* dst_buf = buf_start;
-    const uint24_t dst_jump = (GFZ_LCD_HEIGHT * width_scale) - (sprite->height * height_scale);
+    const uint32_t dst_jump = (GFZ_LCD_HEIGHT * width_scale) - (sprite->height * height_scale);
 
     for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
         for (uint8_t y_cord = 0; y_cord < sprite->height; y_cord++) {
@@ -690,7 +733,7 @@ void GraphY::gfz_ScaledSprite_NoClip(
 
     // memcpy columns
     uint8_t* dst_col = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + y + (x * GFZ_LCD_HEIGHT);
-    const uint24_t copySize = sprite->height * height_scale; // This could probably be uint8_t
+    const uint32_t copySize = sprite->height * height_scale; // This could probably be uint8_t
     for (uint8_t col = 0; col < sprite->width; col++) {
         const uint8_t* const src_col = (uint8_t*)dst_col;
         dst_col += GFZ_LCD_HEIGHT;
@@ -718,7 +761,7 @@ void GraphY::gfz_ScaledTransparentSprite_NoClip(
     const uint8_t* src_buf = sprite->data;
     uint8_t* buf_start = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + y + (x * GFZ_LCD_HEIGHT);
     uint8_t* dst_buf = buf_start;
-    const uint24_t dst_jump = GFZ_LCD_HEIGHT - (sprite->height * height_scale);
+    const uint32_t dst_jump = GFZ_LCD_HEIGHT - (sprite->height * height_scale);
 
     for (uint8_t x_cord = 0; x_cord < sprite->width; x_cord++) {
         for (uint8_t u = 0; u < width_scale; u++) {
@@ -758,8 +801,6 @@ gfz_sprite_t* GraphY::gfz_ScaleSprite(
 // Sprite Rotation
 //------------------------------------------------------------------------------
 
-/* gfz_RotateScaleSprite */
-
 #include <math.h>
 
 template<>
@@ -767,46 +808,6 @@ gfz_sprite_t *GraphY::gfz_RotateScaleSprite(
     const gfz_sprite_t *sprite_in, gfz_sprite_t *sprite_out,
     uint8_t angle, uint8_t scale
 ) {
-    #if 0
-    const int32_t sin_val = gfz_Sin(angle) * 128 / scale;
-    const int32_t cos_val = gfz_Cos(angle) * 128 / scale;
-    const uint8_t size = sprite_in->width;
-
-    sprite_out->width = sprite_in->width * scale / 64;
-    sprite_out->height = sprite_in->height * scale / 64;
-
-    int32_t dxs = sin_val * -((int32_t)(size * scale / 128));
-    int32_t dxc = cos_val * -((int32_t)(size * scale / 128));
-
-    #define dys dxs
-    #define dyc dxc
-
-    uint32_t src_index = 0;
-
-    for (uint8_t y = 0; y < sprite_in->height; y++) {
-        int32_t xs = (dxs + dyc) + (int32_t)(size * 128);
-        int32_t ys = (dxc - dys) + (int32_t)(size * 128);
-        for (uint8_t x = 0; x < sprite_in->width; x++) {
-            xs += cos_val;
-            ys -= sin_val;
-
-            uint32_t x_write = xs / 256;
-            uint32_t y_write = ys / 256;
-            if (
-                x_write < sprite_out->width && y_write < sprite_out->height &&
-                src_index < sprite_in->width * sprite_in->height
-            ) {
-                sprite_out->data[x_write + sprite_out->width * y_write] = sprite_in->data[src_index];
-            }
-            src_index++;
-        }
-        dxc += cos_val;
-        dxs += sin_val;
-    }
-    return sprite_out;
-
-    #elif 1
-
     const uint8_t in_size = sprite_in->width;
     uint32_t temp_size = sprite_in->width * scale / 64;
     const uint8_t out_size = (temp_size >= 256) ? 255 : temp_size;
@@ -842,7 +843,7 @@ gfz_sprite_t *GraphY::gfz_RotateScaleSprite(
                 x_write < in_size && y_write < in_size &&
                 x_write >= 0 && y_write >= 0
             ) {
-                *dst_ptr = sprite_in->data[x_write + y_write * in_size];
+                *dst_ptr = sprite_in->data[x_write * in_size + y_write];
             }
             dst_ptr++;
         }
@@ -850,59 +851,224 @@ gfz_sprite_t *GraphY::gfz_RotateScaleSprite(
     }
     // printf("\n");
     return sprite_out;
-    #else
-    angle += 32;
-    if (angle < 64) {
-        return memcpy(sprite_out, sprite_in, sprite_in->width * sprite_in->height + sizeof(gfz_sprite_t));
+}
+
+template<>
+uint8_t GraphY::gfz_RotatedScaledSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x0, uint8_t y0, uint8_t angle, uint8_t scale) {
+    gfz_Wait();
+    uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
+    const uint8_t in_size = sprite->width;
+    uint32_t temp_size = sprite->width * scale / 64;
+    const uint8_t out_size = (temp_size >= 256) ? 255 : temp_size;
+
+    const float angle_f = (float)angle * 0.0245436926f;
+
+    const float cos_f = (float)cosf(angle_f);
+    const float sin_f = (float)sinf(angle_f);
+
+    const float in_size_f = (float)in_size;
+    const float out_size_f = (float)out_size;
+
+    const float size_ratio = in_size_f / out_size_f;
+
+    const float cos_jump = cos_f * size_ratio;
+    const float sin_jump = sin_f * size_ratio;
+
+    const float in_size_mult = -0.5f * in_size_f;
+    float yc_cos = in_size_mult * (cos_f + sin_f - 1.0f);
+    float yc_sin = in_size_mult * (cos_f - sin_f - 1.0f);
+
+    uint8_t *__restrict plot = buffer + x0 * GFZ_LCD_HEIGHT + y0;
+    for (uint8_t x = 0; x < out_size; x++) {
+        float xc_cos = yc_sin;
+        float xc_sin = yc_cos;
+        for (uint8_t y = 0; y < out_size; y++) {
+            uint8_t y_pos = (uint8_t)(int)xc_cos;
+            uint8_t x_pos = (uint8_t)(int)xc_sin;
+            if (
+                x_pos < in_size && y_pos < in_size &&
+                x_pos >= 0 && y_pos >= 0
+            ) {
+                uint8_t color = sprite->data[y_pos + x_pos * in_size];
+                *plot = color;
+            }
+            plot++;
+            xc_cos += cos_jump;
+            xc_sin += sin_jump;
+        }
+        plot += GFZ_LCD_HEIGHT - out_size;
+        yc_cos += cos_jump;
+        yc_sin -= sin_jump;
     }
-    if (angle < 128) {
-        return gfz_RotateSpriteC(sprite_in, sprite_out);
+    return out_size;
+}
+
+template<>
+uint8_t GraphY::gfz_RotatedScaledTransparentSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x0, uint8_t y0, uint8_t angle, uint8_t scale) {
+    gfz_Wait();
+    uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
+    const uint8_t in_size = sprite->width;
+    uint32_t temp_size = sprite->width * scale / 64;
+    const uint8_t out_size = (temp_size >= 256) ? 255 : temp_size;
+
+    const float angle_f = (float)angle * 0.0245436926f;
+
+    const float cos_f = (float)cosf(angle_f);
+    const float sin_f = (float)sinf(angle_f);
+
+    const float in_size_f = (float)in_size;
+    const float out_size_f = (float)out_size;
+
+    const float size_ratio = in_size_f / out_size_f;
+
+    const float cos_jump = cos_f * size_ratio;
+    const float sin_jump = sin_f * size_ratio;
+
+    const float in_size_mult = -0.5f * in_size_f;
+    float yc_cos = in_size_mult * (cos_f + sin_f - 1.0f);
+    float yc_sin = in_size_mult * (cos_f - sin_f - 1.0f);
+
+    uint8_t *__restrict plot = buffer + x0 * GFZ_LCD_HEIGHT + y0;
+    for (uint8_t x = 0; x < out_size; x++) {
+        float xc_cos = yc_sin;
+        float xc_sin = yc_cos;
+        for (uint8_t y = 0; y < out_size; y++) {
+            uint8_t y_pos = (uint8_t)(int)xc_cos;
+            uint8_t x_pos = (uint8_t)(int)xc_sin;
+            if (
+                x_pos < in_size && y_pos < in_size &&
+                x_pos >= 0 && y_pos >= 0
+            ) {
+                uint8_t color = sprite->data[y_pos + x_pos * in_size];
+                if (color != lib.Transparent_Color) {
+                    *plot = color;
+                }
+            }
+            plot++;
+            xc_cos += cos_jump;
+            xc_sin += sin_jump;
+        }
+        plot += GFZ_LCD_HEIGHT - out_size;
+        yc_cos += cos_jump;
+        yc_sin -= sin_jump;
     }
-    if (angle < 192) {
-        return gfz_RotateSpriteHalf(sprite_in, sprite_out);
+    return out_size;
+}
+
+template<>
+uint8_t GraphY::gfz_RotatedScaledSprite(const gfz_sprite_t *sprite, int32_t x0, int32_t y0, uint8_t angle, uint8_t scale) {
+    gfz_Wait();
+    uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
+    const uint8_t in_size = sprite->width;
+    uint32_t temp_size = sprite->width * scale / 64;
+    const uint8_t out_size = (temp_size >= 256) ? 255 : temp_size;
+
+    const float angle_f = (float)angle * 0.0245436926f;
+
+    const float cos_f = (float)cosf(angle_f);
+    const float sin_f = (float)sinf(angle_f);
+
+    const float in_size_f = (float)in_size;
+    const float out_size_f = (float)out_size;
+
+    const float size_ratio = in_size_f / out_size_f;
+
+    const float cos_jump = cos_f * size_ratio;
+    const float sin_jump = sin_f * size_ratio;
+
+    const float in_size_mult = -0.5f * in_size_f;
+    float yc_cos = in_size_mult * (cos_f + sin_f - 1.0f);
+    float yc_sin = in_size_mult * (cos_f - sin_f - 1.0f);
+
+    uint8_t *__restrict plot = buffer + x0 * GFZ_LCD_HEIGHT + y0;
+    for (uint8_t x = 0; x < out_size; x++) {
+        float xc_cos = yc_sin;
+        float xc_sin = yc_cos;
+        for (uint8_t y = 0; y < out_size; y++) {
+            uint8_t y_pos = (uint8_t)(int)xc_cos;
+            uint8_t x_pos = (uint8_t)(int)xc_sin;
+            if (
+                x_pos < in_size && y_pos < in_size &&
+                x_pos >= 0 && y_pos >= 0
+            ) {
+                if (
+                    (int32_t)(x + x0) >= lib.ClipXMin &&
+                    (int32_t)(x + x0) < lib.ClipXMax &&
+                    (int32_t)(y + y0) >= lib.ClipYMin &&
+                    (int32_t)(y + y0) < lib.ClipYMax
+                ) {
+                    uint8_t color = sprite->data[y_pos + x_pos * in_size];
+                    *plot = color;
+                }
+            }
+            plot++;
+            xc_cos += cos_jump;
+            xc_sin += sin_jump;
+        }
+        plot += GFZ_LCD_HEIGHT - out_size;
+        yc_cos += cos_jump;
+        yc_sin -= sin_jump;
     }
-    return gfz_RotateSpriteCC(sprite_in, sprite_out);
-    #endif
+    return out_size;
 }
 
 template<>
-uint8_t GraphY::gfz_RotatedScaledSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x, uint8_t y, uint8_t angle, uint8_t scale) {
-    (void)sprite;
-    (void)x;
-    (void)y;
-    (void)angle;
-    (void)scale;
-    return (uint8_t)((sprite->width * scale) / 64);
-}
+uint8_t GraphY::gfz_RotatedScaledTransparentSprite(const gfz_sprite_t *sprite, int32_t x0, int32_t y0, uint8_t angle, uint8_t scale) {
+    gfz_Wait();
+    uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
+    const uint8_t in_size = sprite->width;
+    uint32_t temp_size = sprite->width * scale / 64;
+    const uint8_t out_size = (temp_size >= 256) ? 255 : temp_size;
 
-template<>
-uint8_t GraphY::gfz_RotatedScaledTransparentSprite_NoClip(const gfz_sprite_t *sprite, uint32_t x, uint8_t y, uint8_t angle, uint8_t scale) {
-    (void)sprite;
-    (void)x;
-    (void)y;
-    (void)angle;
-    (void)scale;
-    return (uint8_t)((sprite->width * scale) / 64);
-}
+    const float angle_f = (float)angle * 0.0245436926f;
 
-template<>
-uint8_t GraphY::gfz_RotatedScaledSprite(const gfz_sprite_t *sprite, int32_t x, int32_t y, uint8_t angle, uint8_t scale) {
-    (void)sprite;
-    (void)x;
-    (void)y;
-    (void)angle;
-    (void)scale;
-    return (uint8_t)((sprite->width * scale) / 64);
-}
+    const float cos_f = (float)cosf(angle_f);
+    const float sin_f = (float)sinf(angle_f);
 
-template<>
-uint8_t GraphY::gfz_RotatedScaledTransparentSprite(const gfz_sprite_t *sprite, int32_t x, int32_t y, uint8_t angle, uint8_t scale) {
-    (void)sprite;
-    (void)x;
-    (void)y;
-    (void)angle;
-    (void)scale;
-    return (uint8_t)((sprite->width * scale) / 64);
+    const float in_size_f = (float)in_size;
+    const float out_size_f = (float)out_size;
+
+    const float size_ratio = in_size_f / out_size_f;
+
+    const float cos_jump = cos_f * size_ratio;
+    const float sin_jump = sin_f * size_ratio;
+
+    const float in_size_mult = -0.5f * in_size_f;
+    float yc_cos = in_size_mult * (cos_f + sin_f - 1.0f);
+    float yc_sin = in_size_mult * (cos_f - sin_f - 1.0f);
+
+    uint8_t *__restrict plot = buffer + x0 * GFZ_LCD_HEIGHT + y0;
+    for (uint8_t x = 0; x < out_size; x++) {
+        float xc_cos = yc_sin;
+        float xc_sin = yc_cos;
+        for (uint8_t y = 0; y < out_size; y++) {
+            uint8_t y_pos = (uint8_t)(int)xc_cos;
+            uint8_t x_pos = (uint8_t)(int)xc_sin;
+            if (
+                x_pos < in_size && y_pos < in_size &&
+                x_pos >= 0 && y_pos >= 0
+            ) {
+                if (
+                    (int32_t)(x + x0) >= lib.ClipXMin &&
+                    (int32_t)(x + x0) < lib.ClipXMax &&
+                    (int32_t)(y + y0) >= lib.ClipYMin &&
+                    (int32_t)(y + y0) < lib.ClipYMax
+                ) {
+                    uint8_t color = sprite->data[y_pos + x_pos * in_size];
+                    if (color != lib.Transparent_Color) {
+                        *plot = color;
+                    }
+                }
+            }
+            plot++;
+            xc_cos += cos_jump;
+            xc_sin += sin_jump;
+        }
+        plot += GFZ_LCD_HEIGHT - out_size;
+        yc_cos += cos_jump;
+        yc_sin -= sin_jump;
+    }
+    return out_size;
 }
 
 //------------------------------------------------------------------------------
@@ -919,10 +1085,10 @@ void GraphY::gfz_RLETSprite_NoClip(const gfz_rletsprite_t *sprite, const uint32_
     gfz_Wait();
     const uint8_t* src_buf = sprite->data;
     uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (y + (GFZ_LCD_HEIGHT * x));
-    const uint24_t dst_jump = GFZ_LCD_HEIGHT - sprite->height;
+    const uint32_t dst_jump = GFZ_LCD_HEIGHT - sprite->height;
 
     for (uint8_t posX = 0; posX < sprite->width; posX++) {
-        uint24_t posY = 0;
+        uint32_t posY = 0;
         while (posY < sprite->height) {
             const uint8_t jump_TP = *src_buf++;
             posY += jump_TP;
@@ -959,7 +1125,7 @@ void GraphY::gfz_RLETSprite(const gfz_rletsprite_t *__restrict sprite, const int
         y + sprite->height <= lib.ClipYMax
     ) {
         // If fully inside the clipping region
-        gfz_RLETSprite_NoClip(sprite, (uint24_t)x, (uint8_t)y);
+        gfz_RLETSprite_NoClip(sprite, (uint32_t)x, (uint8_t)y);
         return;
     }
     gfz_Wait();
@@ -973,11 +1139,11 @@ void GraphY::gfz_RLETSprite(const gfz_rletsprite_t *__restrict sprite, const int
 
     const uint8_t *__restrict src_buf = sprite->data;
     uint8_t *__restrict dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (y + (GFZ_LCD_HEIGHT * (x + min_clipX)));
-    const uint24_t dst_jump = GFZ_LCD_HEIGHT - sprite->height;
+    const uint32_t dst_jump = GFZ_LCD_HEIGHT - sprite->height;
 
     // Fast forward through the decompression if needed
     for (uint32_t posX = 0; posX < min_clipX; posX++) {
-        uint24_t posY = 0;
+        uint32_t posY = 0;
         while (posY < sprite->height) {
             posY += *src_buf++;
 
@@ -996,7 +1162,7 @@ void GraphY::gfz_RLETSprite(const gfz_rletsprite_t *__restrict sprite, const int
     const uint8_t minY = lib.ClipYMin;
 
     for (uint32_t posX = 0; posX < sizeX; posX++) {
-        uint24_t posY = 0;
+        uint32_t posY = 0;
         while (posY < sprite_height) {
             const uint8_t jump_TP = *src_buf++;
             posY += jump_TP;
@@ -1058,7 +1224,8 @@ ConvertFromRLETSprite_Trans:
     memset(DE, lib.Transparent_Color, B);
 
     DE += B;
-    if (A -= B, A == 0) {
+    A -= B;
+    if (A == 0) {
         goto ConvertFromRLETSprite_RowEnd;
     }
 
@@ -1068,7 +1235,8 @@ ConvertFromRLETSprite_Opaque:
     memcpy(DE, HL, C);
     DE += C;
     HL += C;
-    if (A -= C, A != 0) {
+    A -= C;
+    if (A != 0) {
         goto ConvertFromRLETSprite_Trans;
     }
 
@@ -1084,14 +1252,77 @@ template<>
 gfz_rletsprite_t *GraphY::gfz_ConvertToRLETSprite(const gfz_sprite_t *sprite_in, gfz_rletsprite_t *sprite_out) {
     sprite_out->width = sprite_in->width;
     sprite_out->height = sprite_in->height;
+
+    const uint8_t* src_ptr = sprite_in->data;
+    uint8_t* dst_ptr = sprite_out->data;
+
+    for (uint8_t y = 0; y < sprite_in->height; y++) {
+        uint8_t x = 0;
+
+        while (x < sprite_in->width) {
+            uint8_t transparent_run_length = 0;
+            while (x < sprite_in->width && *src_ptr == lib.Transparent_Color) {
+                transparent_run_length++;
+                x++;
+                src_ptr++;
+            }
+            *dst_ptr = transparent_run_length;
+            dst_ptr++;
+
+            if (x >= sprite_in->width) {
+                break;
+            }
+
+            uint8_t* const opaque_element = dst_ptr;
+            dst_ptr++;
+            uint8_t opaque_run_length = 0;
+            while (x < sprite_in->width && *src_ptr != lib.Transparent_Color) {
+                opaque_run_length++;
+                x++;
+                *dst_ptr = *src_ptr;
+                src_ptr++;
+                dst_ptr++;
+            }
+            *opaque_element = opaque_run_length;
+        }
+    }
     return sprite_out;
 }
 
 template<>
 gfz_rletsprite_t *GraphY::gfz_ConvertToNewRLETSprite(const gfz_sprite_t *sprite_in, void *(*malloc_routine)(size_t)) {
-    (void)sprite_in;
-    (void)malloc_routine;
-    return nullptr;
+    size_t rlet_size = sizeof(gfz_sprite_t);
+    const uint8_t* src_ptr = sprite_in->data;
+
+    // Calculates rlet_size
+    for (uint8_t y = 0; y < sprite_in->height; y++) {
+        uint8_t x = 0;
+
+        while (x < sprite_in->width) {
+            while (x < sprite_in->width && *src_ptr == lib.Transparent_Color) {
+                x++;
+                src_ptr++;
+            }
+            rlet_size++;
+
+            if (x >= sprite_in->width) {
+                break;
+            }
+
+            rlet_size++;
+            while (x < sprite_in->width && *src_ptr != lib.Transparent_Color) {
+                x++;
+                src_ptr++;
+                rlet_size++;
+            }
+        }
+    }
+
+    gfz_rletsprite_t* sprite_out = reinterpret_cast<gfz_rletsprite_t*>((*malloc_routine)(rlet_size));
+    if (sprite_out == nullptr) {
+        return nullptr; // Allocation failure
+    }
+    return gfz_ConvertToRLETSprite(sprite_in, sprite_out);
 }
 
 //------------------------------------------------------------------------------

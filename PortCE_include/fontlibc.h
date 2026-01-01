@@ -120,37 +120,44 @@ typedef struct __attribute__((__packed__)) fontlib_metadata_t {
      * Size of this struct, basically functions as a version field.
      * This does NOT include the lengths of the strings!
      */
-    int24_t length : 24;
+    uint16_t length;
+    uint8_t : 8;
     /**
      * A short, human-readable typeface name, such as "Times"
      */
-    int24_t font_family_name : 24;
+    uint16_t font_family_name;
+    uint8_t : 8;
     /**
      * A SHORT string naming the typeface designer.
      */
-    int24_t font_author : 24;
+    uint16_t font_author;
+    uint8_t : 8;
     /**
      * A SHORT copyright claim.
      * Do not try to include a complete license in here!  Space is limited!
      * @note Typefaces and bitmapped fonts cannot be copyrighted under US law.
      * This field is therefore referred to as a pseudocopyright.  HOWEVER,
      * it IS is applicable in other jusrisdictions, such as Germany. */
-    int24_t font_pseudocopyright : 24;
+    uint16_t font_pseudocopyright;
+    uint8_t : 8;
     /**
      * A BRIEF description of the font.
      */
-    int24_t font_description : 24;
+    uint16_t font_description;
+    uint8_t : 8;
     /**
      * @note This is a STRING, so while this should be something like "1.0.0.0"
      * it could also be something like "1 June 2019" or even "Hahaha versioning
      * is overrated!"
      */
-    int24_t font_version : 24;
+    uint16_t font_version;
+    uint8_t : 8;
     /**
      * Suggested values: "ASCII" "TIOS" "ISO-8859-1" "Windows 1252"
      * "Calculator 1252"
      */
-    int24_t font_code_page : 24;
+    uint16_t font_code_page;
+    uint8_t : 8;
 } fontlib_metadata_t;
 
 /**
@@ -196,13 +203,15 @@ typedef struct __attribute__((__packed__)) fontlib_font_t {
      * This is an OFFSET from the fontVersion member
      * @note It is 24-bits long because it becomes a real pointer upon loading.
      */
-    int24_t widths_table : 24;
+    uint16_t widths_table;
+    uint8_t : 8;
     /**
      * Offset to a table of offsets to glyph bitmaps.
      * @note Parsing the bitmaps yourself is probably not useful.
      * @note These offsets are only 16-bits each to save some space.
      */
-    int24_t bitmaps : 24;
+    uint16_t bitmaps;
+    uint8_t : 8;
     /**
      * Specifies how much to move the cursor left after each glyph.
      * Total movement is width - overhang.
@@ -280,7 +289,8 @@ typedef struct __attribute__((__packed__)) fontlib_font_pack_t {
     /**
      * Offset from first byte of header
      */
-    int24_t metadata : 24;
+    uint16_t metadata;
+    uint8_t : 8;
     /**
      * Number of fonts present.  Should be greater than zero. . . .
      * @note Frankly, if you have more than 127 fonts in a pack, you have a

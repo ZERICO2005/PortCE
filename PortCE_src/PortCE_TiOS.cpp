@@ -291,11 +291,17 @@ void os_ClrTxtShd(void) {
 }
 
 void os_DisableHomeTextBuffer(void) {
-    return;
+    uint8_t * const IY = (uint8_t*)RAM_ADDRESS(0xD00080);
+    *(IY + 0x0D) &= ~(1 << 1); // no text buffer
+    *(IY + 0x4A) &= ~(1 << 3); // use first shadow buffer
+    *(IY + 0x4C) |=  (1 << 5); // only display
 }
 
 void os_EnableHomeTextBuffer(void) {
-    return;
+    uint8_t * const IY = (uint8_t*)RAM_ADDRESS(0xD00080);
+    *(IY + 0x0D) |=  (1 << 1); // use text buffer
+    *(IY + 0x4A) &= ~(1 << 3); // use first shadow buffer
+    *(IY + 0x4C) &= ~(1 << 5); // use shadow buffer
 }
 
 void os_GetStringInput(const char *prompt, __attribute__((unused)) char *buf, __attribute__((unused)) size_t bufsize) {

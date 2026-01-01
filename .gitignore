@@ -15,3 +15,4 @@ desktop.ini
 *.code-workspace
 archive_src
 .cache
+appvar

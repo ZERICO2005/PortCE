@@ -11,6 +11,9 @@
 #include <PortCE.h>
 
 void* RAM_ADDRESS(const uint24_t address) {
+    if (address == 0) {
+        return NULL;
+    }
     // if (address >= 0xE00000 && update_ram == false) {
     //     PortCE_update_registers();
     //     return &simulated_ram[address];
@@ -19,6 +22,9 @@ void* RAM_ADDRESS(const uint24_t address) {
 }
 
 uint24_t RAM_OFFSET(const void* const ptr) {
+    if (ptr == nullptr) {
+        return 0;
+    }
     const ptrdiff_t offset = ((const uint8_t*)ptr - simulated_ram);
     if (offset < 0 || (size_t)offset >= sizeof(simulated_ram)) {
         return 0;

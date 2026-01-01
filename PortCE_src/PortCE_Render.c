@@ -169,14 +169,14 @@ SDL_Event* grab_SDL2_event() {
     return &event;
 }
 
-const int32_t pitch = LCD_RESX * VIDEO_CHANNELS;
+static __attribute__((__unused__)) const int32_t pitch = LCD_RESX * VIDEO_CHANNELS;
 
-uint8_t videoCopy[153600];
-uint16_t paletteRAM[256];
-uint8_t colorR[256];
-uint8_t colorG[256];
-uint8_t colorB[256];
-uint32_t color_LUT[256];
+static uint8_t videoCopy[153600];
+static uint16_t paletteRAM[256];
+static uint8_t colorR[256];
+static uint8_t colorG[256];
+static uint8_t colorB[256];
+static uint32_t color_LUT[256];
 
 struct bound {
     uint8_t x0;
@@ -203,8 +203,8 @@ struct bound expandedPos[56] = {
 
 /* Replacement Libary Functions */
 
-const uint8_t* KEYS;
-int KEYCOUNT;
+static const uint8_t* KEYS;
+static int KEYCOUNT;
 
 // enum keyBit {
 //     kb_Graph = 1    , kb_Trace = 2  , kb_Zoom = 4   , kb_Window = 8 , kb_Yequ = 16  , kb_2nd = 32   , kb_Mode = 64  , kb_Del = 128      ,

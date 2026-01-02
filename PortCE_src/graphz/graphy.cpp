@@ -118,76 +118,98 @@ void GraphY::gfz_CopyRectangle(
 //------------------------------------------------------------------------------
 
 template<>
-void GraphY::gfz_ShiftDown(uint8_t pixels) {
+void GraphY::gfz_ShiftRight(uint32_t pixels) {
     if (pixels == 0) { return; }
-    gfz_Wait();
-    uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
-    const uint8_t* src_buf = buffer + lib.ClipYMin + (lib.ClipXMin * GFZ_LCD_HEIGHT);
-    uint8_t* dst_buf = buffer + (lib.ClipYMin + (int32_t)pixels) + (lib.ClipXMin * GFZ_LCD_HEIGHT);
-    const int32_t copySize = lib.ClipYMax - lib.ClipYMin - (int32_t)pixels;
-    if (copySize <= 0) { return; }
-    int32_t x0 = lib.ClipXMin;
+    int32_t shift = (int32_t)(uint32_t)pixels;
+    int32_t y0 = lib.ClipYMin;
+    int32_t y1 = lib.ClipYMax;
+    int32_t x0 = lib.ClipXMin + shift;
     int32_t x1 = lib.ClipXMax;
-    for (int32_t x = x0; x < x1; x++) {
-        memmove(dst_buf, src_buf, (size_t)copySize); // memcpy would be UB
-        src_buf += GFZ_LCD_HEIGHT;
-        dst_buf += GFZ_LCD_HEIGHT;
+    if (x1 <= x0 || y1 <= y0) {
+        return;
     }
-}
+    size_t copy_size = y1 - y0;
+    size_t line_count = x1 - x0;
 
-template<>
-void GraphY::gfz_ShiftUp(uint8_t pixels) {
-    if (pixels == 0) { return; }
-    gfz_Wait();
-    uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
-    const uint8_t* src_buf = buffer + lib.ClipYMin + (lib.ClipXMin * GFZ_LCD_HEIGHT);
-    uint8_t* dst_buf = buffer + (lib.ClipYMin - (int32_t)pixels) + (lib.ClipXMin * GFZ_LCD_HEIGHT);
-    const int32_t copySize = lib.ClipYMax - lib.ClipYMin - (int32_t)pixels;
-    if (copySize <= 0) { return; }
-    int32_t x0 = lib.ClipXMin;
-    int32_t x1 = lib.ClipXMax;
-    for (int32_t x = x0; x < x1; x++) {
-        memmove(dst_buf, src_buf, (size_t)copySize); // memcpy would be UB
-        src_buf += GFZ_LCD_HEIGHT;
-        dst_buf += GFZ_LCD_HEIGHT;
+    uint8_t * buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + y0 + ((x1 - 1) * GFZ_LCD_HEIGHT);
+    uint8_t const * src = buf - (shift * GFZ_LCD_HEIGHT);
+    uint8_t       * dst = buf;
+    for (size_t i = 0; i < line_count; i++) {
+        memcpy(dst, src, copy_size);
+        src -= GFZ_LCD_HEIGHT;
+        dst -= GFZ_LCD_HEIGHT;
     }
 }
 
 template<>
 void GraphY::gfz_ShiftLeft(uint32_t pixels) {
     if (pixels == 0) { return; }
-    gfz_Wait();
-    uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
-    const uint8_t* src_buf = buffer + lib.ClipYMin + (lib.ClipXMin * GFZ_LCD_HEIGHT);
-    uint8_t* dst_buf = buffer + lib.ClipYMin + ((lib.ClipXMin - (int32_t)pixels) * GFZ_LCD_HEIGHT);
-    const size_t copySize = lib.ClipYMax - lib.ClipYMin;
-    int32_t x0 = lib.ClipXMin + pixels;
-    int32_t x1 = lib.ClipXMax;
-    src_buf += pixels * GFZ_LCD_HEIGHT;
-    dst_buf += pixels * GFZ_LCD_HEIGHT;
-    for (int32_t x = x0; x < x1; x++) {
-        memcpy(dst_buf, src_buf, copySize);
-        src_buf += GFZ_LCD_HEIGHT;
-        dst_buf += GFZ_LCD_HEIGHT;
+    int32_t shift = (int32_t)(uint32_t)pixels;
+    int32_t y0 = lib.ClipYMin;
+    int32_t y1 = lib.ClipYMax;
+    int32_t x0 = lib.ClipXMin;
+    int32_t x1 = lib.ClipXMax - shift;
+    if (x1 <= x0 || y1 <= y0) {
+        return;
+    }
+    size_t copy_size = y1 - y0;
+    size_t line_count = x1 - x0;
+
+    uint8_t * buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + y0 + (x0 * GFZ_LCD_HEIGHT);
+    uint8_t const * src = buf + (shift * GFZ_LCD_HEIGHT);
+    uint8_t       * dst = buf;
+    for (size_t i = 0; i < line_count; i++) {
+        memcpy(dst, src, copy_size);
+        src += GFZ_LCD_HEIGHT;
+        dst += GFZ_LCD_HEIGHT;
     }
 }
 
 template<>
-void GraphY::gfz_ShiftRight(uint32_t pixels) {
+void GraphY::gfz_ShiftDown(uint8_t pixels) {
     if (pixels == 0) { return; }
-    gfz_Wait();
-    uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
-    const uint8_t* src_buf = buffer + lib.ClipYMin + (lib.ClipXMin * GFZ_LCD_HEIGHT);
-    uint8_t* dst_buf = buffer + lib.ClipYMin + ((lib.ClipXMin - (int32_t)pixels) * GFZ_LCD_HEIGHT);
-    const size_t copySize = lib.ClipYMax - lib.ClipYMin;
-    int32_t x0 = lib.ClipXMin + pixels;
+    int32_t shift = (int32_t)(uint32_t)pixels;
+    int32_t y0 = lib.ClipYMin + shift;
+    int32_t y1 = lib.ClipYMax;
+    int32_t x0 = lib.ClipXMin;
     int32_t x1 = lib.ClipXMax;
-    src_buf += pixels * GFZ_LCD_HEIGHT;
-    dst_buf += pixels * GFZ_LCD_HEIGHT;
-    for (int32_t x = x0; x < x1; x++) {
-        memcpy(dst_buf, src_buf, copySize);
-        src_buf += GFZ_LCD_HEIGHT;
-        dst_buf += GFZ_LCD_HEIGHT;
+    if (x1 <= x0 || y1 <= y0) {
+        return;
+    }
+    size_t copy_size = y1 - y0;
+    size_t line_count = x1 - x0;
+
+    uint8_t * buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + y0 + (x0 * GFZ_LCD_HEIGHT);
+    uint8_t const * src = buf - shift;
+    uint8_t       * dst = buf;
+    for (size_t i = 0; i < line_count; i++) {
+        memmove(dst, src, copy_size);
+        src += GFZ_LCD_HEIGHT;
+        dst += GFZ_LCD_HEIGHT;
+    }
+}
+
+template<>
+void GraphY::gfz_ShiftUp(uint8_t pixels) {
+    if (pixels == 0) { return; }
+    int32_t shift = (int32_t)(uint32_t)pixels;
+    int32_t y0 = lib.ClipYMin;
+    int32_t y1 = lib.ClipYMax - shift;
+    int32_t x0 = lib.ClipXMin;
+    int32_t x1 = lib.ClipXMax;
+    if (x1 <= x0 || y1 <= y0) {
+        return;
+    }
+    size_t copy_size = y1 - y0;
+    size_t line_count = x1 - x0;
+
+    uint8_t * buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + y0 + (x0 * GFZ_LCD_HEIGHT);
+    uint8_t const * src = buf + shift;
+    uint8_t       * dst = buf;
+    for (size_t i = 0; i < line_count; i++) {
+        memmove(dst, src, copy_size);
+        src += GFZ_LCD_HEIGHT;
+        dst += GFZ_LCD_HEIGHT;
     }
 }
 

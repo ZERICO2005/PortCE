@@ -109,66 +109,96 @@ void GraphX::gfz_CopyRectangle(
 template<>
 void GraphX::gfz_ShiftDown(uint8_t pixels) {
     if (pixels == 0) { return; }
-    const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(CurrentBuffer) + lib.ClipXMin + (lib.ClipYMin * GFX_LCD_WIDTH);
-    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + lib.ClipXMin + ((lib.ClipYMin + (int8_t)pixels) * GFX_LCD_WIDTH);
-    const size_t copySize = lib.ClipXMax - lib.ClipXMin;
-    int24_t y0 = lib.ClipYMin + (int8_t)pixels;
-    int24_t y1 = lib.ClipYMax;
-    src_buf += pixels * GFX_LCD_WIDTH;
-    dst_buf += pixels * GFX_LCD_WIDTH;
-    for (int24_t y = y0; y < y1; y++) {
-        memcpy(dst_buf, src_buf, copySize);
-        src_buf -= GFX_LCD_WIDTH;
-        dst_buf -= GFX_LCD_WIDTH;
+    int32_t shift = (int32_t)(uint32_t)pixels;
+    int32_t y0 = lib.ClipYMin + shift;
+    int32_t y1 = lib.ClipYMax;
+    int32_t x0 = lib.ClipXMin;
+    int32_t x1 = lib.ClipXMax;
+    if (x1 <= x0 || y1 <= y0) {
+        return;
+    }
+    size_t copy_size = x1 - x0;
+    size_t line_count = y1 - y0;
+
+    uint8_t * buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + x0 + ((y1 - 1) * GFZ_LCD_WIDTH);
+    uint8_t const * src = buf - (shift * GFZ_LCD_WIDTH);
+    uint8_t       * dst = buf;
+    for (size_t i = 0; i < line_count; i++) {
+        memcpy(dst, src, copy_size);
+        src -= GFZ_LCD_WIDTH;
+        dst -= GFZ_LCD_WIDTH;
     }
 }
 
 template<>
 void GraphX::gfz_ShiftUp(uint8_t pixels) {
     if (pixels == 0) { return; }
-    const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(CurrentBuffer) + lib.ClipXMin + (lib.ClipYMin * GFX_LCD_WIDTH);
-    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + lib.ClipXMin + ((lib.ClipYMin - (int8_t)pixels) * GFX_LCD_WIDTH);
-    const int24_t copySize = lib.ClipXMax - lib.ClipXMin - (int24_t)pixels;
-    if (copySize <= 0) { return; }
-    int24_t y0 = lib.ClipYMin + (int8_t)pixels;
-    int24_t y1 = lib.ClipYMax;
-    src_buf -= pixels * GFX_LCD_WIDTH;
-    dst_buf -= pixels * GFX_LCD_WIDTH;
-    for (int24_t y = y0; y < y1; y++) {
-        memcpy(dst_buf, src_buf, (size_t)copySize);
-        src_buf += GFX_LCD_WIDTH;
-        dst_buf += GFX_LCD_WIDTH;
+    int32_t shift = (int32_t)(uint32_t)pixels;
+    int32_t y0 = lib.ClipYMin;
+    int32_t y1 = lib.ClipYMax - shift;
+    int32_t x0 = lib.ClipXMin;
+    int32_t x1 = lib.ClipXMax;
+    if (x1 <= x0 || y1 <= y0) {
+        return;
     }
-}
+    size_t copy_size = x1 - x0;
+    size_t line_count = y1 - y0;
 
-template<>
-void GraphX::gfz_ShiftLeft(uint32_t pixels) {
-    if (pixels == 0) { return; }
-    const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(CurrentBuffer) + lib.ClipXMin + (lib.ClipYMin * GFX_LCD_WIDTH);
-    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (lib.ClipXMin - (int24_t)pixels) + (lib.ClipYMin * GFX_LCD_WIDTH);
-    const int24_t copySize = lib.ClipXMax - lib.ClipXMin - (int24_t)pixels;
-    if (copySize <= 0) { return; }
-    int24_t y0 = lib.ClipYMin;
-    int24_t y1 = lib.ClipYMax;
-    for (int24_t y = y0; y < y1; y++) {
-        memmove(dst_buf, src_buf, (size_t)copySize); // memcpy would be UB
-        src_buf += GFX_LCD_WIDTH;
-        dst_buf += GFX_LCD_WIDTH;
+    uint8_t * buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + x0 + (y0 * GFZ_LCD_WIDTH);
+    uint8_t const * src = buf + (shift * GFZ_LCD_WIDTH);
+    uint8_t       * dst = buf;
+    for (size_t i = 0; i < line_count; i++) {
+        memcpy(dst, src, copy_size);
+        src += GFZ_LCD_WIDTH;
+        dst += GFZ_LCD_WIDTH;
     }
 }
 
 template<>
 void GraphX::gfz_ShiftRight(uint32_t pixels) {
     if (pixels == 0) { return; }
-    const uint8_t* src_buf = (const uint8_t*)RAM_ADDRESS(CurrentBuffer) + lib.ClipXMin + (lib.ClipYMin * GFX_LCD_WIDTH);
-    uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (lib.ClipXMin + (int24_t)pixels) + (lib.ClipYMin * GFX_LCD_WIDTH);
-    const size_t copySize = lib.ClipXMax - lib.ClipXMin - pixels;
-    int24_t y0 = lib.ClipYMin;
-    int24_t y1 = lib.ClipYMax;
-    for (int24_t y = y0; y < y1; y++) {
-        memmove(dst_buf, src_buf, copySize); // memcpy would be UB
-        src_buf += GFX_LCD_WIDTH;
-        dst_buf += GFX_LCD_WIDTH;
+    int32_t shift = (int32_t)(uint32_t)pixels;
+    int32_t y0 = lib.ClipYMin;
+    int32_t y1 = lib.ClipYMax;
+    int32_t x0 = lib.ClipXMin + shift;
+    int32_t x1 = lib.ClipXMax;
+    if (x1 <= x0 || y1 <= y0) {
+        return;
+    }
+    size_t copy_size = x1 - x0;
+    size_t line_count = y1 - y0;
+
+    uint8_t * buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + x0 + (y0 * GFZ_LCD_WIDTH);
+    uint8_t const * src = buf - shift;
+    uint8_t       * dst = buf;
+    for (size_t i = 0; i < line_count; i++) {
+        memmove(dst, src, copy_size);
+        src += GFZ_LCD_WIDTH;
+        dst += GFZ_LCD_WIDTH;
+    }
+}
+
+template<>
+void GraphX::gfz_ShiftLeft(uint32_t pixels) {
+    if (pixels == 0) { return; }
+    int32_t shift = (int32_t)(uint32_t)pixels;
+    int32_t y0 = lib.ClipYMin;
+    int32_t y1 = lib.ClipYMax;
+    int32_t x0 = lib.ClipXMin;
+    int32_t x1 = lib.ClipXMax - shift;
+    if (x1 <= x0 || y1 <= y0) {
+        return;
+    }
+    size_t copy_size = x1 - x0;
+    size_t line_count = y1 - y0;
+
+    uint8_t * buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + x0 + (y0 * GFZ_LCD_WIDTH);
+    uint8_t const * src = buf + shift;
+    uint8_t       * dst = buf;
+    for (size_t i = 0; i < line_count; i++) {
+        memmove(dst, src, copy_size);
+        src += GFZ_LCD_WIDTH;
+        dst += GFZ_LCD_WIDTH;
     }
 }
 

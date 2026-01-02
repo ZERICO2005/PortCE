@@ -42,7 +42,7 @@ uint8_t boot_GetHardwareVer(void);
  * OS Routines
  */
 
-typedef struct system_info {
+typedef struct __attribute__((__packed__)) system_info {
     size_t size;                 /**< number of valid bytes after this field */
     uint8_t hardwareVersion;     /**< 7 on both CE,  8 on 82AEP              */
     uint8_t hardwareType;        /**< 0 on TI84+CE,  1 on TI83PCE/82AEP      */
@@ -50,11 +50,13 @@ typedef struct system_info {
     uint8_t osMajorVersion;      /**< e.g.  5 on OS 5.4.0.0034               */
     uint8_t osMinorVersion;      /**< e.g.  4 on OS 5.4.0.0034               */
     uint8_t osRevisionVersion;   /**< e.g.  0 on OS 5.4.0.0034               */
-    ti_unsigned_int osBuildVersion;     /**< e.g. 34 on OS 5.4.0.0034               */
+    uint16_t osBuildVersion;     /**< e.g. 34 on OS 5.4.0.0034               */
+    uint8_t : 8;
     uint8_t bootMajorVersion;    /**< e.g.  5 on boot 5.3.6.0017             */
     uint8_t bootMinorVersion;    /**< e.g.  3 on boot 5.3.6.0017             */
     uint8_t bootRevisionVersion; /**< e.g.  6 on boot 5.3.6.0017             */
-    ti_unsigned_int bootBuildVersion;   /**< e.g. 17 on boot 5.3.6.0017             */
+    uint16_t bootBuildVersion;   /**< e.g. 17 on boot 5.3.6.0017             */
+    uint8_t : 8;
     uint8_t unknown[10];         /**< 400100f0000010300000 on CE             */
     uint8_t calcid[8];           /**< From certificate                       */
     char ti[2];                  /**< First part of device name, "TI"        */

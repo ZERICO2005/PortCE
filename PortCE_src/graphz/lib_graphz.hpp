@@ -650,20 +650,20 @@ void GraphZ<T>::gfz_Blit(gfz_location_t src) {
 //------------------------------------------------------------------------------
 
 template<typename T>
-void gfz_SetPixel_ScreenClip(GraphZ<T>& lib, uint32_t x, uint8_t y) {
+void gfz_SetPixel_ScreenClip(GraphZ<T>& lib, int32_t x, int32_t y) {
     if (x < GFZ_LCD_WIDTH && y < GFZ_LCD_HEIGHT) {
        lib.gfz_SetPixel_NoClip(x, y, lib.Color);
     }
 }
 
 template<typename T>
-void gfz_SetPixel_RegionClip(GraphZ<T>& lib, uint32_t x, uint8_t y, uint8_t color) {
+void gfz_SetPixel_RegionClip(GraphZ<T>& lib, int32_t x, int32_t y, uint8_t color) {
     if (
-        (int32_t)(x) >= lib.ClipXMin && (int32_t)(x) < lib.ClipXMax &&
-        (int32_t)(y) >= lib.ClipYMin && (int32_t)(y) < lib.ClipYMax &&
-        (int32_t)(x) >= 0 && (int32_t)(y) >= 0
+        x >= lib.ClipXMin && x < lib.ClipXMax &&
+        y >= lib.ClipYMin && y < lib.ClipYMax &&
+        x >= 0 && y >= 0
     ) {
-        lib.gfz_SetPixel_NoClip(x, y, color);
+        lib.gfz_SetPixel_NoClip((uint32_t)x, (uint8_t)y, color);
     }
 }
 

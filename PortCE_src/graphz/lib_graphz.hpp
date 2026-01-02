@@ -483,13 +483,8 @@ void GraphZ<T>::gfz_SetDefaultPalette(__attribute__((__unused__)) gfz_mode_t mod
 
 template<typename T>
 uint16_t GraphZ<T>::gfz_Darken(uint16_t color, uint8_t amount) const {
-    uint8_t r = (uint8_t)(color & 0x1F);
-    uint8_t g = (uint8_t)((color & 0x3E0) >> 4) + ((color & 0x8000) ? 1 : 0);
-    uint8_t b = (uint8_t)((color & 0x7C00) >> 10);
-    r = (r * amount + 128) / 256;
-    g = (g * amount + 128) / 256;
-    b = (b * amount + 128) / 256;
-    return ((g & 0x1) ? 0x8000 : 0x0000) | (r << 10) | ((g >> 1) << 5) | b;
+    uint16_t internal_gfz_Darken(uint16_t color, uint8_t amount);
+    return internal_gfz_Darken(color, amount);
 }
 
 template<typename T>
@@ -1531,160 +1526,117 @@ gfz_sprite_t *GraphZ<T>::gfz_RotateSpriteHalf(const gfz_sprite_t *sprite_in, gfz
 
 template<typename T>
 void GraphZ<T>::gfz_Tilemap(const gfz_tilemap_t* tilemap, uint32_t x_offset, uint32_t y_offset) {
-    // Unoptimized and overclips a bit
-    uint32_t map_row = x_offset / tilemap->tile_width;
-    uint32_t map_col = y_offset / tilemap->tile_height;
+    int32_t x_draw, y_draw;
+    uint8_t x, x_tile, y_tile, y_next;
+    uint8_t x_res = x_offset / tilemap->tile_width;
+    uint8_t y = y_offset / tilemap->tile_height;
 
-    const uint8_t posX_offset = x_offset % tilemap->tile_width;
-    const uint8_t posY_offset = y_offset % tilemap->tile_height;
+    x_offset = x_offset % tilemap->tile_width;
+    y_offset = y_offset % tilemap->tile_height;
 
-    uint32_t posX0 = (uint32_t)tilemap->x_loc - ((posX_offset == 0) ?
-        0 : tilemap->tile_width + posX_offset);
-    // posX0 = (posX0 < 0) ? 0 : posX0;
-    uint32_t posY = (uint32_t)tilemap->y_loc - ((posY_offset == 0) ?
-        0 : tilemap->tile_height + posY_offset);
-    // posY = (posY < 0) ? 0 : posY;
-
-    uint8_t draw_sizeX = tilemap->draw_width;
-    uint8_t draw_sizeY = tilemap->draw_height;
-    if (x_offset % tilemap->tile_width != 0) {
-        if (map_row > 0) {
-            draw_sizeX++;
-            map_row--;
-        } else if (posX_offset != 0) {
-            posX0 += tilemap->tile_width;
+    y_draw = tilemap->y_loc - y_offset;
+    for (y_tile = 0; y_tile <= tilemap->draw_height; y_tile++) {
+        x = x_res;
+        y_next = y * tilemap->width;
+        x_draw = tilemap->x_loc - x_offset;
+        for (x_tile = 0; x_tile <= tilemap->draw_width; x_tile++) {
+            gfz_Sprite(
+                tilemap->tiles[tilemap->map[x + y_next]],
+                x_draw,
+                y_draw
+            );
+            x_draw += tilemap->tile_width;
+            x++;
         }
-
-    }
-    if (y_offset % tilemap->tile_height != 0) {
-        if (map_col > 0) {
-            draw_sizeY++;
-            map_col--;
-        } else if (posY_offset != 0) {
-            posY += tilemap->tile_height;
-        }
-    }
-
-    /* Debugging */ const uint32_t map_size = tilemap->width * tilemap->height;
-
-    uint32_t map_index = map_row + (map_col * tilemap->width);
-    const uint32_t map_jump = (tilemap->width - draw_sizeX);
-
-    for (uint8_t draw_y = 0; draw_y < draw_sizeY; draw_y++) {
-        uint32_t posX = posX0;
-        for (uint8_t draw_x = 0; draw_x < draw_sizeX; draw_x++) {
-            if (map_index >= map_size) {
-                return; // Optimize this out
-            }
-            gfz_Sprite(tilemap->tiles[tilemap->map[map_index]], posX, posY);
-            posX += tilemap->tile_width;
-            map_index++;
-        }
-        map_index += map_jump;
-        posY += tilemap->tile_height;
+        y_draw += tilemap->tile_height;
+        y++;
     }
 }
 
 template<typename T>
 void GraphZ<T>::gfz_Tilemap_NoClip(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset) {
-    uint32_t map_row = x_offset / tilemap->tile_width;
-    uint32_t map_col = y_offset / tilemap->tile_height;
+    int32_t x_draw, y_draw;
+    uint8_t x, x_tile, y_tile, y_next;
+    uint8_t x_res = x_offset / tilemap->tile_width;
+    uint8_t y = y_offset / tilemap->tile_height;
 
-    uint32_t map_index = map_row + (map_col * tilemap->width);
-    const uint32_t map_jump = (tilemap->width - tilemap->draw_width);
+    x_offset = x_offset % tilemap->tile_width;
+    y_offset = y_offset % tilemap->tile_height;
 
-    uint32_t posX0 = (uint32_t)tilemap->x_loc - (x_offset % tilemap->tile_width);
-    posX0 = (posX0 < 0) ? 0 : posX0;
-    uint8_t posY = tilemap->y_loc - (y_offset % tilemap->tile_height);
-    posY = (posY < 0) ? 0 : posY;
-    for (uint8_t draw_y = 0; draw_y < tilemap->draw_height; draw_y++) {
-        uint32_t posX = posX0;
-        for (uint8_t draw_x = 0; draw_x < tilemap->draw_width; draw_x++) {
-            gfz_Sprite_NoClip(tilemap->tiles[tilemap->map[map_index]], posX, posY);
-            posX += tilemap->tile_width;
-            map_index++;
+    y_draw = tilemap->y_loc - y_offset;
+    for (y_tile = 0; y_tile <= tilemap->draw_height; y_tile++) {
+        x = x_res;
+        y_next = y * tilemap->width;
+        x_draw = tilemap->x_loc - x_offset;
+        for (x_tile = 0; x_tile <= tilemap->draw_width; x_tile++) {
+            gfz_Sprite_NoClip(
+                tilemap->tiles[tilemap->map[x + y_next]],
+                x_draw,
+                y_draw
+            );
+            x_draw += tilemap->tile_width;
+            x++;
         }
-        map_index += map_jump;
-        posY += tilemap->tile_height;
+        y_draw += tilemap->tile_height;
+        y++;
     }
 }
 
 template<typename T>
 void GraphZ<T>::gfz_TransparentTilemap(const gfz_tilemap_t* tilemap, uint32_t x_offset, uint32_t y_offset) {
-    // Unoptimized and overclips a bit
-    uint32_t map_row = x_offset / tilemap->tile_width;
-    uint32_t map_col = y_offset / tilemap->tile_height;
+    int32_t x_draw, y_draw;
+    uint8_t x, x_tile, y_tile, y_next;
+    uint8_t x_res = x_offset / tilemap->tile_width;
+    uint8_t y = y_offset / tilemap->tile_height;
 
-    const uint8_t posX_offset = x_offset % tilemap->tile_width;
-    const uint8_t posY_offset = y_offset % tilemap->tile_height;
+    x_offset = x_offset % tilemap->tile_width;
+    y_offset = y_offset % tilemap->tile_height;
 
-    uint32_t posX0 = (uint32_t)tilemap->x_loc - ((posX_offset == 0) ?
-        0 : tilemap->tile_width + posX_offset);
-    // posX0 = (posX0 < 0) ? 0 : posX0;
-    uint32_t posY = (uint32_t)tilemap->y_loc - ((posY_offset == 0) ?
-        0 : tilemap->tile_height + posY_offset);
-    // posY = (posY < 0) ? 0 : posY;
-
-    uint8_t draw_sizeX = tilemap->draw_width;
-    uint8_t draw_sizeY = tilemap->draw_height;
-    if (x_offset % tilemap->tile_width != 0) {
-        if (map_row > 0) {
-            draw_sizeX++;
-            map_row--;
-        } else if (posX_offset != 0) {
-            posX0 += tilemap->tile_width;
+    y_draw = tilemap->y_loc - y_offset;
+    for (y_tile = 0; y_tile <= tilemap->draw_height; y_tile++) {
+        x = x_res;
+        y_next = y * tilemap->width;
+        x_draw = tilemap->x_loc - x_offset;
+        for (x_tile = 0; x_tile <= tilemap->draw_width; x_tile++) {
+            gfz_TransparentSprite(
+                tilemap->tiles[tilemap->map[x + y_next]],
+                x_draw,
+                y_draw
+            );
+            x_draw += tilemap->tile_width;
+            x++;
         }
-
-    }
-    if (y_offset % tilemap->tile_height != 0) {
-        if (map_col > 0) {
-            draw_sizeY++;
-            map_col--;
-        } else if (posY_offset != 0) {
-            posY += tilemap->tile_height;
-        }
-    }
-
-    /* Debugging */ const uint32_t map_size = tilemap->width * tilemap->height;
-
-    uint32_t map_index = map_row + (map_col * tilemap->width);
-    const uint32_t map_jump = (tilemap->width - draw_sizeX);
-
-    for (uint8_t draw_y = 0; draw_y < draw_sizeY; draw_y++) {
-        uint32_t posX = posX0;
-        for (uint8_t draw_x = 0; draw_x < draw_sizeX; draw_x++) {
-            if (map_index >= map_size) {
-                return; // Optimize this out
-            }
-            gfz_TransparentSprite(tilemap->tiles[tilemap->map[map_index]], posX, posY);
-            posX += tilemap->tile_width;
-            map_index++;
-        }
-        map_index += map_jump;
-        posY += tilemap->tile_height;
+        y_draw += tilemap->tile_height;
+        y++;
     }
 }
 
 template<typename T>
 void GraphZ<T>::gfz_TransparentTilemap_NoClip(const gfz_tilemap_t *tilemap, uint32_t x_offset, uint32_t y_offset) {
-    uint32_t map_row = x_offset / tilemap->tile_width;
-    uint32_t map_col = y_offset / tilemap->tile_height;
-    uint32_t map_index = map_row + (map_col * tilemap->width);
-    const uint32_t map_jump = (tilemap->width - tilemap->draw_width);
+    int32_t x_draw, y_draw;
+    uint8_t x, x_tile, y_tile, y_next;
+    uint8_t x_res = x_offset / tilemap->tile_width;
+    uint8_t y = y_offset / tilemap->tile_height;
 
-    uint32_t posX0 = (uint32_t)tilemap->x_loc - (x_offset % tilemap->tile_width);
-    posX0 = (posX0 < 0) ? 0 : posX0;
-    uint8_t posY = tilemap->y_loc - (y_offset % tilemap->tile_height);
-    posY = (posY < 0) ? 0 : posY;
-    for (uint8_t draw_y = 0; draw_y < tilemap->draw_height; draw_y++) {
-        uint32_t posX = posX0;
-        for (uint8_t draw_x = 0; draw_x < tilemap->draw_width; draw_x++) {
-            gfz_TransparentSprite_NoClip(tilemap->tiles[tilemap->map[map_index]], posX, posY);
-            posX += tilemap->tile_width;
-            map_index++;
+    x_offset = x_offset % tilemap->tile_width;
+    y_offset = y_offset % tilemap->tile_height;
+
+    y_draw = tilemap->y_loc - y_offset;
+    for (y_tile = 0; y_tile <= tilemap->draw_height; y_tile++) {
+        x = x_res;
+        y_next = y * tilemap->width;
+        x_draw = tilemap->x_loc - x_offset;
+        for (x_tile = 0; x_tile <= tilemap->draw_width; x_tile++) {
+            gfz_TransparentSprite_NoClip(
+                tilemap->tiles[tilemap->map[x + y_next]],
+                x_draw,
+                y_draw
+            );
+            x_draw += tilemap->tile_width;
+            x++;
         }
-        map_index += map_jump;
-        posY += tilemap->tile_height;
+        y_draw += tilemap->tile_height;
+        y++;
     }
 }
 

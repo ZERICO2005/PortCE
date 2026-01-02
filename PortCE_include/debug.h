@@ -8,6 +8,7 @@
  */
 
 #include <stdio.h>
+#include <PortCE.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,6 +28,8 @@ extern "C" {
 /** Break on read or write. */
 #define DBG_WATCHPOINT_RW ((1 << 0) | (1 << 1))
 
+#ifdef _EZ80
+
 /**
  * Used to print to the emulator console.
  *
@@ -35,6 +38,12 @@ extern "C" {
  * @note Does not support floats unless `HAS_PRINTF = YES`.
  */
 #define dbg_printf(...) sprintf(dbgout, ##__VA_ARGS__)
+
+#else /* _EZ80 */
+
+#define dbg_printf printf
+
+#endif /* _EZ80 */
 
 /**
  * Used to print to the emulator console.

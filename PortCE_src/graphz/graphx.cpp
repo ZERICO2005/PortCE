@@ -1224,29 +1224,29 @@ gfz_rletsprite_t *GraphX::gfz_ConvertToRLETSprite(const gfz_sprite_t *sprite_in,
     const uint8_t* src_ptr = sprite_in->data;
     uint8_t* dst_ptr = sprite_out->data;
 
-    for (uint8_t x = 0; x < sprite_in->width; x++) {
-        uint8_t y = 0;
+    for (uint8_t y = 0; y < sprite_in->height; y++) {
+        uint8_t x = 0;
 
-        while (y < sprite_in->height) {
+        while (x < sprite_in->width) {
             uint8_t transparent_run_length = 0;
-            while (y < sprite_in->height && *src_ptr == lib.Transparent_Color) {
+            while (x < sprite_in->width && *src_ptr == lib.Transparent_Color) {
                 transparent_run_length++;
-                y++;
+                x++;
                 src_ptr++;
             }
             *dst_ptr = transparent_run_length;
             dst_ptr++;
 
-            if (y >= sprite_in->height) {
+            if (x >= sprite_in->width) {
                 break;
             }
 
             uint8_t* const opaque_element = dst_ptr;
             dst_ptr++;
             uint8_t opaque_run_length = 0;
-            while (y < sprite_in->height && *src_ptr != lib.Transparent_Color) {
+            while (x < sprite_in->width && *src_ptr != lib.Transparent_Color) {
                 opaque_run_length++;
-                y++;
+                x++;
                 *dst_ptr = *src_ptr;
                 src_ptr++;
                 dst_ptr++;
@@ -1263,23 +1263,23 @@ gfz_rletsprite_t *GraphX::gfz_ConvertToNewRLETSprite(const gfz_sprite_t *sprite_
     const uint8_t* src_ptr = sprite_in->data;
 
     // Calculates rlet_size
-    for (uint8_t x = 0; x < sprite_in->width; x++) {
-        uint8_t y = 0;
+    for (uint8_t y = 0; y < sprite_in->height; y++) {
+        uint8_t x = 0;
 
-        while (y < sprite_in->height) {
-            while (y < sprite_in->height && *src_ptr == lib.Transparent_Color) {
-                y++;
+        while (x < sprite_in->width) {
+            while (x < sprite_in->width && *src_ptr == lib.Transparent_Color) {
+                x++;
                 src_ptr++;
             }
             rlet_size++;
 
-            if (y >= sprite_in->height) {
+            if (x >= sprite_in->width) {
                 break;
             }
 
             rlet_size++;
-            while (y < sprite_in->height && *src_ptr != lib.Transparent_Color) {
-                y++;
+            while (x < sprite_in->width && *src_ptr != lib.Transparent_Color) {
+                x++;
                 src_ptr++;
                 rlet_size++;
             }

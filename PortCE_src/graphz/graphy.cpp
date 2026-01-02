@@ -250,7 +250,6 @@ void GraphY::gfz_FillRectangle_NoClip(uint32_t x, uint8_t y, uint32_t width, uin
     if (width == 0 || height == 0) {
         return;
     }
-    printf("L%d\n", __LINE__);
     uint8_t *fill = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + ((uint32_t)y + (x * GFZ_LCD_HEIGHT));
     for (uint32_t x_cord = 0; x_cord < width; x_cord++) {
         memset(fill, lib.Color, height);
@@ -1248,6 +1247,7 @@ ConvertFromRLETSprite_RowEnd:
     return sprite_out;
 }
 
+
 template<>
 gfz_rletsprite_t *GraphY::gfz_ConvertToRLETSprite(const gfz_sprite_t *sprite_in, gfz_rletsprite_t *sprite_out) {
     sprite_out->width = sprite_in->width;
@@ -1256,29 +1256,29 @@ gfz_rletsprite_t *GraphY::gfz_ConvertToRLETSprite(const gfz_sprite_t *sprite_in,
     const uint8_t* src_ptr = sprite_in->data;
     uint8_t* dst_ptr = sprite_out->data;
 
-    for (uint8_t y = 0; y < sprite_in->height; y++) {
-        uint8_t x = 0;
+    for (uint8_t x = 0; x < sprite_in->width; x++) {
+        uint8_t y = 0;
 
-        while (x < sprite_in->width) {
+        while (y < sprite_in->height) {
             uint8_t transparent_run_length = 0;
-            while (x < sprite_in->width && *src_ptr == lib.Transparent_Color) {
+            while (y < sprite_in->height && *src_ptr == lib.Transparent_Color) {
                 transparent_run_length++;
-                x++;
+                y++;
                 src_ptr++;
             }
             *dst_ptr = transparent_run_length;
             dst_ptr++;
 
-            if (x >= sprite_in->width) {
+            if (y >= sprite_in->height) {
                 break;
             }
 
             uint8_t* const opaque_element = dst_ptr;
             dst_ptr++;
             uint8_t opaque_run_length = 0;
-            while (x < sprite_in->width && *src_ptr != lib.Transparent_Color) {
+            while (y < sprite_in->height && *src_ptr != lib.Transparent_Color) {
                 opaque_run_length++;
-                x++;
+                y++;
                 *dst_ptr = *src_ptr;
                 src_ptr++;
                 dst_ptr++;
@@ -1295,23 +1295,23 @@ gfz_rletsprite_t *GraphY::gfz_ConvertToNewRLETSprite(const gfz_sprite_t *sprite_
     const uint8_t* src_ptr = sprite_in->data;
 
     // Calculates rlet_size
-    for (uint8_t y = 0; y < sprite_in->height; y++) {
-        uint8_t x = 0;
+    for (uint8_t x = 0; x < sprite_in->width; x++) {
+        uint8_t y = 0;
 
-        while (x < sprite_in->width) {
-            while (x < sprite_in->width && *src_ptr == lib.Transparent_Color) {
-                x++;
+        while (y < sprite_in->height) {
+            while (y < sprite_in->height && *src_ptr == lib.Transparent_Color) {
+                y++;
                 src_ptr++;
             }
             rlet_size++;
 
-            if (x >= sprite_in->width) {
+            if (y >= sprite_in->height) {
                 break;
             }
 
             rlet_size++;
-            while (x < sprite_in->width && *src_ptr != lib.Transparent_Color) {
-                x++;
+            while (y < sprite_in->height && *src_ptr != lib.Transparent_Color) {
+                y++;
                 src_ptr++;
                 rlet_size++;
             }

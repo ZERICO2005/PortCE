@@ -214,7 +214,7 @@ typedef enum {
  * Total of 76800 bytes in size.
  */
 #define gfy_vbuffer \
-(**(uint8_t(**)[240][320])RAM_ADDRESS(0xE30014))
+(*((uint8_t(*)[320][240])RAM_ADDRESS(*(uint24_t*)RAM_ADDRESS(0xE30014))))
 
 /**
  * Makes graphics routines act on the non-visible buffer.

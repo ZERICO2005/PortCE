@@ -470,6 +470,7 @@ void GraphZ<T>::gfz_SetPalette(
     uint8_t offset
 ) {
     if ((2 * offset) + size > 512) {
+        print_warning("SetPalette out of bounds: (2 * offset) + size > 512");
         size = 512 - (2 * offset);
     }
     memcpy(&lcd_Palette[offset], palette, size);

@@ -269,6 +269,8 @@ extern "C" {
 
 #define PortCE_update_registers() (0)
 
+#define PortCE_get_file_name(x) x
+
 #else /* _EZ80 */
 
 extern uint8_t simulated_ram[16777216];
@@ -317,6 +319,17 @@ void PortCE_pace_frame(float frame_rate);
  * @return This function always returns 0
  */
 ti_int PortCE_update_registers(void);
+
+/**
+ * @brief Converts "MYAPPVAR" into a path like "./../src/gfx/MYAPPVAR.8xv",
+ * returning NULL if the file cannot be found.
+ * @example fopen(PortCE_get_appvar_path("MYAPPVAR"), "r")
+ *
+ * @returns file path string to appvar.
+ * @warning The contents of the string/pointer are overwritten by subsequent
+ * calls to the function.
+ */
+const char* PortCE_get_appvar_path(const char * name);
 
 #endif /* _EZ80 */
 

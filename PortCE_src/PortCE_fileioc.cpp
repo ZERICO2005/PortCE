@@ -31,7 +31,10 @@ static const char* PortCE_FilePaths[] = {
     "../../src/gfx/",
     "./extra/",
     "../extra/",
-    "../../extra/"
+    "../../extra/",
+    "./appvar/",
+    "../appvar/",
+    "../../appvar/",
 };
 
 __attribute__((unused)) static const uint8_t File_8XV_Text[] = {
@@ -115,27 +118,6 @@ static bool set_File_Access_Flags(uint8_t handle, const char* mode) {
     return true;
 }
 
-static bool validate_File_Name(const char* name) {
-    if (name == NULL) {
-        return false;
-    }
-    size_t len = 0;
-    while (*name != '\0') {
-        len++;
-        if (len > NameSize) {
-            return false;
-        }
-        if (*name == '/') {
-            return false; // Invalid character
-        }
-        name++;
-    }
-    if (len == 0) {
-        return false;
-    }
-    return true;
-}
-
 static bool validate_File_Handle(uint8_t handle) {
     if (handle == 0) {
         return false;
@@ -156,6 +138,42 @@ static bool validate_File_Handle(uint8_t handle) {
     return true;
 }
 
+static bool is_valid_appvar_name(const char* name) {
+    if (name == NULL) {
+        return false;
+    }
+    constexpr size_t Max_Name_Len = 8;
+    size_t name_len = strnlen(name, Max_Name_Len + 1);
+    if (name_len > Max_Name_Len || name_len == 0) {
+        return false;
+    }
+    static char const disallowed_characters[] = "\\/";
+    if (strcspn(name, disallowed_characters) != name_len) {
+        fprintf(stderr, "appvar \"%s\" can't contain \'/\' or \'\\\'\n", name);
+        return false;
+    }
+    return true;
+}
+
+const char *PortCE_get_appvar_path(const char* name) {
+    static char path[4096];
+    if (!is_valid_appvar_name(name)) {
+        return NULL;
+    }
+    for (size_t i = 0; i < ARRAY_LENGTH(PortCE_FilePaths); i++) {
+        memset(path, '\0', sizeof(path));
+        snprintf(path, sizeof(path), "%s%s.8xv", PortCE_FilePaths[i], name);
+        FILE* file = fopen(path, "rb");
+        if (file != NULL) {
+            fclose(file);
+            printf("found: \"%s\"\n", path);
+            return path;
+        }
+    }
+    printf("cannot find: \"%s\"\n", name);
+    return NULL;
+}
+
 static FILE* open_File(const char* name, const char* mode) {
     if (name == NULL || mode == NULL) {
         return NULL;
@@ -172,9 +190,11 @@ static FILE* open_File(const char* name, const char* mode) {
         snprintf(mode_temp,sizeof(mode_temp),"%sb",mode);
         FILE* file = fopen(path, mode_temp);
         if (file != NULL) {
+            printf("opened: \"%s\"\n", path);
             return file;
         }
     }
+    printf("Unable to find/open \"%s\" (%s)\n", name, mode);
     return NULL; // File not found
 }
 
@@ -183,8 +203,8 @@ static FILE* open_File(const char* name, const char* mode) {
 void PortCE_terminate_fileioc(void);
 
 uint8_t ti_Open(const char* name, const char* mode) {
-    if (validate_File_Name(name) == false || mode == NULL) {
-        return 0;
+    if (!is_valid_appvar_name(name) || mode == NULL) {
+        return NULL;
     }
     uint8_t handle = get_Empty_File_Handle();
     if (set_File_Access_Flags(handle, mode) == false) {

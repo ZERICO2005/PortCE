@@ -400,4 +400,4 @@ typedef enum {
 }
 #endif
 
-#endif
+#endif /* _KEYPADC_H */

@@ -117,4 +117,4 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif /* SYS_SPI_H */

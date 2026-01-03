@@ -1291,4 +1291,4 @@ uint24_t usb_GetCounter(void);
 }
 #endif
 
-#endif
+#endif /* H_USBDRVCE */

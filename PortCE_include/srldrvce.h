@@ -163,4 +163,4 @@ usb_error_t srl_UsbEventCallback(usb_event_t event, void *event_data,
 }
 #endif
 
-#endif
+#endif /* H_SRLDRVCE */

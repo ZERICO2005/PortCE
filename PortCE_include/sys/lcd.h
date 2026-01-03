@@ -129,4 +129,4 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif /* SYS_LCD_H */

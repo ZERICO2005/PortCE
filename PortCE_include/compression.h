@@ -32,5 +32,4 @@ void zx0_Decompress(void *dst, const void *src);
 }
 #endif
 
-#endif
-
+#endif /* COMPRESSION_H */

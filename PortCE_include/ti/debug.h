@@ -28,4 +28,4 @@ void boot_DebugPrintf(const char *string);
 }
 #endif
 
-#endif
+#endif /* TI_DEBUG_H */

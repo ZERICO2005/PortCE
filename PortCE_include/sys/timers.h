@@ -261,4 +261,4 @@ extern uint16_t timer_IntAcknowledge;
 }
 #endif
 
-#endif
+#endif  /* SYS_TIMERS_H */

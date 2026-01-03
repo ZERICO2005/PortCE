@@ -213,4 +213,4 @@ do { \
 }
 #endif
 
-#endif
+#endif /* SYS_RTC_H */

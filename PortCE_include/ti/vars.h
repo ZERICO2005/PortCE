@@ -525,4 +525,4 @@ int24_t os_EvalVar(const char *name);
 }
 #endif
 
-#endif
+#endif /* TI_VARS_H */

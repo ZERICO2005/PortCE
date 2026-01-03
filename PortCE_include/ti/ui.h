@@ -94,4 +94,4 @@ typedef enum {
 }
 #endif
 
-#endif
+#endif /* TI_UI_H */

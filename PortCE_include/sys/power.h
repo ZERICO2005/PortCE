@@ -88,4 +88,4 @@ uint8_t boot_BatteryCharging(void);
 }
 #endif
 
-#endif
+#endif /* SYS_POWER_H */

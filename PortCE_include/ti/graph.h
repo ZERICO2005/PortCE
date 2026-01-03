@@ -139,4 +139,4 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif /* TI_GRAPH_H */

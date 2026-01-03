@@ -315,44 +315,51 @@ void GraphX::gfz_PrintChar(const char c) {
     const uint8_t textSizeX = charWidth * lib.TextWidthScale;
     const uint8_t textSizeY = lib.Maximum_Font_Height * lib.TextHeightScale;
     if (
-        lib.PrintChar_Clip == gfz_text_noclip ||
-        /* Otherwise, if clipping is enabled */
-        lib.TextXPos >= lib.ClipXMin || lib.TextYPos >= lib.ClipYMin ||
-        lib.TextXPos + textSizeX <= lib.ClipXMax ||
-        lib.TextYPos + textSizeY <= lib.ClipYMax
+        lib.PrintChar_Clip != gfz_text_clip || (
+            /* Otherwise, if clipping is enabled */
+            lib.TextXPos >= lib.ClipXMin && lib.TextYPos >= lib.ClipYMin &&
+            lib.TextXPos + textSizeX <= lib.ClipXMax &&
+            lib.TextYPos + textSizeY <= lib.ClipYMax
+        )
     ) {
         gfz_internal_PrintChar_NoClip(c, charWidth);
         return;
     }
     const uint8_t *bitImage = lib.TextData + lib.Maximum_Font_Height * (uint32_t)((unsigned char)c);
     uint8_t *fillLinePtr = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (lib.TextXPos + (lib.TextYPos * GFZ_LCD_WIDTH));
-    lib.TextXPos += charWidth * lib.TextWidthScale;
 
+    int32_t y0 = TextYPos;
     for (uint8_t y = 0; y < lib.FontHeight; y++) {
         for (uint8_t v = 0; v < lib.TextHeightScale; v++) {
             uint8_t *fillPtr = fillLinePtr;
             uint8_t b = (1 << 7);
+            int32_t x0 = TextXPos;
             for (uint8_t x = 0; x < charWidth; x++) {
                 const uint8_t fillColor = *bitImage & b ? lib.Text_FG_Color : lib.Text_BG_Color;
                 b >>= 1;
                 if (fillColor == lib.Text_TP_Color) {
                     fillPtr += lib.TextWidthScale;
+                    x0 += lib.TextWidthScale;
                     continue;
                 }
                 for (uint8_t u = 0; u < lib.TextWidthScale; u++) {
                     if (
-                        fillPtr >= (uint8_t*)RAM_ADDRESS(CurrentBuffer) &&
-                        fillPtr < (uint8_t*)RAM_ADDRESS(CurrentBuffer + GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT)
+                        x0 >= lib.ClipXMin && x0 < lib.ClipXMax &&
+                        y0 >= lib.ClipXMin && y0 < lib.ClipYMax
                     ) {
                         *fillPtr = fillColor;
                     }
                     fillPtr++;
+                    x0++;
                 }
             }
             fillLinePtr += GFZ_LCD_WIDTH;
+            y0++;
         }
         bitImage++;
     }
+
+    lib.TextXPos += charWidth * lib.TextWidthScale;
 }
 
 //------------------------------------------------------------------------------

@@ -170,18 +170,18 @@ __attribute__((__format__(__printf__, 2, 3)))
 void print_warning(const char *format, ...) {
     va_list args;
     va_start(args, format);
-    fprintf(stderr, "%s", library_name);
+    fprintf(stderr, "%s: ", library_name);
     vfprintf(stderr, format, args);
     fprintf(stderr, "\n");
     va_end(args);
 }
 
 void test_state(void) {
-    if (CharSpacing == NULL) {
-        print_warning("CharSpacing is NULL");
+    if (CharSpacing == nullptr) {
+        print_warning("CharSpacing is nullptr");
     }
-    if (TextData == NULL) {
-        print_warning("TextData is NULL");
+    if (TextData == nullptr) {
+        print_warning("TextData is nullptr");
     }
     if (TextWidthScale == 0) {
         print_warning("TextWidthScale is zero");
@@ -193,21 +193,13 @@ void test_state(void) {
         print_warning("FontHeight(%d) > Maximum_Font_Height", FontHeight);
     }
     if (
-        (ClipXMin >= ClipXMax || ClipYMin >= ClipYMax) ||
-        (ClipXMax > GFZ_LCD_WIDTH || ClipYMax > GFZ_LCD_HEIGHT)
+        (ClipXMax > GFZ_LCD_WIDTH || ClipYMax > GFZ_LCD_HEIGHT) ||
+        (ClipXMin < 0 || ClipYMin < 0) ||
+        (ClipXMin >= ClipXMax || ClipYMin >= ClipYMax)
     ) {
         print_warning(
             "invalid clipping bounds: min(%d, %d) max(%d, %d)",
             (int)ClipXMin, (int)ClipYMin, (int)ClipXMax, (int)ClipYMax
-        );
-    }
-    if (
-        (TextXPos < 0 || TextXPos >= GFZ_LCD_WIDTH) ||
-        (TextYPos < 0 || TextYPos >= GFZ_LCD_HEIGHT)
-    ) {
-        print_warning(
-            "text position out of bounds: (%d, %d)",
-            (int)TextXPos, (int)TextYPos
         );
     }
 }
@@ -813,13 +805,13 @@ int32_t GraphZ<T>::gfz_GetTextX(void) {
 
 template<typename T>
 void GraphZ<T>::gfz_SetFontSpacing(const uint8_t *data) {
-    CharSpacing = (data == NULL) ? DefaultCharSpacing : data;
+    CharSpacing = (data == nullptr) ? DefaultCharSpacing : data;
 }
 
 template<typename T>
 uint8_t *GraphZ<T>::gfz_SetFontData(const uint8_t *data) {
     uint8_t* temp = (uint8_t*)TextData;
-    TextData = (data == NULL) ? DefaultTextData : data;
+    TextData = (data == nullptr) ? DefaultTextData : data;
     return temp;
 }
 

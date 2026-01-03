@@ -534,8 +534,7 @@ newLine:
         return;
     }
 doNewLine:
-    bool newline_status = fontlib_Newline();
-    if (newline_status) {
+    if (fontlib_Newline()) {
         return;
     }
     bool was_new_line = (newlineControl & mWasNewline);

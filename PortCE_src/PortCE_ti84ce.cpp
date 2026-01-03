@@ -17,6 +17,7 @@
 #include <sys/timers.h>
 #include <sys/rtc.h>
 #include <lcddrvce.h>
+#include <algorithm>
 
 #include <tice.h>
 #include <fileioc.h>

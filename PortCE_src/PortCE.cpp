@@ -12,7 +12,7 @@
 
 void* RAM_ADDRESS(const uint24_t address) {
     if (address == 0) {
-        return NULL;
+        return nullptr;
     }
     // if (address >= 0xE00000 && update_ram == false) {
     //     PortCE_update_registers();

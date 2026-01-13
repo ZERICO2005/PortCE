@@ -5,6 +5,7 @@
 #include <string.h>
 #include <PortCE.h>
 #include <fontlibc.h>
+#include <fileioc.h>
 #include <graphx.h>
 #include <stdio.h>
 #include <sys/lcd.h>
@@ -757,12 +758,29 @@ fontlib_font_t *fontlib_GetFontByIndexRaw(
     return (fontlib_font_t*)((unsigned char const *)font_pack + (uintptr_t)offset);
 }
 
-// unimplemented
 fontlib_font_t *fontlib_GetFontByIndex(
-    __attribute__((__unused__)) const char *font_pack_name,
-    __attribute__((__unused__)) uint8_t index
+    const char *font_pack_name,
+    uint8_t index
 ) {
-    return NULL;
+    uint8_t handle = ti_Open(font_pack_name, "r");
+    if (!handle) {
+        return NULL;
+    }
+
+    fontlib_font_pack_t *font_pack = (fontlib_font_pack_t *)ti_GetDataPtr(handle);
+    if (font_pack == NULL) {
+        ti_Close(handle);
+        return NULL;
+    }
+
+    if (memcmp(font_pack->header, fontPackHeaderString, 8) != 0) {
+        ti_Close(handle);
+        return NULL;
+    }
+
+    fontlib_font_t *result = fontlib_GetFontByIndexRaw(font_pack, index);
+    ti_Close(handle);
+    return result;
 }
 
 fontlib_font_t *fontlib_GetFontByStyleRaw(
@@ -804,15 +822,37 @@ fontlib_font_t *fontlib_GetFontByStyleRaw(
     return NULL;
 }
 
-// unimplemented
 fontlib_font_t *fontlib_GetFontByStyle(
-    __attribute__((__unused__)) const char *font_pack_name,
-    __attribute__((__unused__)) uint8_t size_min,
-    __attribute__((__unused__)) uint8_t size_max,
-    __attribute__((__unused__)) uint8_t weight_min,
-    __attribute__((__unused__)) uint8_t weight_max,
-    __attribute__((__unused__)) uint8_t style_bits_set,
-    __attribute__((__unused__)) uint8_t style_bits_reset
+    const char *font_pack_name,
+    uint8_t size_min,
+    uint8_t size_max,
+    uint8_t weight_min,
+    uint8_t weight_max,
+    uint8_t style_bits_set,
+    uint8_t style_bits_reset
 ) {
-    return NULL;
+    uint8_t handle = ti_Open(font_pack_name, "r");
+    if (!handle) {
+        return NULL;
+    }
+
+    fontlib_font_pack_t *font_pack = (fontlib_font_pack_t *)ti_GetDataPtr(handle);
+    if (font_pack == NULL) {
+        ti_Close(handle);
+        return NULL;
+    }
+
+    if (memcmp(font_pack->header, fontPackHeaderString, 8) != 0) {
+        ti_Close(handle);
+        return NULL;
+    }
+
+    fontlib_font_t *result = fontlib_GetFontByStyleRaw(
+        font_pack,
+        size_min, size_max,
+        weight_min, weight_max,
+        style_bits_set, style_bits_reset
+    );
+    ti_Close(handle);
+    return result;
 }

@@ -33,19 +33,19 @@ usb_error_t usb_WaitForInterrupt(void) {
 usb_device_t usb_RefDevice(
     __attribute__((__unused__)) usb_device_t device
 ) {
-    return NULL;
+    return nullptr;
 }
 
 usb_device_t usb_UnrefDevice(
     __attribute__((__unused__)) usb_device_t device
 ) {
-    return NULL;
+    return nullptr;
 }
 
 usb_device_t usb_GetDeviceHub(
     __attribute__((__unused__)) usb_device_t device
 ) {
-    return NULL;
+    return nullptr;
 }
 
 void usb_SetDeviceData(
@@ -58,7 +58,7 @@ void usb_SetDeviceData(
 usb_device_data_t *usb_GetDeviceData(
     __attribute__((__unused__)) usb_device_t device
 ) {
-    return NULL;
+    return nullptr;
 }
 
 usb_device_flags_t usb_GetDeviceFlags(
@@ -72,7 +72,7 @@ usb_device_t usb_FindDevice(
     __attribute__((__unused__)) usb_device_t from,
     __attribute__((__unused__)) usb_find_device_flags_t flags
 ) {
-    return NULL;
+    return nullptr;
 }
 
 usb_error_t usb_ResetDevice(
@@ -115,7 +115,7 @@ size_t usb_GetConfigurationDescriptorTotalLength(
  * @param descriptor Returns the fetched descriptor.
  * @param length The maximum number of bytes to receive.
  * The \p descriptor buffer must be at least this large.
- * @param transferred NULL or returns the number of bytes actually received.
+ * @param transferred nullptr or returns the number of bytes actually received.
  * @return USB_SUCCESS if the transfer succeeded or an error.
  */
 usb_error_t usb_GetDescriptor(
@@ -207,13 +207,13 @@ usb_endpoint_t usb_GetDeviceEndpoint(
     __attribute__((__unused__)) usb_device_t device,
     __attribute__((__unused__)) uint8_t address
 ) {
-    return NULL;
+    return nullptr;
 }
 
 usb_device_t usb_GetEndpointDevice(
     __attribute__((__unused__)) usb_endpoint_t endpoint
 ) {
-    return NULL;
+    return nullptr;
 }
 
 void usb_SetEndpointData(
@@ -226,7 +226,7 @@ void usb_SetEndpointData(
 usb_endpoint_data_t *usb_GetEndpointData(
     __attribute__((__unused__)) usb_endpoint_t endpoint
 ) {
-    return NULL;
+    return nullptr;
 }
 
 uint8_t usb_GetEndpointAddress(

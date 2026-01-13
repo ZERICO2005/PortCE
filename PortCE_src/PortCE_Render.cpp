@@ -6,6 +6,7 @@
 
 #include "PortCE_Common.h"
 #include "PortCE_Render.h"
+#include "PortCE_internal.h"
 #include "PortCE.h"
 
 #include "PortCE_Extra.h"
@@ -28,7 +29,7 @@ bool PortCE_invert_colors = false;
 bool PortCE_color_idle_mode = false;
 
 static bool PortCE_SDL2_initialized = false;
-static int_enum PortCE_scale_mode = SDL_ScaleModeNearest;
+static SDL_ScaleMode PortCE_scale_mode = SDL_ScaleModeNearest;
 
 static int32_t RESX_MINIMUM = LCD_RESX;
 static int32_t RESY_MINIMUM = LCD_RESY;
@@ -157,8 +158,8 @@ uint32_t PortCE_get_mouse_state(int32_t* posX, int32_t* posY) {
     x = ((x - offsetX) * LCD_RESX) / (image_ResX);
     y = ((y - offsetY) * LCD_RESY) / (image_ResY);
 
-    if (posX != NULL) { *posX = x; }
-    if (posY != NULL) { *posY = y; }
+    if (posX != nullptr) { *posX = x; }
+    if (posY != nullptr) { *posY = y; }
     return state;
 }
 
@@ -594,7 +595,7 @@ static void unpack_cursor(uint8_t* dst, const uint8_t* src, __attribute__((unuse
 // Will be optimized later on
 static void renderCursor(uint32_t* data) {
 
-    if (data == NULL) { return; }
+    if (data == nullptr) { return; }
     // srand(1234);
     // for (size_t i = 0; i < 1024; i++) {
     //     lcd_CrsrImage[i] = rand() % 256;
@@ -821,7 +822,7 @@ int terminateLCDcontroller() {
 
 void initLCDcontroller(const char* window_title, const PortCE_Config* config) {
 
-    uint8_t init_scale = (config == NULL) ? 2 : config->window_scale;
+    uint8_t init_scale = (config == nullptr) ? 2 : config->window_scale;
     if (init_scale < 1) {
         init_scale = 1;
     } else if (init_scale > 8) {
@@ -832,10 +833,10 @@ void initLCDcontroller(const char* window_title, const PortCE_Config* config) {
 
     Master.resX = LCD_RESX;
     Master.resY = LCD_RESY;
-    Master.vram = NULL;
+    Master.vram = nullptr;
     Master.pitch = Master.resX * VIDEO_CHANNELS;
     Master.vram = (uint32_t*)calloc((size_t)Master.resY * Master.pitch, sizeof(uint8_t));
-    if (Master.vram == NULL) { printf("\nFailed to calloc Master.vram"); fflush(stdout); return; }
+    if (Master.vram == nullptr) { printf("\nFailed to calloc Master.vram"); fflush(stdout); return; }
     SDL_Init(SDL_INIT_VIDEO);
 
     window = SDL_CreateWindow(
@@ -874,8 +875,8 @@ static bool resizeWindow(int32_t resX, int32_t resY, uint32_t* resizeX, uint32_t
         resX = resX < RESX_MINIMUM ? RESX_MINIMUM : resX;
         resY = resY < RESY_MINIMUM ? RESY_MINIMUM : resY;
 
-        if (Master.vram == NULL) {
-            if (texture == NULL) {
+        if (Master.vram == nullptr) {
+            if (texture == nullptr) {
                 printf("\nError: realloc Master.vram failed while resizing window");
                 FREE(Master.vram);
                 terminateLCDcontroller();
@@ -887,16 +888,16 @@ static bool resizeWindow(int32_t resX, int32_t resY, uint32_t* resizeX, uint32_t
 
         SDL_RenderSetLogicalSize(renderer, resX, resY);
 
-        if (resizeX != NULL) { *resizeX = resX; }
-        if (resizeY != NULL) { *resizeY = resY; }
+        if (resizeX != nullptr) { *resizeX = resX; }
+        if (resizeY != nullptr) { *resizeY = resY; }
 
-        if (texture != NULL) {
+        if (texture != nullptr) {
             SDL_DestroyTexture(texture);
         }
 
         texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, (int)Master.resX, (int)Master.resY);
         SDL_SetTextureScaleMode(texture, PortCE_scale_mode);
-        if (texture == NULL) {
+        if (texture == nullptr) {
             printf("\nError: SDL_CreateTexture failed while resizing window");
             terminateLCDcontroller();
             return true;
@@ -931,7 +932,7 @@ static void pace_frame(nano64_t pace_time) {
     ts.tv_nsec = pace_time - (current_time - last_frame_time);
 
     if (ts.tv_nsec >= yield_threshold) {
-        nanosleep(&ts, NULL);
+        nanosleep(&ts, nullptr);
     }
 
 #else
@@ -963,10 +964,10 @@ void PortCE_new_frame(void) {
         terminateLCDcontroller();
         exit(0);
     }
-    windowResizingCode(NULL,NULL);
+    windowResizingCode(nullptr,nullptr);
     copyFrame(Master.vram);
 
-    SDL_UpdateTexture(texture, NULL, Master.vram, Master.pitch);
+    SDL_UpdateTexture(texture, nullptr, Master.vram, Master.pitch);
     {
         // SDL_Rect srcRect = {0,0,(int)Master.resX,(int)Master.resY};
         int window_ResX, window_ResY;
@@ -979,7 +980,7 @@ void PortCE_new_frame(void) {
 
         if (window_AspectRatio > LCD_AspectRatio) {
             int image_ResX = (int)((double)window_ResY * LCD_AspectRatio);
-            dstRect = (SDL_Rect) {
+            dstRect = (SDL_Rect){
                 (window_ResX - image_ResX) / 2, 0,
                 image_ResX, window_ResY
             };
@@ -991,7 +992,7 @@ void PortCE_new_frame(void) {
             };
         }
 
-        SDL_RenderCopy(renderer, texture, NULL, &dstRect);
+        SDL_RenderCopy(renderer, texture, nullptr, &dstRect);
     }
     SDL_RenderPresent(renderer);
 

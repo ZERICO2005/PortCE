@@ -183,7 +183,7 @@ int os_RealToStr(char *result, __attribute__((unused)) const real_t *arg, int8_t
 }
 
 real_t os_StrToReal(const char *string, char **end) {
-    if (end != NULL) {
+    if (end != nullptr) {
         *end = (char*)string;
     }
     return get_zero_real_t();

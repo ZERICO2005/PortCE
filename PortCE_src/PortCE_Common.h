@@ -46,7 +46,7 @@ extern "C" {
 /* Functions */
 
     #define ARRAY_LENGTH(x) (sizeof(x) / sizeof(x[0]))
-    #define FREE(x) do { free(x); x = NULL; } while(0)
+    #define FREE(x) do { free(x); x = nullptr; } while(0)
 
     #define MACRO_TO_STR(x) #x
     #define MACRO_TO_NUM(x) MACRO_TO_STR(x)

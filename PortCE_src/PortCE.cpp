@@ -29,7 +29,7 @@ uint24_t RAM_OFFSET(const void* const ptr) {
     if (offset < 0 || (size_t)offset >= sizeof(simulated_ram)) {
         return 0;
     }
-    return offset;
+    return (uint24_t)offset;
 }
 
 void PortCE_initialize(const char* window_title) {

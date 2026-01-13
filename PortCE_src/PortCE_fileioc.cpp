@@ -92,7 +92,7 @@ static uint8_t get_Empty_File_Handle() {
  * @return false if parameters are invalid
  */
 static bool set_File_Access_Flags(uint8_t handle, const char* mode) {
-    if (handle == 0 || mode == NULL) {
+    if (handle == 0 || mode == nullptr) {
         return false;
     }
     switch (mode[0]) {
@@ -125,7 +125,7 @@ static bool validate_File_Handle(uint8_t handle) {
     if (ti_File_Handle[handle].active == false) {
         return false;
     }
-    if (ti_File_Handle[handle].file == NULL) {
+    if (ti_File_Handle[handle].file == nullptr) {
         return false;
     }
     if (
@@ -139,7 +139,7 @@ static bool validate_File_Handle(uint8_t handle) {
 }
 
 static bool is_valid_appvar_name(const char* name) {
-    if (name == NULL) {
+    if (name == nullptr) {
         return false;
     }
     constexpr size_t Max_Name_Len = 8;
@@ -158,25 +158,25 @@ static bool is_valid_appvar_name(const char* name) {
 const char *PortCE_get_appvar_path(const char* name) {
     static char path[4096];
     if (!is_valid_appvar_name(name)) {
-        return NULL;
+        return nullptr;
     }
     for (size_t i = 0; i < ARRAY_LENGTH(PortCE_FilePaths); i++) {
         memset(path, '\0', sizeof(path));
         snprintf(path, sizeof(path), "%s%s.8xv", PortCE_FilePaths[i], name);
         FILE* file = fopen(path, "rb");
-        if (file != NULL) {
+        if (file != nullptr) {
             fclose(file);
             printf("found: \"%s\"\n", path);
             return path;
         }
     }
     printf("cannot find: \"%s\"\n", name);
-    return NULL;
+    return nullptr;
 }
 
 static FILE* open_File(const char* name, const char* mode) {
-    if (name == NULL || mode == NULL) {
-        return NULL;
+    if (name == nullptr || mode == nullptr) {
+        return nullptr;
     }
     // Temporary
         static char path[4096];
@@ -189,13 +189,13 @@ static FILE* open_File(const char* name, const char* mode) {
         snprintf(path,sizeof(path),"%s%s.8xv", PortCE_FilePaths[i], name);
         snprintf(mode_temp,sizeof(mode_temp),"%sb",mode);
         FILE* file = fopen(path, mode_temp);
-        if (file != NULL) {
+        if (file != nullptr) {
             printf("opened: \"%s\"\n", path);
             return file;
         }
     }
     printf("Unable to find/open \"%s\" (%s)\n", name, mode);
-    return NULL; // File not found
+    return nullptr; // File not found
 }
 
 /* Public Functions */
@@ -203,15 +203,15 @@ static FILE* open_File(const char* name, const char* mode) {
 void PortCE_terminate_fileioc(void);
 
 uint8_t ti_Open(const char* name, const char* mode) {
-    if (!is_valid_appvar_name(name) || mode == NULL) {
-        return NULL;
+    if (!is_valid_appvar_name(name) || mode == nullptr) {
+        return 0;
     }
     uint8_t handle = get_Empty_File_Handle();
     if (set_File_Access_Flags(handle, mode) == false) {
         return 0;
     }
     FILE* file = open_File(name, mode);
-    if (file == NULL) {
+    if (file == nullptr) {
         return 0;
     }
     ti_File_Handle[handle].file = file;
@@ -336,16 +336,16 @@ static uint8_t* ram_file[256];
 
 void* ti_GetDataPtr(uint8_t handle) {
     if (validate_File_Handle(handle) == false) {
-        return NULL;
+        return nullptr;
     }
     if (ram_file_count >= ARRAY_LENGTH(ram_file)) {
-        return NULL;
+        return nullptr;
     }
 
     size_t read_size = internal_ti_GetSize(handle);
     ram_file[ram_file_count] = (unsigned char*)calloc(read_size + 1, sizeof(unsigned char));
-    if (ram_file[ram_file_count] == NULL) {
-        return NULL;
+    if (ram_file[ram_file_count] == nullptr) {
+        return nullptr;
     }
     fread(ram_file[ram_file_count], sizeof(unsigned char), read_size, ti_File_Handle[handle].file);
     ram_file_count++;
@@ -374,15 +374,15 @@ void PortCE_terminate_fileioc(void) {
 }
 
 char *ti_Detect(__attribute__((unused)) void **vat_ptr, __attribute__((unused)) const char *detect_string) {
-    return NULL;
+    return nullptr;
 }
 
 char *ti_DetectVar(__attribute__((unused)) void **vat_ptr, __attribute__((unused)) const char *detect_string, __attribute__((unused)) uint8_t var_type) {
-    return NULL;
+    return nullptr;
 }
 
 char *ti_DetectAny(__attribute__((unused)) void **vat_ptr, __attribute__((unused)) const char *detect_string, __attribute__((unused)) uint8_t *var_type) {
-    return NULL;
+    return nullptr;
 }
 
 int ti_IsArchived(__attribute__((unused)) uint8_t handle) {

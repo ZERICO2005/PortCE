@@ -34,7 +34,7 @@ static uint8_t textY = 0;
 
 static bool textTransparentMode = false;
 static uint8_t newlineControl = mEnableAutoWrap | mAutoClearToEOL;
-static char const * strReadPtr = NULL;
+static char const * strReadPtr = nullptr;
 static size_t charactersLeft = 0;
 static unsigned char alternateStopCode = '\0';
 static unsigned char firstPrintableCodePoint = 0x10;
@@ -45,10 +45,10 @@ static unsigned char drawIntZero = '0';
 static uint8_t TEXT_FG_COLOR = 0;
 static uint8_t TEXT_BG_COLOR = 255;
 
-static fontlib_font_t const * currentFontRoot = NULL;
-static fontlib_font_t currentFont = {0};
-static uint8_t const * widthsTablePtr = NULL;
-static uint16_t const * bitmapsTablePtr = NULL;
+static fontlib_font_t const * currentFontRoot = nullptr;
+static fontlib_font_t currentFont = {};
+static uint8_t const * widthsTablePtr = nullptr;
+static uint16_t const * bitmapsTablePtr = nullptr;
 
 #define CurrentBuffer ((uint8_t*)RAM_ADDRESS(lcd_LpBase))
 
@@ -284,8 +284,8 @@ bool fontlib_SetFont(const fontlib_font_t *font_data, fontlib_load_options_t fla
     }
     currentFontRoot = font_data;
     memcpy(&currentFont, font_data, sizeof(fontlib_font_t));
-    widthsTablePtr = NULL;
-    bitmapsTablePtr = NULL;
+    widthsTablePtr = nullptr;
+    bitmapsTablePtr = nullptr;
     if (currentFont.height == 0 || currentFont.height >= 0x80) {
         return false;
     }
@@ -512,16 +512,18 @@ mainLoop:
     if (ch >= fontlib_GetTotalGlyphs()) {
         return;
     }
-    int width = widthsTablePtr[ch];
-    int x_pos = textX + width;
-    if ((unsigned int)x_pos > textXMax) {
-        goto newLine;
+    {
+        uint8_t width = widthsTablePtr[ch];
+        int x_pos = textX + (int)width;
+        int adjust = currentFont.italic_space_adjust;
+        if ((unsigned int)x_pos > textXMax) {
+            goto newLine;
+        }
+        x_pos -= adjust;
+        textX = x_pos;
+        buf += util_DrawGlyphRawKnownWidth(ch, buf, width);
+        buf -= adjust;
     }
-    int adjust = currentFont.italic_space_adjust;
-    x_pos -= adjust;
-    textX = x_pos;
-    buf += util_DrawGlyphRawKnownWidth(ch, buf, width);
-    buf -= adjust;
     goto mainLoop;
 
 //------------------------------------------------------------------------------
@@ -674,7 +676,7 @@ noScroll:
     return true;
 //------------------------------------------------------------------------------
 writeCursorY:
-    textY = height_cmp - font_height;
+    textY = (uint8_t)(height_cmp - font_height);
 checkPreClear:
     if (!(newlineControl & mPreclearNewline)) {
         return false;
@@ -741,7 +743,7 @@ void fontlib_ScrollWindowUp(void) {
 
 // unimplemented
 char *fontlib_GetFontPackName(__attribute__((__unused__)) const char *appvar_name) {
-    return NULL;
+    return nullptr;
 }
 
 fontlib_font_t *fontlib_GetFontByIndexRaw(
@@ -750,7 +752,7 @@ fontlib_font_t *fontlib_GetFontByIndexRaw(
 ) {
     uint8_t font_count = font_pack->fontCount;
     if (font_count <= index) {
-        return NULL;
+        return nullptr;
     }
     packed_int24_t const * font_list = (packed_int24_t *)font_pack->font_list;
     int24_t offset;
@@ -764,18 +766,18 @@ fontlib_font_t *fontlib_GetFontByIndex(
 ) {
     uint8_t handle = ti_Open(font_pack_name, "r");
     if (!handle) {
-        return NULL;
+        return nullptr;
     }
 
     fontlib_font_pack_t *font_pack = (fontlib_font_pack_t *)ti_GetDataPtr(handle);
-    if (font_pack == NULL) {
+    if (font_pack == nullptr) {
         ti_Close(handle);
-        return NULL;
+        return nullptr;
     }
 
     if (memcmp(font_pack->header, fontPackHeaderString, 8) != 0) {
         ti_Close(handle);
-        return NULL;
+        return nullptr;
     }
 
     fontlib_font_t *result = fontlib_GetFontByIndexRaw(font_pack, index);
@@ -819,7 +821,7 @@ fontlib_font_t *fontlib_GetFontByStyleRaw(
         }
         return (fontlib_font_t*)font;
     }
-    return NULL;
+    return nullptr;
 }
 
 fontlib_font_t *fontlib_GetFontByStyle(
@@ -833,18 +835,18 @@ fontlib_font_t *fontlib_GetFontByStyle(
 ) {
     uint8_t handle = ti_Open(font_pack_name, "r");
     if (!handle) {
-        return NULL;
+        return nullptr;
     }
 
     fontlib_font_pack_t *font_pack = (fontlib_font_pack_t *)ti_GetDataPtr(handle);
-    if (font_pack == NULL) {
+    if (font_pack == nullptr) {
         ti_Close(handle);
-        return NULL;
+        return nullptr;
     }
 
     if (memcmp(font_pack->header, fontPackHeaderString, 8) != 0) {
         ti_Close(handle);
-        return NULL;
+        return nullptr;
     }
 
     fontlib_font_t *result = fontlib_GetFontByStyleRaw(

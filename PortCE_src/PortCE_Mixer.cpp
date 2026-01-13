@@ -32,13 +32,13 @@ static bool PortCE_load_audio(void) {
     size_t audio_count = 0;
     for (size_t i = 0; i < ARRAY_LENGTH(PortCE_Music_Files); i++) {
         Music_List[i] = Mix_LoadMUS(PortCE_Music_Files[i]);
-        if (Music_List[i] != NULL) {
+        if (Music_List[i] != nullptr) {
             audio_count++;
         }
     }
     for (size_t i = 0; i < ARRAY_LENGTH(PortCE_SoundEffect_Files); i++) {
         SoundEffect_List[i] = Mix_LoadWAV(PortCE_SoundEffect_Files[i]);
-        if (SoundEffect_List[i] != NULL) {
+        if (SoundEffect_List[i] != nullptr) {
             audio_count++;
         }
     }

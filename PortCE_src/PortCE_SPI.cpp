@@ -597,7 +597,7 @@ const void *lcd_SendParamsRaw(
     __attribute__((unused)) size_t size,
     __attribute__((unused)) const void *params
 ) {
-    return NULL;
+    return nullptr;
 }
 void lcd_SendCommand(uint8_t cmd) {
     lcd_SendSizedCommandRaw(cmd | (sizeof(uint8_t) << 8), (const void*)&cmd);

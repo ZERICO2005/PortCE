@@ -51,6 +51,8 @@ static void add_hl_hl_sis() {
     hl <<= 1;
 }
 
+uint16_t internal_gfz_Darken(uint16_t color, uint8_t amount);
+
 uint16_t internal_gfz_Darken(uint16_t color, uint8_t amount) {
     l = amount;
     bc = color;

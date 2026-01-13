@@ -213,9 +213,9 @@ void os_SetCursorPos(uint8_t curRow, uint8_t curCol) {
     }
 }
 
-void os_GetCursorPos(unsigned int *curRow, unsigned int *curCol) {
-    if (curRow != NULL) { *curRow = os_CurRow; }
-    if (curCol != NULL) { *curCol = os_CurCol; }
+void os_GetCursorPos(ti_unsigned_int *curRow, ti_unsigned_int *curCol) {
+    if (curRow != nullptr) { *curRow = (ti_unsigned_int)os_CurRow; }
+    if (curCol != nullptr) { *curCol = (ti_unsigned_int)os_CurCol; }
 }
 
 uint24_t os_PutStrFull(const char *str) {
@@ -306,7 +306,7 @@ void os_EnableHomeTextBuffer(void) {
 
 void os_GetStringInput(const char *prompt, __attribute__((unused)) char *buf, __attribute__((unused)) size_t bufsize) {
     os_PutStrFull(prompt);
-    if (buf != NULL && bufsize > 0) {
+    if (buf != nullptr && bufsize > 0) {
         *buf = '\0';
     }
     return;
@@ -323,7 +323,7 @@ void os_FontSelect(__attribute__((unused)) font_t *font) {
 }
 
 font_t *os_FontGetID(void) {
-    return NULL;
+    return nullptr;
 }
 
 uint24_t os_FontGetWidth(const char *string) {
@@ -367,7 +367,7 @@ uint24_t os_GetDrawBGColor(void) {
 }
 
 void *os_GetAnsData(__attribute__((unused)) uint8_t *type) {
-    return NULL;
+    return nullptr;
 }
 
 const system_info_t *os_GetSystemInfo(void) {

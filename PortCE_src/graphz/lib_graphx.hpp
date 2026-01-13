@@ -276,7 +276,7 @@ void gfx_Blit(gfx_location_t src) {
     lib.gfz_Blit(static_cast<gfz_location_t>(src));
 }
 
-void gfx_BlitRows(gfx_location_t src, uint8_t y_loc, uint8_t num_rows) {
+void gfx_BlitLines(gfx_location_t src, uint8_t y_loc, uint8_t num_rows) {
     lib.gfz_BlitRows(static_cast<gfz_location_t>(src), y_loc, num_rows);
 }
 

@@ -100,9 +100,9 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
     }
 
     void boot_GetDate(uint8_t *day, uint8_t *month, uint16_t *year) {
-        if (day   != NULL) { *day   = calc_day  ; }
-        if (month != NULL) { *month = calc_month; }
-        if (year  != NULL) { *year  = calc_year ; }
+        if (day   != nullptr) { *day   = calc_day  ; }
+        if (month != nullptr) { *month = calc_month; }
+        if (year  != nullptr) { *year  = calc_year ; }
     }
 
     void boot_SetTime(uint8_t seconds, uint8_t minutes, uint8_t hours) {
@@ -115,9 +115,9 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
     }
 
     void boot_GetTime(uint8_t *seconds, uint8_t *minutes, uint8_t *hours) {
-        if (seconds != NULL) { *seconds = calc_seconds; }
-        if (minutes != NULL) { *minutes = calc_minutes; }
-        if (hours   != NULL) { *hours   = calc_hours  ; }
+        if (seconds != nullptr) { *seconds = calc_seconds; }
+        if (minutes != nullptr) { *minutes = calc_minutes; }
+        if (hours   != nullptr) { *hours   = calc_hours  ; }
     }
 
     bool boot_IsAfterNoon(void) {
@@ -373,14 +373,14 @@ static void get_RTC_time(uint8_t* Seconds, uint8_t* Minutes, uint8_t* Hours, uin
 
     time_t now;
     struct tm *tm;
-    now = time(NULL);
+    now = time(nullptr);
     if (now == (time_t)-1) {
         // unable to retrive time
         return;
     }
 
     tm = localtime(&now);
-    if (tm == NULL) {
+    if (tm == nullptr) {
         // unable to convert time
         return;
     }

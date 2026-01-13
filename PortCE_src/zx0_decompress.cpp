@@ -1,14 +1,12 @@
 #include <compression.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <PortCE.h>
 
 typedef union reg {
-    uint24_t full;
+    uint16_t full;
     struct {
         uint8_t low;
         uint8_t high;
-        uint8_t upper;
     };
 } reg;
 
@@ -18,11 +16,15 @@ static uint8_t a;
 static bool carry;
 static bool zero;
 static reg reg_bc;
-static uint24_t iy;
+static reg reg_iy;
 
 #define bc reg_bc.full
 #define c  reg_bc.low
 #define b  reg_bc.high
+
+#define iy  reg_iy.full
+#define iyl reg_iy.low
+#define iyh reg_iy.high
 
 #define call(cond, func) if ((cond)) { func(); }
 
@@ -113,8 +115,8 @@ dzx0t_elias_loop:
     return;
 }
 
-static void set_offset(intptr_t& offset, uint24_t value) {
-    intptr_t mask = 0xFFFFFF;
+static void set_offset(intptr_t& offset, uint16_t value) {
+    constexpr intptr_t mask = 0xFFFF;
     offset = ~mask;
     offset |= value;
 }
@@ -151,15 +153,15 @@ dzx0t_new_offset_skip:
     inc(c);
     // check end marker
     ret(zero);
-    b = c;
     // obtain offset LSB
-    c = *src;
+    b = *src;
     ++src;
     // last offset bit becomes first length bit
-    rr(b);
     rr(c);
+    rr(b);
     // preserve new offset
-    iy = bc;
+    iyl = b;
+    iyh = c;
     // obtain length
     bc = 1;
     call(!carry, zx0_elias);

@@ -1,9 +1,33 @@
-PortCE allows you to port your Ti84-CE C/C++ application to Windows/Linux so it can be ran as a native executable.
+PortCE is a tool to port your Ti84-CE C/C++ application to Windows/Linux so it can be ran as a native executable.
+
+PortCE also allows you to add audio and mouse support, in addition to making debugging easier through the use of `gdb` and memory sanitizers.
+
+We welcome contributions to PortCE
+
+# PortCE requirements
+
+* `_BitInt` support (`Clang 18` or later)
+* CMake and Ninja
+* `SDL2` and `SDL2_mixer`
+
+Linux: Use Clang to compile
+Windows: Use Clang to compile and use `MSYS2 UCRT64`, `MSYS2 MINGW64`, or `WSL`
 
 # PortCE Setup Guide
 
-0. Files
-To start, copy the contents of the PortCE folder to your project.
+1. Compile the library
+
+* To start, set the `current directory` to `PortCE`
+* Then run `cmake -S . -B build -G Ninja -DCMAKE_EXPORT_PACKAGE_REGISTRY=ON`
+* Then PortCE can be built with `cmake --build build`
+
+2. Building the examples
+
+* Set the `current directory` to `PortCE/examples/hello_world`. Then run `mkdir build` and `cd build`. You should now be in `PortCE/examples/hello_world/build`.
+* Then run `cmake -G Ninja ..`, and then run `Ninja`. This will compile `hello_world`.
+* To run the program, do `bin/hello_world`.
+
+# Compiling PortCE Projects
 
 1. Assembly
 
@@ -24,24 +48,23 @@ When your program finishes, make sure to terminate PortCE.
 `void PortCE_new_frame(void)`<br>
 You can call this function to manually output frames.
 
-You can add the following to your makefile so the CE C/C++ toolchain can find `PortCE.h`, along with the source code for libraries such as `graphy.c`.
-```makefile
-CFLAGS += -I./src_PortCE -I./src_PortCE/PortCE_include/graphy
-CXXFLAGS += -I./src_PortCE -I./src_PortCE/PortCE_include/graphy
-
-EXTRA_C_SOURCES += ./src_PortCE/PortCE_include/graphy/graphy.c
-```
-
 3. Pointers and Integers
 
-You *MUST* convert `int`, `unsigned int`, `long`, and others to types provided by `PortCE.h`, otherwise your code may not work, or increment pointers by the wrong amount. For example, `unsigned int` may become `ti_unsigned_int`, `ez80_unsigned_int`, `uint24_t`, or `uintptr_t`. If you have a packed array of `uint24_t*`, you may have to use `packed_uint24_t*` to ensure that each element is exactly 3 bytes instead of 4 bytes.
+You *MUST* ensure that you use the proper `<stdint.h>` types in your program, or you will run into protability problems.
+
+`int` is 24 bits on the Ti84CE but is typically 32 bits on windows and linux:
+- For example, `int` might be changed to: `int24_t`, `intptr_t`, or `ptrdiff_t`.
+- And `unsigned int` might be changed to: `uint24_t`, `uintptr_t`, or `size_t`.
+
+PortCE also provides `ez80_*` and `ti_*` types:
+- `ez80_int` will alias `int24_t`.
+- `ti_int` can be configued to alias `int24_t` or `int32_t` and is only used for libraries and routines from TICE or the CE C/C++ toolchain.
+
+If you have a packed array of `uint24_t*`, you may have to use `packed_uint24_t*` to ensure that the pointer increments by 3 bytes instead of 4 bytes (since `sizeof(_BitInt(24))` is 4).
 
 If you are directly accessing any pointers, you will need to wrap them in the `RAM_ADDRESS()` or `RAM_OFFSET()` macros. They should have no effect when compiled for the ti84ce.
 
-`ez80_int` will alias `int24_t`.
-`ti_int` can be configued to alias `int24_t` or `int32_t` and is only used for libraries and routines from TICE or the CE C/C++ toolchain.
-
-The `RAM_ADDRESS()` macro returns a `void*` pointer to `simulated_ram[16777216]`. Example useage:
+The `void * RAM_ADDRESS(uint24_t)` macro returns a `void*` pointer to `simulated_ram[16777216]`. Example useage:
 ```c
 // Source (Sets pixel 0,0 of the LCD to 0xFF)
 *(uint8_t*)RAM_ADDRESS(0xD40000) = 0xFF;
@@ -53,9 +76,9 @@ The `RAM_ADDRESS()` macro returns a `void*` pointer to `simulated_ram[16777216]`
 *(uint8_t*)((void*)&simulated_ram[0xD40000]) = 0xFF;
 ```
 
-The `CONST_ADDRESS()` macro is similar to `RAM_ADDRESS()`, expect that it can be used at compile time to point to a specific address.
+The `void * CONST_ADDRESS(uint24_t)` macro is similar to `RAM_ADDRESS()`, expect that it can be used at compile time to point to a specific address.
 
-The `RAM_OFFSET()` macro calculates the offset from `simulated_ram[16777216]`. Example useage:
+The `uint24_t RAM_OFFSET(void*)` macro calculates the offset from `simulated_ram[16777216]`. Example useage:
 ```c
 // Source (Resets the LCD position to the start of lcd_Ram)
 lcd_Upbase = RAM_OFFSET(lcd_Ram);
@@ -71,6 +94,8 @@ lcd_Upbase = ((uint24_t)((uint8_t*)((void*)&simulated_ram[0xD40000]) - (uint8_t*
 
 Some headers/functions may be missing, and some of the registers won't update automatically quite yet. As time goes on, more functionality will be implemented.
 
+If you want a feature added to PortCE, feel free to contribute or create an issue https://github.com/ZERICO2005/PortCE/issues.
+
 5. Considerations
 Not all C/C++ code may work as intended. Here is a list of things to watch out for:
 - `sizeof(void*)` will be 4 or 8 instead of 3.
@@ -79,36 +104,43 @@ Not all C/C++ code may work as intended. Here is a list of things to watch out f
 - `double` is 32bits on the eZ80 instead of 64bits. This can be fixed by using `ti_double`.
 - Undefined behaviour may produce different results. For example: `memcpy(buf + 4, buf, 256 - 4)` (Which fills the buffer with a repeating pattern of 4 bytes).
 - Your computer will run your code *very* fast compared to the Ti84-CE, so make sure your code handles time/frame pacing correctly.
+- PortCE supports compiling in C11/C++14 or later. C89, C99, C++98, and C++11 may not be supported.
+- The C++ STL may behave differently from the one provided by the CE C/C++ toolchain.
+
+Some functions have a different name to preserve behavior or avoid conflicts:
+- Use `uint32_t ti_random(void)` instead of `long random(void)` (which is defined on some Linux environments)
+- `clock()` typically defines `CLOCKS_PER_SEC` to be 1000. So you can use `ti_clock` and `TI_CLOCKS_PER_SEC` instead.
+
+PortCE may run into different performance bottlenecks than the CE. For example, it takes about 1000 times as long to add two floats on the CE compared to adding two integers. But on x86-64, adding floats takes the same time as adding integers.
 
 6. Compiling
 
-PortCE uses `_BitInt(24)` for `int24_t`, so it's recommended that you use Clang C23. For reference, the CE C/C++ toolchain uses Clang C17. You may also try using `_ExtInt` in Clang.
- If your compiler does not support `_BitInt`, you can try `typedef int32_t int24_t`, but this may break/crash your code.
+We recommend compiling your PortCE projects with Clang (Which is the same compiler used by the CE C/C++ toolchain).
+
+PortCE uses `_BitInt(24)` for `int24_t`, which is supported in Clang 18 onwards. Otherwise you can try using `_ExtInt(24)`. You can also try `typedef int32_t int24_t`, but this may break/crash your code.
 
 To compile your code for PortCE, run `mkdir build`, `cd build`, and `cmake -G Ninja ..`, then run `ninja` to compile your code.
 
-To compile your code for the Ti84-CE, you can use `cedev.bat` (or equivalent) normally.
+7. Keybinds
+
+You can modify the keybinds used for PortCE by editing `PortCE/include/PortCE_Keybinds.h`
 
 # Capabilities
 
 ## LCD/Screen
-The LCD is configured by accessing the registers defined in `sys/lcd.h`. Note that not all registers will have an effect, such as the LCD timings.
+The LCD can be configured by accessing the registers/functions defined in `sys/lcd.h`,  `lcddrvce.h`, and `sys/spi.h`. Note that not all registers will have an effect, such as the LCD timings.
 
 Supports:
-* RGB and BGR
+* RGB/BGR and inverted colors
 * 16bit Color: 1555, 565, 444
 * Indexed Color: 1bit, 2bit, 4bit, and 8bit
 * Partial hardware cursor support
-
-Other features can be accessed through `lcddrvce.h` and `sys/spi.h`:
 * Row-Major and Column-Major mode
-* Inverted Colors
+* Limited SPI support
 
 ## Extra Features
 
 You can include `PortCE_Extra.h` to add extra functionality to the PortCE version of your program, such as mouse support.
-
-Additionally, you can define `PORTCE_EXTENDED_INTEGERS`, to enable the experimental `int72_t` and `int96_t` types (requires `__int128`).
 
 # Configuration
 (Unimplemented)

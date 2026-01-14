@@ -1,0 +1,5 @@
+global_palette.h
+global_palette.c
+background.h
+background.c
+gfx.h

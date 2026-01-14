@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "PortCE.h"
+#include <PortCE.h>
 
 #ifdef __cplusplus
 extern "C" {

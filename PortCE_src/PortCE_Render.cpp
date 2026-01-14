@@ -19,6 +19,8 @@
 #include "PortCE_SPI.h"
 #include <stdio.h>
 
+#include "frame_manipulation.hpp"
+
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 
@@ -33,84 +35,6 @@ static SDL_ScaleMode PortCE_scale_mode = SDL_ScaleModeNearest;
 
 static int32_t RESX_MINIMUM = LCD_RESX;
 static int32_t RESY_MINIMUM = LCD_RESY;
-
-/* 16bit to 24bit lookup tables */
-static uint32_t PreCalc_RGB1555[65536];
-static uint32_t PreCalc_BGR1555[65536];
-static uint32_t PreCalc_RGB565[65536];
-static uint32_t PreCalc_BGR565[65536];
-static uint32_t PreCalc_RGB555[65536];
-static uint32_t PreCalc_BGR555[65536];
-static uint32_t PreCalc_RGB444[65536];
-static uint32_t PreCalc_BGR444[65536];
-
-static void Calculate16BitColor(void) {
-    const uint8_t alpha = 0xFF;
-    { // 1555
-        for (uint32_t i = 0; i < 65536; i++) {
-            uint16_t c = (uint16_t)i;
-            uint8_t r = (uint8_t)(c & 0x1F);
-            uint8_t g = (uint8_t)((c & 0x3E0) >> 4) + ((c & 0x8000) ? 1 : 0);
-            uint8_t b = (uint8_t)((c & 0x7C00) >> 10);
-            r *= 8; g *= 4; b *= 8;
-            r += r / 32;
-            g += g / 64;
-            b += b / 32;
-            PreCalc_RGB1555[i] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
-            PreCalc_BGR1555[i] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
-        }
-    }
-    { // 565
-        for (uint32_t i = 0; i < 65536; i++) {
-            union {
-                uint16_t bin;
-                struct {
-                    uint16_t r : 5;
-                    uint16_t g : 6;
-                    uint16_t b : 5;
-                } comp;
-            } c;
-            c.bin = (uint16_t)i;
-            uint8_t r = c.comp.r;
-            uint8_t g = c.comp.g;
-            uint8_t b = c.comp.b;
-            r *= 8; g *= 4; b *= 8;
-            r += r / 32;
-            g += g / 64;
-            b += b / 32;
-            PreCalc_RGB565[i] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
-            PreCalc_BGR565[i] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
-        }
-    }
-    { // 555
-        for (uint32_t i = 0; i < 65536; i++) {
-            uint16_t c = (uint16_t)i;
-            uint8_t r = (uint8_t)(c & 0x1F);
-            uint8_t g = (uint8_t)((c & 0x3E0) >> 5);
-            uint8_t b = (uint8_t)((c & 0x7C00) >> 10);
-            r *= 8; g *= 8; b *= 8;
-            r += r / 32;
-            g += g / 32;
-            b += b / 32;
-            PreCalc_RGB555[i] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
-            PreCalc_BGR555[i] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
-        }
-    }
-    { // 444
-        for (uint32_t i = 0; i < 65536; i++) {
-            uint16_t c = (uint16_t)i;
-            uint8_t r = (uint8_t)(c & 0xF);
-            uint8_t g = (uint8_t)((c & 0xF0) >> 4);
-            uint8_t b = (uint8_t)((c & 0xF00) >> 8);
-            r *= 16; g *= 16; b *= 16;
-            r += r / 16;
-            g += g / 16;
-            b += b / 16;
-            PreCalc_RGB444[i] = (b << 16) | (g << 8) | (r << 0 ) | (alpha << 24);
-            PreCalc_BGR444[i] = (b << 0 ) | (g << 8) | (r << 16) | (alpha << 24);
-        }
-    }
-}
 
 /* Modern Code */
 
@@ -174,10 +98,6 @@ static __attribute__((__unused__)) const int32_t pitch = LCD_RESX * VIDEO_CHANNE
 
 static uint8_t videoCopy[153600];
 static uint16_t paletteRAM[256];
-static uint8_t colorR[256];
-static uint8_t colorG[256];
-static uint8_t colorB[256];
-static uint32_t color_LUT[256];
 
 struct bound {
     uint8_t x0;
@@ -440,140 +360,6 @@ uint16_t os_GetKey(void) {
     return ((uint16_t)os_KbdGetKy | ((uint16_t)os_KeyExtend << 8));
 }
 
-static void blit16bpp(uint32_t* dst_buf, const uint8_t* src_buf, bool column_major) {
-    uint32_t* PreCalc16;
-    uint16_t colorMode = (lcd_VideoMode & LCD_MASK_BBP);
-    switch (colorMode) {
-        case LCD_MASK_COLOR1555:
-            PreCalc16 = (lcd_VideoMode & LCD_MASK_BGR) ? PreCalc_BGR1555 : PreCalc_RGB1555;
-        break;
-        case LCD_MASK_COLOR565:
-            PreCalc16 = (lcd_VideoMode & LCD_MASK_BGR) ? PreCalc_BGR565 : PreCalc_RGB565;
-        break;
-        case LCD_MASK_COLOR444:
-            PreCalc16 = (lcd_VideoMode & LCD_MASK_BGR) ? PreCalc_BGR444 : PreCalc_RGB444;
-        break;
-        default:
-            PreCalc16 = (lcd_VideoMode & LCD_MASK_BGR) ? PreCalc_BGR555 : PreCalc_RGB555;
-    };
-    size_t w = 0;
-    size_t z = 0;
-    for (uint32_t y = 0; y < LCD_RESY; y++) {
-        for (uint32_t x = 0; x < LCD_RESX; x++) {
-            uint32_t c = (uint32_t)((const uint16_t*)src_buf)[z];
-            dst_buf[w] = PreCalc16[c]; w++;
-            z += column_major ? LCD_RESY : 1;
-        }
-        z -= column_major ? ((LCD_RESX * LCD_RESY) - 1) : 0;
-    }
-}
-
-static void blit8bpp(uint32_t* dst_buf, const uint8_t* src_buf, bool column_major) {
-    size_t w = 0;
-    size_t z = 0;
-    for (uint32_t y = 0; y < (uint32_t)LCD_RESY; y++) {
-        for (uint32_t x = 0; x < (uint32_t)LCD_RESX; x++) {
-            uint8_t c = src_buf[z];
-            dst_buf[w] = color_LUT[c]; w++;
-            z += column_major ? LCD_RESY : 1;
-        }
-        z -= column_major ? ((LCD_RESX * LCD_RESY) - 1) : 0;
-    }
-}
-
-static void blit4bpp(uint32_t* dst_buf, const uint8_t* src_buf, bool column_major) {
-    const uint32_t PixelsPerByte = 2;
-    size_t w = 0;
-    size_t z = 0;
-    if (column_major == false) {
-        for (uint32_t y = 0; y < LCD_RESY; y++) {
-            for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
-                uint8_t c = src_buf[z];
-                dst_buf[w] = color_LUT[c & 0xF]; w++;
-                dst_buf[w] = color_LUT[(c >> 4) & 0xF]; w++;
-                z++;
-            }
-        }
-    } else {
-        for (uint32_t x = 0; x < LCD_RESX; x++) {
-            for (uint32_t y = 0; y < LCD_RESY; y += PixelsPerByte) {
-                uint8_t c = src_buf[z];
-                for (uint32_t i = 0; i < PixelsPerByte; i++) {
-                    dst_buf[w] = color_LUT[c & 0xF]; w++;
-                    w += (LCD_RESX - 1);
-                    c >>= 4;
-                }
-                z++;
-            }
-            w -= LCD_RESX * LCD_RESY;
-            w += 1;
-        }
-    }
-}
-
-static void blit2bpp(uint32_t* dst_buf, const uint8_t* src_buf, bool column_major) {
-    const uint32_t PixelsPerByte = 4;
-    size_t w = 0;
-    size_t z = 0;
-    if (column_major == false) {
-        for (uint32_t y = 0; y < LCD_RESY; y++) {
-            for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
-                uint8_t c = src_buf[z];
-                dst_buf[w] = color_LUT[c & 0x3]; w++;
-                dst_buf[w] = color_LUT[(c >> 2) & 0x3]; w++;
-                dst_buf[w] = color_LUT[(c >> 4) & 0x3]; w++;
-                dst_buf[w] = color_LUT[(c >> 6) & 0x3]; w++;
-                z++;
-            }
-        }
-    } else {
-        for (uint32_t x = 0; x < LCD_RESX; x++) {
-            for (uint32_t y = 0; y < LCD_RESY; y += PixelsPerByte) {
-                uint8_t c = src_buf[z];
-                for (uint32_t i = 0; i < PixelsPerByte; i++) {
-                    dst_buf[w] = color_LUT[c & 0x3]; w++;
-                    w += (LCD_RESX - 1);
-                    c >>= 2;
-                }
-                z++;
-            }
-            w -= LCD_RESX * LCD_RESY;
-            w += 1;
-        }
-    }
-}
-
-static void blit1bpp(uint32_t* dst_buf, const uint8_t* src_buf, bool column_major) {
-    const uint32_t PixelsPerByte = 8;
-    size_t w = 0;
-    size_t z = 0;
-    if (column_major == false) {
-        for (uint32_t y = 0; y < LCD_RESY; y++) {
-            for (uint32_t x = 0; x < LCD_RESX / PixelsPerByte; x++) {
-                uint8_t c = src_buf[z];
-                for (uint8_t b = 0; b < 8; b++) {
-                    dst_buf[w] = color_LUT[(c >> b) & 0x1]; w++;
-                }
-                z++;
-            }
-        }
-    } else {
-        for (uint32_t x = 0; x < LCD_RESX; x++) {
-            for (uint32_t y = 0; y < LCD_RESY; y += PixelsPerByte) {
-                uint8_t c = src_buf[z];
-                for (uint32_t i = 0; i < PixelsPerByte; i++) {
-                    dst_buf[w] = color_LUT[c & 0x1]; w++;
-                    w += (LCD_RESX - 1);
-                    c >>= 1;
-                }
-                z++;
-            }
-            w -= LCD_RESX * LCD_RESY;
-            w += 1;
-        }
-    }
-}
-
 /**
  * @brief converts the cursor from a 2bit to an 8bit image
  *
@@ -630,8 +416,15 @@ static void renderCursor(uint32_t* data) {
     const uint16_t limitX = (cursor_PosX + cursorDim > LCD_RESV) ? ( (uint16_t)cursorDim - ((          cursor_PosX + (uint16_t)cursorDim) - LCD_RESV) ) : cursorDim;
     const uint16_t limitY = (cursor_PosY + cursorDim > LCD_RESY) ? ( (uint16_t)cursorDim - (((uint16_t)cursor_PosY + (uint16_t)cursorDim) - LCD_RESY) ) : cursorDim;
 
-    const uint32_t color_Palette0 = (lcd_CrsrPalette0 & 0xFF) | ((lcd_CrsrPalette0 >> 8) & 0xFF) | ((lcd_CrsrPalette0 >> 16) & 0xFF) | (0xFF << 24);
-    const uint32_t color_palette1 = (lcd_CrsrPalette1 & 0xFF) | ((lcd_CrsrPalette1 >> 8) & 0xFF) | ((lcd_CrsrPalette1 >> 16) & 0xFF) | (0xFF << 24);
+    uint32_t color_palette0 = (lcd_CrsrPalette0 & 0xFF) | ((lcd_CrsrPalette0 >> 8) & 0xFF) | ((lcd_CrsrPalette0 >> 16) & 0xFF) | (0xFF << 24);
+    uint32_t color_palette1 = (lcd_CrsrPalette1 & 0xFF) | ((lcd_CrsrPalette1 >> 8) & 0xFF) | ((lcd_CrsrPalette1 >> 16) & 0xFF) | (0xFF << 24);
+
+    uint32_t invert_color_mask = 0x00FFFFFF;
+    if (PortCE_color_idle_mode) {
+        invert_color_mask = 0x00808080;
+        color_palette0 &= 0xFF808080;
+        color_palette1 &= 0xFF808080;
+    }
 
     const size_t cursor_Offset = fullCursor ? 0 : ((size_t)((lcd_CrsrCtrl >> 4) & 0b11) * 0x100);
     for (uint16_t y = cursor_ClipY; y < limitY; y++) {
@@ -641,7 +434,7 @@ static void renderCursor(uint32_t* data) {
             const uint8_t pixel = cursor_image[cursor_Index];
             switch (pixel) {
                 case lcd_CrsrPixelPalette0:
-                    data[data_Index] = color_Palette0;
+                    data[data_Index] = color_palette0;
                     break;
                 case lcd_CrsrPixelPalette1:
                     data[data_Index] = color_palette1;
@@ -651,16 +444,10 @@ static void renderCursor(uint32_t* data) {
                     break;
                 case lcd_CrsrPixelInvert:
                     /* Invert Colors */
-                    data[data_Index] = ~data[data_Index];
+                    data[data_Index] = data[data_Index] ^ invert_color_mask;
                     break;
             }
         }
-    }
-}
-
-static void render_color_idle_mode(uint32_t* data) {
-    for (size_t i = 0; i < LCD_RESX * LCD_RESY; i++) {
-        data[i] &= 0xFF808080;
     }
 }
 
@@ -691,114 +478,44 @@ void copyFrame(uint32_t* data) {
     #ifdef Debug_Print_LCD_Registers
         internal_print_LCD_registers();
     #endif
+
+    int width = LCD_RESX;
+    int height = LCD_RESY;
+
+    uint16_t lcd_colorMode = (lcd_VideoMode & LCD_MASK_BBP);
+    Color_Mode color_mode;
+    switch (lcd_colorMode) {
+        case LCD_MASK_INDEXED1 : color_mode = Color_Mode::Indexed_1 ; break;
+        case LCD_MASK_INDEXED2 : color_mode = Color_Mode::Indexed_2 ; break;
+        case LCD_MASK_INDEXED4 : color_mode = Color_Mode::Indexed_4 ; break;
+        case LCD_MASK_INDEXED8 : color_mode = Color_Mode::Indexed_8 ; break;
+        case LCD_MASK_COLOR1555: color_mode = Color_Mode::Color_1555; break;
+        case LCD_MASK_COLOR565 : color_mode = Color_Mode::Color_565 ; break;
+        case LCD_MASK_COLOR444 : color_mode = Color_Mode::Color_444 ; break;
+        default: color_mode = Color_Mode::Color_555; break;
+    };
+    size_t pixel_count = (size_t)(width * height);
+    size_t copyAmount = (pixel_count * bits_per_pixel(color_mode)) / 8;
+    memcpy(videoCopy, ((uint8_t*)&simulated_ram[(0xD00000 | (lcd_UpBase & (0xFFFF << 3)))]), copyAmount);
     memcpy(paletteRAM, lcd_Palette, 256 * sizeof(uint16_t));
-    size_t copyAmount = 0;
-    uint16_t colorMode = (lcd_VideoMode & LCD_MASK_BBP);
-    switch (colorMode) {
-        case LCD_MASK_INDEXED1:
-            copyAmount = (LCD_RESX * LCD_RESY) / 8;
-        break;
-        case LCD_MASK_INDEXED2:
-            copyAmount = (LCD_RESX * LCD_RESY) / 4;
-        break;
-        case LCD_MASK_INDEXED4:
-            copyAmount = (LCD_RESX * LCD_RESY) / 2;
-        break;
-        case LCD_MASK_INDEXED8:
-            copyAmount = (LCD_RESX * LCD_RESY);
-        break;
-        case LCD_MASK_COLOR1555:
-            copyAmount = (LCD_RESX * LCD_RESY) * 2;
-        break;
-        case LCD_MASK_COLOR565:
-            copyAmount = (LCD_RESX * LCD_RESY) * 2;
-        break;
-        case LCD_MASK_COLOR444:
-            copyAmount = (LCD_RESX * LCD_RESY) * 2;
-        break;
-        default:
-            copyAmount = (LCD_RESX * LCD_RESY) * 2;
-    };
-
-    memcpy(videoCopy,((uint8_t*)&simulated_ram[(0xD00000 | (lcd_UpBase & (0xFFFF << 3)))]),copyAmount);
-
+    bool bgr_mode = (lcd_VideoMode & LCD_MASK_BGR);
     bool column_major = PortCE_query_column_major();
-
-    // Tests BGR bit
-    if (lcd_VideoMode & LCD_MASK_BGR) {
-        //Converts 1555 to 888 Color
-        for (uint32_t i = 0; i < 256; i++) {
-            uint16_t col = paletteRAM[i];
-            colorB[i] = (col & 31) << 3;
-            col >>= 5;
-            colorG[i] = col & 1024 ? 4 : 0;
-            colorG[i] += (col & 31) << 3;
-            col >>= 5;
-            colorR[i] = (col & 31) << 3;
-        }
-        //Scales color (Otherwise white is 248,252,248)
-        for (uint32_t i = 0; i < 256; i++) { //Magic Numbers: 35,84 Floor 32,64 Round
-            colorB[i] += (colorB[i] / 32);
-            colorG[i] += (colorG[i] / 64);
-            colorR[i] += (colorR[i] / 32);
-        }
-    } else {
-        //Converts 1555 to 888 Color
-        for (uint32_t i = 0; i < 256; i++) {
-            uint16_t col = paletteRAM[i];
-            colorR[i] = (col & 31) << 3;
-            col >>= 5;
-            colorG[i] = col & 1024 ? 4 : 0;
-            colorG[i] += (col & 31) << 3;
-            col >>= 5;
-            colorB[i] = (col & 31) << 3;
-        }
-        //Scales color (Otherwise white is 248,252,248)
-        for (uint32_t i = 0; i < 256; i++) { //Magic Numbers: 35,84 Floor 32,64 Round
-            colorR[i] += (colorB[i] / 32);
-            colorG[i] += (colorG[i] / 64);
-            colorB[i] += (colorR[i] / 32);
-        }
-    }
-    if (PortCE_invert_colors) {
-        for (uint32_t i = 0; i < 256; i++) {
-            colorB[i] = ~colorB[i];
-            colorG[i] = ~colorG[i];
-            colorR[i] = ~colorR[i];
-        }
-    }
-    for (uint32_t i = 0; i < 256; i++) {
-        color_LUT[i] = (colorR[i] << 0) | (colorG[i] << 8) | (colorB[i] << 16) | (0xFF << 24);
-    }
-    switch (colorMode) {
-        case LCD_MASK_INDEXED1:
-            blit1bpp(data, videoCopy, column_major);
-        break;
-        case LCD_MASK_INDEXED2:
-            blit2bpp(data, videoCopy, column_major);
-        break;
-        case LCD_MASK_INDEXED4:
-            blit4bpp(data, videoCopy, column_major);
-        break;
-        case LCD_MASK_INDEXED8:
-            blit8bpp(data, videoCopy, column_major);
-        break;
-        case LCD_MASK_COLOR1555:
-            blit16bpp(data, videoCopy, column_major);
-        break;
-        case LCD_MASK_COLOR565:
-            blit16bpp(data, videoCopy, column_major);
-        break;
-        case LCD_MASK_COLOR444:
-            blit16bpp(data, videoCopy, column_major);
-        break;
-        default:
-            blit16bpp(data, videoCopy, column_major);
+    Frame_Manipulation frame {
+        .src = videoCopy,
+        .palette = paletteRAM,
+        .dst = data,
+        .transpose = column_major,
+        .bgr = bgr_mode,
+        .invert_colors = PortCE_invert_colors,
+        .idle_mode = PortCE_color_idle_mode,
+        .color_mode = color_mode,
+        .width = width,
+        .height = height,
     };
+
+    frame_copy(frame);
+
     renderCursor(data);
-    if (PortCE_color_idle_mode) {
-        render_color_idle_mode(data);
-    }
 }
 
 /*
@@ -859,7 +576,6 @@ void initLCDcontroller(const char* window_title, const PortCE_Config* config) {
 
     PortCE_initialize_sound();
 
-    Calculate16BitColor();
     PortCE_SDL2_initialized = true;
 }
 

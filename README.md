@@ -1,4 +1,4 @@
-PortCE is a tool to port your Ti84-CE C/C++ application to Windows/Linux so it can be ran as a native executable.
+PortCE is a tool to port your Ti84-CE C/C++ application to Windows/Linux/MacOS so it can be ran as a native executable.
 
 PortCE also allows you to add audio and mouse support, in addition to making debugging easier through the use of `gdb` and memory sanitizers.
 
@@ -10,8 +10,9 @@ We welcome contributions to PortCE
 * CMake and Ninja
 * `SDL2` and `SDL2_mixer`
 
-Linux: Use Clang to compile
 Windows: Use Clang to compile and use `MSYS2 UCRT64`, `MSYS2 MINGW64`, or `WSL`
+Linux: Use Clang to compile
+MacOS: Use Clang to compile
 
 # PortCE Setup Guide
 

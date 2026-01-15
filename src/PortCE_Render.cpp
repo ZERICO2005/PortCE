@@ -22,7 +22,7 @@
 #include "frame_manipulation.hpp"
 
 #define SDL_MAIN_HANDLED
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <pthread.h>
 #include <sched.h>
@@ -30,7 +30,7 @@
 bool PortCE_invert_colors = false;
 bool PortCE_color_idle_mode = false;
 
-static bool PortCE_SDL2_initialized = false;
+static bool PortCE_SDL_initialized = false;
 static SDL_ScaleMode PortCE_scale_mode = SDL_ScaleModeNearest;
 
 static int32_t RESX_MINIMUM = LCD_RESX;
@@ -53,7 +53,7 @@ static SDL_Texture* texture;
 static SDL_Renderer *renderer;
 
 uint32_t PortCE_get_mouse_state(int32_t* posX, int32_t* posY) {
-    if (PortCE_SDL2_initialized == false) {
+    if (PortCE_SDL_initialized == false) {
         return 0;
     }
     int32_t x, y;
@@ -89,8 +89,8 @@ uint32_t PortCE_get_mouse_state(int32_t* posX, int32_t* posY) {
 
 /* Pointers */
 
-SDL_Event* grab_SDL2_event();
-SDL_Event* grab_SDL2_event() {
+SDL_Event* grab_SDL_event();
+SDL_Event* grab_SDL_event() {
     return &event;
 }
 
@@ -529,7 +529,7 @@ void PortCE_terminate_sound(void);
 
 int terminateLCDcontroller() {
     PortCE_terminate_sound();
-    PortCE_SDL2_initialized = false;
+    PortCE_SDL_initialized = false;
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -576,7 +576,7 @@ void initLCDcontroller(const char* window_title, const PortCE_Config* config) {
 
     PortCE_initialize_sound();
 
-    PortCE_SDL2_initialized = true;
+    PortCE_SDL_initialized = true;
 }
 
 void PortCE_set_window_title(const char *window_title) {
@@ -671,7 +671,7 @@ static void pace_frame(nano64_t pace_time) {
 
 void PortCE_new_frame(void) {
     PortCE_update_registers();
-    if (PortCE_SDL2_initialized == false) {
+    if (PortCE_SDL_initialized == false) {
         return;
     }
     // nano64_t startTime = getNanoTime();

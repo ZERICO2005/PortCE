@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include <SDL2/SDL_scancode.h>
+#include <SDL_scancode.h>
 
 typedef struct PortCE_Keybind {
     uint32_t SDL;

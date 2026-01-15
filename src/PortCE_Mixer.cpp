@@ -15,12 +15,12 @@
 #ifdef PortCE_Enable_Audio
 
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
+#include <SDL.h>
+#include <SDL_mixer.h>
 
 #include <PortCE.h>
 
-static bool PortCE_SDL2_Audio_initialized = false;
+static bool PortCE_SDL_Audio_initialized = false;
 
 static Mix_Music* Music_List[ARRAY_LENGTH(PortCE_Music_Files)];
 static Mix_Chunk* SoundEffect_List[ARRAY_LENGTH(PortCE_SoundEffect_Files)];
@@ -55,7 +55,7 @@ static void PortCE_free_audio(void) {
 }
 
 void PortCE_terminate_sound(void) {
-    PortCE_SDL2_Audio_initialized = false;
+    PortCE_SDL_Audio_initialized = false;
     PortCE_free_audio();
 }
 
@@ -69,11 +69,11 @@ void PortCE_initialize_sound(void) {
         PortCE_terminate_sound();
         return;
     }
-    PortCE_SDL2_Audio_initialized = true;
+    PortCE_SDL_Audio_initialized = true;
 }
 
 void PortCE_SoundEffect(int track) {
-    if (PortCE_SDL2_Audio_initialized == false) {
+    if (PortCE_SDL_Audio_initialized == false) {
         return;
     }
     if ((size_t)track >= ARRAY_LENGTH(SoundEffect_List)) {
@@ -83,7 +83,7 @@ void PortCE_SoundEffect(int track) {
 }
 
 void PortCE_PlayMusicLoop(int track, int loops) {
-    if (PortCE_SDL2_Audio_initialized == false) {
+    if (PortCE_SDL_Audio_initialized == false) {
         return;
     }
     if ((size_t)track >= ARRAY_LENGTH(Music_List)) {

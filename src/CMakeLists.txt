@@ -133,7 +133,7 @@ target_include_directories(
 #   target_link_libraries(${LIBRARY_TARGET_NAME} ${FooPackage_LIBRARIES})
 # - with imported target:
 #   target_link_libraries(${LIBRARY_TARGET_NAME} FooPackage_LIBRARIES::FooPackage_LIBRARIES)
-target_link_libraries(${PROJECT_NAME} PUBLIC SDL2 SDL2_mixer -lm)
+target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::SDL2 SDL2_mixer::SDL2_mixer -lm)
 
 # Specify installation targets, typology and destination folders.
 install(

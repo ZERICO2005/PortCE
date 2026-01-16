@@ -427,10 +427,11 @@ inline real::real(uint24_t value) noexcept
 
 inline real::real(int32_t value) noexcept
 {
-    ldiv_t ldivResult = ldiv(value, 1000);
-    *this = ldivResult.quot;
+    int32_t quot = value / 1000;
+    int32_t rem = value % 1000;
+    *this = quot;
     this->value.exp += 3;
-    *this += ldivResult.rem;
+    *this += rem;
 }
 
 inline real& real::operator++()

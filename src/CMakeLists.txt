@@ -94,7 +94,6 @@ target_compile_options(
 	${PROJECT_NAME} PUBLIC ${SAN_FLAG} ${OPT_FLAG}
 	-Wall -Wextra -Wshadow
 
-# Can help spot undefined behaviour when porting code from the eZ80
 	-Wpointer-arith
 	-Wpointer-bool-conversion
 	-Wpointer-integer-compare
@@ -113,6 +112,9 @@ target_compile_options(
 	-Wcompare-distinct-pointer-types
 #	-Wconversion
 	-Wconversion-null
+	-Wfloat-conversion
+	-Wimplicit-float-conversion
+	-Wimplicit-int-float-conversion
 )
 
 # Specify include directories for both compilation and installation process.

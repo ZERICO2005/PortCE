@@ -214,6 +214,8 @@ real_t os_FloatToReal(float arg);
 
 /**
  * This converts a ti-float to a ti-ascii string.
+ * @warning PortCE: if the output is randomly just "0" or "-0", then there is
+ * not enough space in the buffer.
  *
  * @param[in] result Zero terminated string copied to this address
  * @param[in] arg Real to convert

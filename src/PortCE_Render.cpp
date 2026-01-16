@@ -23,6 +23,9 @@
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#endif
 
 #include <pthread.h>
 #include <sched.h>
@@ -232,6 +235,16 @@ static uint8_t internal_CSC_Scan(void) {
 
 uint8_t os_GetCSC(void) {
     static nano64_t prev_time = 0;
+#ifdef __EMSCRIPTEN__
+    const double frame_ms = 1000.0 / 60.0;
+    double current_ms = emscripten_get_now();
+    if (current_ms - (double)prev_time < frame_ms) {
+        emscripten_sleep(0);
+        return 0;
+    }
+    prev_time = (nano64_t)current_ms;
+    PortCE_update_registers();
+#else
     nano64_t current_time;
     do  {
         current_time = getNanoTime();
@@ -239,6 +252,7 @@ uint8_t os_GetCSC(void) {
         PortCE_update_registers();
     } while (current_time - prev_time < FRAMERATE_TO_NANO(60.0));
     prev_time = current_time;
+#endif
 
     uint8_t key = internal_CSC_Scan();
     PortCE_new_frame();
@@ -359,6 +373,11 @@ uint16_t os_GetKey(void) {
     while (key == KB_None) {
         key = internal_CSC_Scan();
         PortCE_new_frame();
+#ifdef __EMSCRIPTEN__
+        if (key == KB_None) {
+            emscripten_sleep(0);
+        }
+#endif
     }
 
     os_KbdGetKy = internal_KdbGetKy(key);

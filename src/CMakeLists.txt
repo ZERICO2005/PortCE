@@ -30,8 +30,10 @@ set(${LIBRARY_TARGET_NAME}_SRC ${SRC_FILES} )
 set(${LIBRARY_TARGET_NAME}_HDR ${HDR_FILES})
 
 # Compiler
-set(CMAKE_C_COMPILER clang)
-set(CMAKE_CXX_COMPILER clang++)
+if(NOT EMSCRIPTEN)
+	set(CMAKE_C_COMPILER clang)
+	set(CMAKE_CXX_COMPILER clang++)
+endif()
 
 # Set C and C++ standards
 set(CMAKE_C_STANDARD 17)
@@ -58,8 +60,10 @@ set(CMAKE_COLOR_DIAGNOSTICS ON)
 # find_package(FooPackage) may import either
 #  - variables: FooPackage_INCLUDE_DIRS and FooPackage_LIBRARIES
 #  - target: FooPackage::FooPackage
-find_package(SDL2 REQUIRED)
-find_package(SDL2_mixer REQUIRED)
+if(NOT EMSCRIPTEN)
+	find_package(SDL2 REQUIRED)
+	find_package(SDL2_mixer REQUIRED)
+endif()
 
 # Adds a library target called ${LIBRARY_TARGET_NAME} to be built from the
 # source and header files listed in the command invocation.
@@ -171,7 +175,13 @@ target_include_directories(
 #   target_link_libraries(${LIBRARY_TARGET_NAME} ${FooPackage_LIBRARIES})
 # - with imported target:
 #   target_link_libraries(${LIBRARY_TARGET_NAME} FooPackage_LIBRARIES::FooPackage_LIBRARIES)
-target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::SDL2 SDL2_mixer::SDL2_mixer -lm)
+if(EMSCRIPTEN)
+	target_compile_options(${PROJECT_NAME} PUBLIC "SHELL:-sUSE_SDL=2" "SHELL:-sUSE_SDL_MIXER=2")
+	target_link_options(${PROJECT_NAME} PUBLIC "SHELL:-sUSE_SDL=2" "SHELL:-sUSE_SDL_MIXER=2" "SHELL:-sASYNCIFY")
+else()
+	target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::SDL2 SDL2_mixer::SDL2_mixer)
+endif()
+target_link_libraries(${PROJECT_NAME} PUBLIC m)
 
 # Specify installation targets, typology and destination folders.
 install(

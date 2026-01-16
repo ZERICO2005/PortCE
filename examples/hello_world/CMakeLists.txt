@@ -6,12 +6,15 @@ set(PROJECT_NAME "hello_world")
 project(${PROJECT_NAME})
 
 set(SRC_DIR "./src")
+set(PORTCE_SOURCE_ROOT "${CMAKE_CURRENT_LIST_DIR}/../..")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 
 # Compiler
-set(CMAKE_C_COMPILER clang)
-set(CMAKE_CXX_COMPILER clang++)
+if(NOT EMSCRIPTEN)
+	set(CMAKE_C_COMPILER clang)
+	set(CMAKE_CXX_COMPILER clang++)
+endif()
 
 # Set C and C++ standards
 set(CMAKE_C_STANDARD 17)
@@ -22,7 +25,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 # Packages
-find_package(PortCE REQUIRED)
+find_package(PortCE CONFIG QUIET)
+if(NOT PortCE_FOUND)
+	add_subdirectory("${PORTCE_SOURCE_ROOT}" "${CMAKE_BINARY_DIR}/portce" EXCLUDE_FROM_ALL)
+endif()
+if(NOT PortCE_FOUND AND NOT TARGET PortCE::PortCE)
+	message(FATAL_ERROR "PortCE not found. Install it or build from repo root so PortCE::PortCE is available.")
+endif()
 
 file(GLOB_RECURSE SRC_FILES "${SRC_DIR}/*.c" "${SRC_DIR}/*.cpp")
 
@@ -66,3 +75,19 @@ target_compile_options(
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC PortCE::PortCE)
+
+if(EMSCRIPTEN)
+	include("${PORTCE_SOURCE_ROOT}/cmake/PortCEWeb.cmake")
+	get_filename_component(
+		PORTCE_WEB_OUT_DIR
+		"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+		ABSOLUTE
+		BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}"
+	)
+	portce_add_web_shell(
+		${PROJECT_NAME}
+		OUT_DIR "${PORTCE_WEB_OUT_DIR}"
+		TEMPLATE "${PORTCE_SOURCE_ROOT}/web/portce_shell.html.in"
+		TITLE "PortCE Hello World"
+	)
+endif()

@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@PORTCE_WEB_TITLE_TEXT@</title>
+    <style>
+      :root {
+        --bg: #121212;
+        --panel: #1d1d1d;
+        --accent: #f2c879;
+        --text: #e6e6e6;
+      }
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: radial-gradient(circle at 20% 0%, #1f1c16 0%, #121212 50%);
+        color: var(--text);
+        font-family: "Georgia", "Times New Roman", serif;
+      }
+      .wrap {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        height: 100%;
+      }
+      header {
+        padding: 10px 14px;
+        background: linear-gradient(135deg, #1b1b1b, #2a2a2a);
+        border-bottom: 1px solid #2f2f2f;
+        letter-spacing: 0.5px;
+      }
+      header span {
+        font-size: 14px;
+        opacity: 0.8;
+        margin-left: 6px;
+      }
+      .stage {
+        display: grid;
+        place-items: center;
+        position: relative;
+        padding: 16px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid #2b2b2b;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+        padding: 16px;
+        border-radius: 10px;
+      }
+      .toolbar {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .toolbar .scales {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .toolbar button {
+        background: #2a2a2a;
+        border: 1px solid #3b3b3b;
+        color: var(--text);
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .toolbar button.active {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .screen {
+        display: grid;
+        place-items: center;
+        background: #0b0b0b;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 10px;
+      }
+      #canvas {
+        width: 320px;
+        height: 240px;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+        background: #000;
+        display: block;
+      }
+      .hint {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        font-size: 12px;
+        opacity: 0.6;
+      }
+      .note {
+        font-size: 12px;
+        opacity: 0.7;
+        margin-top: 10px;
+      }
+      @media (max-width: 640px) {
+        .panel {
+          width: 100%;
+          box-sizing: border-box;
+        }
+        #canvas {
+          width: 100%;
+          height: auto;
+          aspect-ratio: 4 / 3;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        @PORTCE_WEB_TITLE_TEXT@
+      </header>
+      <div class="stage">
+        <div class="panel">
+          <div class="toolbar">
+            <div class="scales">
+              <button type="button" data-scale="1">1x</button>
+              <button type="button" data-scale="2" class="active">2x</button>
+              <button type="button" data-scale="3">3x</button>
+              <button type="button" id="fullscreen-btn">Full-screen</button>
+            </div>
+            <button type="button" id="reset-btn">Reset</button>
+          </div>
+          <div class="screen">
+            <canvas id="canvas" width="320" height="240"></canvas>
+          </div>
+          <div class="note">Click the canvas to focus input.</div>
+        </div>
+        <div class="hint">PortCE Web</div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        const baseW = 320;
+        const baseH = 240;
+        const canvas = document.getElementById("canvas");
+        const buttons = document.querySelectorAll("[data-scale]");
+        const resetBtn = document.getElementById("reset-btn");
+        const fullscreenBtn = document.getElementById("fullscreen-btn");
+        const panel = document.querySelector(".panel");
+        const screen = document.querySelector(".screen");
+        let fullscreenActive = false;
+
+        function setScale(scale) {
+          fullscreenActive = false;
+          canvas.style.width = (baseW * scale) + "px";
+          canvas.style.height = (baseH * scale) + "px";
+          buttons.forEach(function (btn) {
+            btn.classList.toggle("active", btn.dataset.scale === String(scale));
+          });
+          fullscreenBtn.classList.remove("active");
+          canvas.style.maxWidth = "";
+          canvas.style.maxHeight = "";
+          screen.style.width = "";
+          screen.style.height = "";
+        }
+        function fitCanvasToScreen() {
+          const screenRect = screen.getBoundingClientRect();
+          const maxW = screenRect.width - 20;
+          const maxH = screenRect.height - 20;
+          let scale = Math.floor(Math.min(maxW / baseW, maxH / baseH) * 100) / 100;
+          scale = Math.max(scale, 1);
+          canvas.style.width = (baseW * scale) + "px";
+          canvas.style.height = (baseH * scale) + "px";
+        }
+        buttons.forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            setScale(Number(btn.dataset.scale));
+          });
+        });
+        resetBtn.addEventListener("click", function () {
+          location.reload();
+        });
+        fullscreenBtn.addEventListener("click", function () {
+          if (!document.fullscreenElement) {
+            (panel.requestFullscreen || panel.webkitRequestFullscreen || panel.msRequestFullscreen).call(panel);
+          } else {
+            (document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen).call(document);
+          }
+        });
+        document.addEventListener("fullscreenchange", function () {
+          fullscreenActive = !!document.fullscreenElement;
+          fullscreenBtn.classList.toggle("active", fullscreenActive);
+          if (fullscreenActive) {
+            screen.style.width = "100%";
+            screen.style.height = "calc(100vh - 120px)";
+            fitCanvasToScreen();
+          } else {
+            screen.style.width = "";
+            screen.style.height = "";
+            setScale(2);
+          }
+        });
+        window.addEventListener("resize", function () {
+          if (fullscreenActive) {
+            fitCanvasToScreen();
+          }
+        });
+        setScale(2);
+      })();
+      var Module = {
+        canvas: (function () {
+          const canvas = document.getElementById("canvas");
+          canvas.tabIndex = 0;
+          canvas.focus();
+          return canvas;
+        })()
+      };
+    </script>
+    <script src="@PORTCE_APP_JS@"></script>
+  </body>
+</html>

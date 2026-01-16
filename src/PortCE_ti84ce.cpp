@@ -11,6 +11,7 @@
 
 #include "PortCE_Common.h"
 
+#include "PortCE_assert.h"
 #include "PortCE_Render.h"
 #include <sys/lcd.h>
 #include <sys/util.h>
@@ -437,6 +438,7 @@ static void PortCE_update_RTC(void) {
 }
 
 ti_int PortCE_update_registers(void) {
+    assert_PortCE_initialized();
     PortCE_update_timers();
     PortCE_update_RTC();
     return 0;

@@ -8,7 +8,26 @@
 #include "PortCE_Render.h"
 #include "PortCE_SPI.h"
 
+#include <cstdlib>
+#include <cstdio>
 #include <PortCE.h>
+#include "PortCE_assert.h"
+
+static bool PortCE_init_flag = false;
+
+bool is_PortCE_initialized(void) {
+    return PortCE_init_flag;
+}
+
+void assert_PortCE_initialized(void) {
+    if (!is_PortCE_initialized()) {
+        fprintf(stderr,
+            "FATAL ERROR: PortCE is not initialized.\n"
+            "You need to add PortCE_initialize() and PortCE_terminate() to your code.\n"
+        );
+        exit(EXIT_FAILURE);
+    }
+}
 
 void* RAM_ADDRESS(const uint24_t address) {
     if (address == 0) {
@@ -40,10 +59,12 @@ void PortCE_initialize(const char* window_title) {
     // import_config_file();
     PortCE_Config config = {2, false, false, false, false};
     initLCDcontroller(window_title, &config);
+    PortCE_init_flag = true;
 }
 
 void PortCE_terminate(void) {
     terminateLCDcontroller();
     PortCE_terminate_fileioc();
     // export_config_file();
+    PortCE_init_flag = false;
 }

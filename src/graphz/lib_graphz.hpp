@@ -1,6 +1,8 @@
 #ifndef GRAPHZ_HPP
 #define GRAPHZ_HPP
 
+#include "../PortCE_assert.h"
+
 #include <cstdint>
 #include <cstddef>
 #include <cstdarg>
@@ -490,7 +492,7 @@ uint16_t GraphZ<T>::gfz_Lighten(uint16_t color, uint8_t amount) const {
 
 template<typename T>
 void util_Begin(GraphZ<T>& lib) {
-    printf("%s begin\n", lib.library_name);
+    assert_PortCE_initialized();
     // ti.boot.ClearVRAM
     memset(gfz_vram, 0xFF, GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT * 2);
     lib.gfz_SetDefaultPalette(gfz_8bpp);

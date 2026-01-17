@@ -982,7 +982,7 @@ void gfz_internal_Line0_NoClip(GraphZ<T>& lib, int32_t x0, int32_t y0, int32_t x
     const int32_t dD_jump = 2 * (dY - dX);
     dY *= 2;
     int32_t y = y0;
-    for (int32_t x = x0; x < x1; x++) {
+    for (int32_t x = x0; x <= x1; x++) {
         lib.gfz_SetPixel_NoClip(x, y, lib.Color);
         if (dD > 0) {
             y += yI;
@@ -1007,7 +1007,7 @@ void gfz_internal_Line1_NoClip(GraphZ<T>& lib, int32_t x0, int32_t y0, int32_t x
     dX *= 2;
     int32_t x = x0;
 
-    for (int32_t y = y0; y < y1; y++) {
+    for (int32_t y = y0; y <= y1; y++) {
         lib.gfz_SetPixel_NoClip(x, y, lib.Color);
         if (dD > 0) {
             x += xI;
@@ -1053,7 +1053,7 @@ void gfz_internal_Line0(GraphZ<T>& lib, int32_t x0, int32_t y0, int32_t x1, int3
     const int32_t dD_jump = 2 * (dY - dX);
     dY *= 2;
     int32_t y = y0;
-    for (int32_t x = x0; x < x1; x++) {
+    for (int32_t x = x0; x <= x1; x++) {
         gfz_SetPixel_RegionClip(lib, x, y, lib.Color);
         if (dD > 0) {
             y += yI;
@@ -1078,7 +1078,7 @@ void gfz_internal_Line1(GraphZ<T>& lib, int32_t x0, int32_t y0, int32_t x1, int3
     dX *= 2;
     int32_t x = x0;
 
-    for (int32_t y = y0; y < y1; y++) {
+    for (int32_t y = y0; y <= y1; y++) {
         gfz_SetPixel_RegionClip(lib, x, y, lib.Color);
         if (dD > 0) {
             x += xI;

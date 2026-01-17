@@ -105,7 +105,9 @@ struct bound {
     uint8_t x1;
     uint8_t y1;
 };
-struct bound expandedPos[56] = {
+
+__attribute__((__unused__))
+static struct bound expandedPos[56] = {
     {1,1,4,2},{6,1,4,2},{11,1,4,2},{16,1,4,2},{21,1,4,2}, //F1-F5
     {19,4,3,3},{19,10,3,3},{16,7,3,3},{22,7,3,3},//Orthagonal UDLR
     {22,4,3,3},{16,10,3,3},{16,4,3,3},{22,10,3,3},//Diagonal Shift Clockwise
@@ -143,7 +145,7 @@ static void setKey(uint8_t k) {
     if (k >= 64) { //Out of Bounds
         return;
     }
-    uint8_t bit = 1 << (k % 8);
+    uint8_t bit = static_cast<uint8_t>(1 << (k % 8));
     uint8_t off = k / 8;
     internal_kb_Data(off + 1) |= (bit); //+1 otherwise down becomes enter
 }
@@ -151,7 +153,7 @@ static void resetKey(uint8_t k) {
     if (k >= 64) { //Out of Bounds
         return;
     }
-    uint8_t bit = 1 << (k % 8);
+    uint8_t bit = static_cast<uint8_t>(1 << (k % 8));
     uint8_t off = k / 8;
     internal_kb_Data(off + 1) &= ~(bit);
 }
@@ -196,7 +198,7 @@ void kb_Scan(void) {
 
 kb_key_t kb_ScanGroup(uint8_t row) {
     internal_kb_Scan();
-    return internal_kb_Data(row);
+    return static_cast<kb_key_t>(internal_kb_Data(row));
 }
 
 
@@ -243,7 +245,7 @@ uint8_t os_GetCSC(void) {
     uint8_t key = internal_CSC_Scan();
     PortCE_new_frame();
 
-    switch(key) {
+    switch (key) {
         case KB_Down    : return sk_Down    ;
         case KB_Left    : return sk_Left    ;
         case KB_Right   : return sk_Right   ;
@@ -298,6 +300,61 @@ uint8_t os_GetCSC(void) {
     }
 }
 
+static uint8_t internal_KdbGetKy(uint8_t key) {
+    switch (key) {
+        case KB_Down    : return k_Down    ;
+        case KB_Left    : return k_Left    ;
+        case KB_Right   : return k_Right   ;
+        case KB_Up      : return k_Up      ;
+        case KB_Enter   : return k_Enter   ;
+        // case KB_2nd     : return k_2nd     ;
+        case KB_Clear   : return k_Clear   ;
+        // case KB_Alpha   : return k_Alpha   ;
+        case KB_Add     : return k_Add     ;
+        case KB_Sub     : return k_Sub     ;
+        case KB_Mul     : return k_Mul     ;
+        case KB_Div     : return k_Div     ;
+        case KB_Graph   : return k_Graph   ;
+        case KB_Trace   : return k_Trace   ;
+        case KB_Zoom    : return k_Zoom    ;
+        case KB_Window  : return k_Window  ;
+        case KB_Yequ    : return k_Yequ    ;
+        case KB_Mode    : return k_Mode    ;
+        case KB_Del     : return k_Del     ;
+        case KB_Sto     : return k_Store   ;
+        case KB_Ln      : return k_Ln      ;
+        case KB_Log     : return k_Log     ;
+        case KB_Square  : return k_Square  ;
+        // case KB_Recip   : return k_Recip   ;
+        case KB_Math    : return k_Math    ;
+        case KB_0       : return k_0       ;
+        case KB_1       : return k_1       ;
+        case KB_4       : return k_4       ;
+        case KB_7       : return k_7       ;
+        case KB_2       : return k_2       ;
+        case KB_5       : return k_5       ;
+        case KB_8       : return k_8       ;
+        case KB_3       : return k_3       ;
+        case KB_6       : return k_6       ;
+        case KB_9       : return k_9       ;
+        case KB_Comma   : return k_Comma   ;
+        case KB_Sin     : return k_Sin     ;
+        // case KB_Apps    : return k_Apps    ;
+        // case KB_GraphVar: return k_GraphVar;
+        case KB_DecPnt  : return k_DecPnt  ;
+        case KB_LParen  : return k_LParen  ;
+        case KB_Cos     : return k_Cos     ;
+        case KB_Prgm    : return k_Prgm    ;
+        case KB_Stat    : return k_Stat    ;
+        case KB_Chs     : return k_Chs     ;
+        case KB_RParen  : return k_RParen  ;
+        case KB_Tan     : return k_Tan     ;
+        case KB_Vars    : return k_Vars    ;
+        // case KB_Power   : return k_Power   ;
+        default: return 0;
+    }
+}
+
 uint16_t os_GetKey(void) {
     uint8_t key = KB_None;
 
@@ -305,59 +362,10 @@ uint16_t os_GetKey(void) {
         key = internal_CSC_Scan();
         PortCE_new_frame();
     }
-    switch(key) {
-        case KB_Down    : os_KbdGetKy = k_Down    ;
-        case KB_Left    : os_KbdGetKy = k_Left    ;
-        case KB_Right   : os_KbdGetKy = k_Right   ;
-        case KB_Up      : os_KbdGetKy = k_Up      ;
-        case KB_Enter   : os_KbdGetKy = k_Enter   ;
-        // case KB_2nd     : os_KbdGetKy = k_2nd     ;
-        case KB_Clear   : os_KbdGetKy = k_Clear   ;
-        // case KB_Alpha   : os_KbdGetKy = k_Alpha   ;
-        case KB_Add     : os_KbdGetKy = k_Add     ;
-        case KB_Sub     : os_KbdGetKy = k_Sub     ;
-        case KB_Mul     : os_KbdGetKy = k_Mul     ;
-        case KB_Div     : os_KbdGetKy = k_Div     ;
-        case KB_Graph   : os_KbdGetKy = k_Graph   ;
-        case KB_Trace   : os_KbdGetKy = k_Trace   ;
-        case KB_Zoom    : os_KbdGetKy = k_Zoom    ;
-        case KB_Window  : os_KbdGetKy = k_Window  ;
-        case KB_Yequ    : os_KbdGetKy = k_Yequ    ;
-        case KB_Mode    : os_KbdGetKy = k_Mode    ;
-        case KB_Del     : os_KbdGetKy = k_Del     ;
-        case KB_Sto     : os_KbdGetKy = k_Store   ;
-        case KB_Ln      : os_KbdGetKy = k_Ln      ;
-        case KB_Log     : os_KbdGetKy = k_Log     ;
-        case KB_Square  : os_KbdGetKy = k_Square  ;
-        // case KB_Recip   : os_KbdGetKy = k_Recip   ;
-        case KB_Math    : os_KbdGetKy = k_Math    ;
-        case KB_0       : os_KbdGetKy = k_0       ;
-        case KB_1       : os_KbdGetKy = k_1       ;
-        case KB_4       : os_KbdGetKy = k_4       ;
-        case KB_7       : os_KbdGetKy = k_7       ;
-        case KB_2       : os_KbdGetKy = k_2       ;
-        case KB_5       : os_KbdGetKy = k_5       ;
-        case KB_8       : os_KbdGetKy = k_8       ;
-        case KB_3       : os_KbdGetKy = k_3       ;
-        case KB_6       : os_KbdGetKy = k_6       ;
-        case KB_9       : os_KbdGetKy = k_9       ;
-        case KB_Comma   : os_KbdGetKy = k_Comma   ;
-        case KB_Sin     : os_KbdGetKy = k_Sin     ;
-        // case KB_Apps    : os_KbdGetKy = k_Apps    ;
-        // case KB_GraphVar: os_KbdGetKy = k_GraphVar;
-        case KB_DecPnt  : os_KbdGetKy = k_DecPnt  ;
-        case KB_LParen  : os_KbdGetKy = k_LParen  ;
-        case KB_Cos     : os_KbdGetKy = k_Cos     ;
-        case KB_Prgm    : os_KbdGetKy = k_Prgm    ;
-        case KB_Stat    : os_KbdGetKy = k_Stat    ;
-        case KB_Chs     : os_KbdGetKy = k_Chs     ;
-        case KB_RParen  : os_KbdGetKy = k_RParen  ;
-        case KB_Tan     : os_KbdGetKy = k_Tan     ;
-        case KB_Vars    : os_KbdGetKy = k_Vars    ;
-        // case KB_Power   : os_KbdGetKy = k_Power   ;
-        default: os_KbdGetKy = 0;
-    }
-    return ((uint16_t)os_KbdGetKy | ((uint16_t)os_KeyExtend << 8));
+
+    os_KbdGetKy = internal_KdbGetKy(key);
+
+    return static_cast<uint16_t>(os_KbdGetKy | (os_KeyExtend << 8));
 }
 
 /**
@@ -397,7 +405,7 @@ static void renderCursor(uint32_t* data) {
     bool use_columnMajorCursor = PortCE_query_column_major() && false;
 
     const uint16_t cursor_PosX  = use_columnMajorCursor ? lcd_CrsrY     : lcd_CrsrX    ;
-    const uint8_t  cursor_PosY  = use_columnMajorCursor ? lcd_CrsrX     : lcd_CrsrY    ;
+    const uint16_t cursor_PosY  = use_columnMajorCursor ? lcd_CrsrX     : lcd_CrsrY    ;
     const uint8_t  cursor_ClipX = use_columnMajorCursor ? lcd_CrsrClipY : lcd_CrsrClipX;
     const uint8_t  cursor_ClipY = use_columnMajorCursor ? lcd_CrsrClipX : lcd_CrsrClipY;
 
@@ -413,8 +421,8 @@ static void renderCursor(uint32_t* data) {
         // printf("\nError: Out of bounds");
         return; // Out of bounds
     }
-    const uint16_t limitX = (cursor_PosX + cursorDim > LCD_RESV) ? ( (uint16_t)cursorDim - ((          cursor_PosX + (uint16_t)cursorDim) - LCD_RESV) ) : cursorDim;
-    const uint16_t limitY = (cursor_PosY + cursorDim > LCD_RESY) ? ( (uint16_t)cursorDim - (((uint16_t)cursor_PosY + (uint16_t)cursorDim) - LCD_RESY) ) : cursorDim;
+    const uint16_t limitX = (cursor_PosX + cursorDim > LCD_RESV) ? static_cast<uint8_t>(( cursorDim - ((cursor_PosX + cursorDim) - LCD_RESV) )) : cursorDim;
+    const uint16_t limitY = (cursor_PosY + cursorDim > LCD_RESY) ? static_cast<uint8_t>(( cursorDim - ((cursor_PosY + cursorDim) - LCD_RESY) )) : cursorDim;
 
     uint32_t color_palette0 = (lcd_CrsrPalette0 & 0xFF) | ((lcd_CrsrPalette0 >> 8) & 0xFF) | ((lcd_CrsrPalette0 >> 16) & 0xFF) | (0xFF << 24);
     uint32_t color_palette1 = (lcd_CrsrPalette1 & 0xFF) | ((lcd_CrsrPalette1 >> 8) & 0xFF) | ((lcd_CrsrPalette1 >> 16) & 0xFF) | (0xFF << 24);
@@ -546,14 +554,16 @@ void initLCDcontroller(const char* window_title, const PortCE_Config* config) {
         init_scale = 8;
     }
 
-    PortCE_scale_mode = config->linear_interpolation ? SDL_ScaleModeLinear : SDL_ScaleModeNearest;
+    PortCE_scale_mode = (config != nullptr && config->linear_interpolation) ? SDL_ScaleModeLinear : SDL_ScaleModeNearest;
 
     Master.resX = LCD_RESX;
     Master.resY = LCD_RESY;
-    Master.vram = nullptr;
     Master.pitch = Master.resX * VIDEO_CHANNELS;
     Master.vram = (uint32_t*)calloc((size_t)Master.resY * Master.pitch, sizeof(uint8_t));
-    if (Master.vram == nullptr) { printf("\nFailed to calloc Master.vram"); fflush(stdout); return; }
+    if (Master.vram == nullptr) {
+        fprintf(stderr, "Error: Failed to calloc Master.vram\n");
+        return;
+    }
     SDL_Init(SDL_INIT_VIDEO);
 
     window = SDL_CreateWindow(
@@ -590,15 +600,6 @@ static bool resizeWindow(int32_t resX, int32_t resY, uint32_t* resizeX, uint32_t
     if (rX != resX || rY != resY) {
         resX = resX < RESX_MINIMUM ? RESX_MINIMUM : resX;
         resY = resY < RESY_MINIMUM ? RESY_MINIMUM : resY;
-
-        if (Master.vram == nullptr) {
-            if (texture == nullptr) {
-                printf("\nError: realloc Master.vram failed while resizing window");
-                FREE(Master.vram);
-                terminateLCDcontroller();
-                return true;
-            }
-        }
 
         SDL_SetWindowSize(window,resX,resY);
 
@@ -645,7 +646,7 @@ static void pace_frame(nano64_t pace_time) {
 #if 1
     struct timespec ts;
     ts.tv_sec = 0;
-    ts.tv_nsec = pace_time - (current_time - last_frame_time);
+    ts.tv_nsec = static_cast<decltype(ts.tv_nsec)>(pace_time - (current_time - last_frame_time));
 
     if (ts.tv_nsec >= yield_threshold) {
         nanosleep(&ts, nullptr);
@@ -683,7 +684,7 @@ void PortCE_new_frame(void) {
     windowResizingCode(nullptr,nullptr);
     copyFrame(Master.vram);
 
-    SDL_UpdateTexture(texture, nullptr, Master.vram, Master.pitch);
+    SDL_UpdateTexture(texture, nullptr, Master.vram, (int)Master.pitch);
     {
         // SDL_Rect srcRect = {0,0,(int)Master.resX,(int)Master.resY};
         int window_ResX, window_ResY;

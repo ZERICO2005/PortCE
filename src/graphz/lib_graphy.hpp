@@ -334,11 +334,11 @@ void gfy_PrintStringXY(const char *string, ti_int x, ti_int y) {
 }
 
 ti_int gfy_GetTextX(void) {
-    return lib.gfz_GetTextX();
+    return static_cast<ti_int>(lib.gfz_GetTextX());
 }
 
 ti_int gfy_GetTextY(void) {
-    return lib.gfz_GetTextY();
+    return static_cast<ti_int>(lib.gfz_GetTextY());
 }
 
 void gfy_SetTextXY(ti_int x, ti_int y) {
@@ -597,11 +597,11 @@ void gfy_SetMonospaceFont(uint8_t spacing) {
 }
 
 ti_unsigned_int gfy_GetStringWidth(const char *string) {
-    return lib.gfz_GetStringWidth(string);
+    return static_cast<ti_unsigned_int>(lib.gfz_GetStringWidth(string));
 }
 
 ti_unsigned_int gfy_GetCharWidth(const char c) {
-    return lib.gfz_GetCharWidth(c);
+    return static_cast<ti_unsigned_int>(lib.gfz_GetCharWidth(c));
 }
 
 void gfy_SetClipRegion(ti_int xmin, ti_int ymin, ti_int xmax, ti_int ymax) {

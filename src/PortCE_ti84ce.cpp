@@ -246,18 +246,21 @@ typedef struct Timer_Struct {
     uint32_t MatchValue_2;
 } Timer_Struct;
 
-__attribute__((unused)) static const uint16_t Timer_ENABLE [3] = {(1<<0), (1<<3 ), (1<<6 )};
-__attribute__((unused)) static const uint16_t Timer_DISABLE[3] = {(0<<0), (0<<3 ), (0<<6 )};
-__attribute__((unused)) static const uint16_t Timer_32K    [3] = {(1<<1), (1<<4 ), (1<<7 )};
-__attribute__((unused)) static const uint16_t Timer_CPU    [3] = {(0<<1), (0<<4 ), (0<<7 )};
-__attribute__((unused)) static const uint16_t Timer_0INT   [3] = {(1<<2), (1<<5 ), (1<<8 )};
-__attribute__((unused)) static const uint16_t Timer_NOINT  [3] = {(0<<2), (0<<5 ), (0<<8 )};
-__attribute__((unused)) static const uint16_t Timer_UP     [3] = {(1<<9), (1<<10), (1<<11)};
-__attribute__((unused)) static const uint16_t Timer_DOWN   [3] = {(0<<9), (0<<10), (0<<11)};
+// Timer_ENABLE/Timer_DISABLE
+static const uint16_t Timer_ENABLE [3] = {(1<<0), (1<<3 ), (1<<6 )};
 
-__attribute__((unused)) static const uint16_t Timer_MATCH1  [3] = {(1<<0), (1<<3), (1<<6)};
-__attribute__((unused)) static const uint16_t Timer_MATCH2  [3] = {(1<<1), (1<<4), (1<<7)};
-__attribute__((unused)) static const uint16_t Timer_RELOADED[3] = {(1<<2), (1<<5), (1<<8)};
+// Timer_32K/Timer_CPU
+static const uint16_t Timer_32K    [3] = {(1<<1), (1<<4 ), (1<<7 )};
+
+// TImer_0INT/Timer_CPU
+static const uint16_t Timer_0INT   [3] = {(1<<2), (1<<5 ), (1<<8 )};
+
+// Timer_UP/Timer_DOWN
+static const uint16_t Timer_UP     [3] = {(1<<9), (1<<10), (1<<11)};
+
+static const uint16_t Timer_MATCH1  [3] = {(1<<0), (1<<3), (1<<6)};
+static const uint16_t Timer_MATCH2  [3] = {(1<<1), (1<<4), (1<<7)};
+static const uint16_t Timer_RELOADED[3] = {(1<<2), (1<<5), (1<<8)};
 
 static Timer_Struct* const timer_list = (Timer_Struct*)((void*)&simulated_ram[0xF20000]);
 

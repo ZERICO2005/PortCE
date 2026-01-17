@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "PortCE_Common.h"
 
+#include <cassert>
 #include <tice.h>
 #include <fileioc.h>
 
@@ -77,8 +78,7 @@ static Ti_File_Handle ti_File_Handle[256];
 static uint8_t get_Empty_File_Handle() {
     for (size_t h = 1; h < ARRAY_LENGTH(ti_File_Handle); h++) {
         if (ti_File_Handle[h].active == false) {
-            return h;
-            break;
+            return static_cast<uint8_t>(h);
         }
     }
     return 0; // No handles available
@@ -107,7 +107,7 @@ static bool set_File_Access_Flags(uint8_t handle, const char* mode) {
         break;
         default:
             return false;
-    };
+    }
     if (mode[1] == '+') {
         if (ti_File_Handle[handle].read == true) {
             ti_File_Handle[handle].write = true;
@@ -276,15 +276,15 @@ int ti_GetC(uint8_t handle) {
     return getc(ti_File_Handle[handle].file);
 }
 
-int ti_Seek(int offset, size_t origin, uint8_t handle) {
+int ti_Seek(int offset, int origin, uint8_t handle) {
     if (validate_File_Handle(handle) == false) {
         return EOF;
     }
-    return (int24_t)fseek(ti_File_Handle[handle].file,offset,origin);
+    return fseek(ti_File_Handle[handle].file, offset, origin);
 }
 
 int ti_Rewind(uint8_t handle) {
-    return (int24_t)ti_Seek(0, SEEK_SET, handle);
+    return ti_Seek(0, SEEK_SET, handle);
 }
 
 uint16_t ti_Tell(uint8_t handle) {
@@ -360,13 +360,13 @@ void* ti_GetDataPtr(uint8_t handle) {
 
 void ti_CloseAll(void) {
     for (size_t h = 0; h < ARRAY_LENGTH(ti_File_Handle); h++) {
-        ti_Close(h);
+        ti_Close(static_cast<uint8_t>(h));
     }
 }
 
 void PortCE_terminate_fileioc(void) {
     for (size_t h = 0; h < ARRAY_LENGTH(ti_File_Handle); h++) {
-        ti_Close(h);
+        ti_Close(static_cast<uint8_t>(h));
     }
     for (size_t r = 0; r < ARRAY_LENGTH(ram_file); r++) {
         FREE(ram_file[r]);

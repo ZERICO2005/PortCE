@@ -106,7 +106,7 @@ target_compile_options(
 	-Wcast-function-type
 	-Wcast-function-type-strict
 	-Wcast-of-sel-type
-#	-Wcast-qual
+	-Wcast-qual
 	-Wcast-qual-unrelated
 	-Wchar-align
 	-Wcompare-distinct-pointer-types
@@ -115,6 +115,42 @@ target_compile_options(
 	-Wfloat-conversion
 	-Wimplicit-float-conversion
 	-Wimplicit-int-float-conversion
+	-Wimplicit-int-conversion
+	-Wimplicit-fallthrough
+
+# Good to quickly check these before a Commit/PR
+	# -Wmissing-declarations
+	# -Wmissing-variable-declarations
+
+# Test everything else possible (leave disabled)
+	# -Weverything
+	# -Wno-sign-conversion
+	# -Wno-unsafe-buffer-usage
+	# -Wno-old-style-cast
+	# -Wno-c++98-c++11-compat-binary-literal
+	# -Wno-c++98-compat
+	# -Wno-pre-c++20-compat-pedantic
+	# -Wno-c99-extensions
+	# -Wno-ms-bitfield-padding
+	# -Wno-packed
+	# -Wno-padded
+	# -Wno-tautological-unsigned-zero-compare
+	# -Wno-switch-default
+	# -Wno-bit-int-extension
+	# -Wno-alloca
+	# -Wno-global-constructors
+	# -Wno-c++98-compat-pedantic
+	# -Wno-used-but-marked-unused
+	# -Wno-documentation
+	# -Wno-extra-semi-stmt
+	# -Wno-unused-macros
+	# -Wno-reserved-macro-identifier
+	# -Wno-documentation-unknown-command
+	# -Wno-gnu-anonymous-struct
+	# -Wno-cast-align
+	# -Wno-format-nonliteral
+	# -Wno-zero-length-array
+	# -Wno-float-equal
 )
 
 # Specify include directories for both compilation and installation process.

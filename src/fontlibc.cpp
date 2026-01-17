@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <sys/lcd.h>
 
-__attribute__((__unused__)) static char const * fontPackHeaderString = "FONTPACK";
+static char const * fontPackHeaderString = "FONTPACK";
 
 static unsigned int textXMin = 0;
 static uint8_t textYMin = 0;
@@ -197,7 +197,7 @@ uint8_t fontlib_GetNewlineOptions(void) {
 }
 
 char *fontlib_GetLastCharacterRead(void) {
-    return (char*)strReadPtr;
+    return const_cast<char*>(strReadPtr);
 }
 
 size_t fontlib_GetCharactersRemaining(void) {
@@ -301,11 +301,11 @@ bool fontlib_SetFont(const fontlib_font_t *font_data, fontlib_load_options_t fla
     if ((size_t)currentFont.widths_table >= Maximum_Reasonable_Font_Size) {
         return false;
     }
-    widthsTablePtr = (uint8_t * const)currentFontRoot + (size_t)currentFont.widths_table;
+    widthsTablePtr = (const uint8_t*)currentFontRoot + (size_t)currentFont.widths_table;
     if ((size_t)currentFont.bitmaps >= Maximum_Reasonable_Font_Size) {
         return false;
     }
-    bitmapsTablePtr = (uint16_t * const)((uint8_t * const)currentFontRoot + (size_t)currentFont.bitmaps);
+    bitmapsTablePtr = (const uint16_t*)((const uint8_t*)currentFontRoot + (size_t)currentFont.bitmaps);
 #if 0
     if (flags == FONTLIB_IGNORE_LINE_SPACING || (int)flags != 0) {
         currentFont.space_above = 0;
@@ -403,7 +403,7 @@ static uint8_t util_DrawGlyphRawKnownWidth(uint8_t ch, uint8_t *__restrict const
     const bool is_transparent = textTransparentMode;
 
     uint16_t const *__restrict const bitmap_table_ptr = (uint16_t const *__restrict)bitmapsTablePtr;
-    uint8_t const *__restrict src = (uint8_t *__restrict)currentFontRoot + bitmap_table_ptr[(unsigned char)ch];
+    uint8_t const *__restrict src = (uint8_t const *__restrict)currentFontRoot + bitmap_table_ptr[(unsigned char)ch];
 
     const uint8_t font_jump = ((uint8_t)(width - 1) >> 3) + 1;
 
@@ -586,27 +586,35 @@ void fontlib_DrawUInt(uint24_t n, uint8_t length) {
     switch (digit_count) {
         case 8: // 10'000'000 <= n <= 16'777'215
             fontlib_DrawGlyph(1 + drawIntZero);
+            [[fallthrough]];
         case 7:
             digit = ((n / 1000000) % 10) + drawIntZero;
             fontlib_DrawGlyph(digit);
+            [[fallthrough]];
         case 6:
             digit = ((n / 100000) % 10) + drawIntZero;
             fontlib_DrawGlyph(digit);
+            [[fallthrough]];
         case 5:
             digit = ((n / 10000) % 10) + drawIntZero;
             fontlib_DrawGlyph(digit);
+            [[fallthrough]];
         case 4:
             digit = ((n / 1000) % 10) + drawIntZero;
             fontlib_DrawGlyph(digit);
+            [[fallthrough]];
         case 3:
             digit = ((n / 100) % 10) + drawIntZero;
             fontlib_DrawGlyph(digit);
+            [[fallthrough]];
         case 2:
             digit = ((n / 10) % 10) + drawIntZero;
             fontlib_DrawGlyph(digit);
+            [[fallthrough]];
         case 1:
             digit = (n % 10) + drawIntZero;
             fontlib_DrawGlyph(digit);
+            [[fallthrough]];
         case 0:
         return;
     }
@@ -702,8 +710,8 @@ void fontlib_ScrollWindowDown(void) {
     const size_t x_pos = (size_t)textXMin;
     const uint8_t y_pos = (uint8_t)textYMin;
 
-    uint8_t const * const buf = CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
-    uint8_t * dst = (uint8_t*)buf;
+    uint8_t * const buf = CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
+    uint8_t * dst = buf;
     uint8_t const * src = buf + (GFX_LCD_WIDTH * height);
     gfx_Wait();
     for (size_t i = 0; i < line_count; i++) {
@@ -730,8 +738,8 @@ void fontlib_ScrollWindowUp(void) {
     const size_t x_pos = (size_t)textXMin;
     const uint8_t y_pos = (uint8_t)(textYMax - 1);
 
-    uint8_t const * const buf = CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
-    uint8_t * dst = (uint8_t*)buf;
+    uint8_t * const buf = CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
+    uint8_t * dst = buf;
     uint8_t const * src = buf - (GFX_LCD_WIDTH * height);
     gfx_Wait();
     for (size_t i = 0; i < line_count; i++) {
@@ -754,10 +762,14 @@ fontlib_font_t *fontlib_GetFontByIndexRaw(
     if (font_count <= index) {
         return nullptr;
     }
-    packed_int24_t const * font_list = (packed_int24_t *)font_pack->font_list;
+    packed_int24_t const * font_list = (packed_int24_t const *)font_pack->font_list;
     int24_t offset;
     memcpy(&offset, &font_list[index], 3);
-    return (fontlib_font_t*)((unsigned char const *)font_pack + (uintptr_t)offset);
+    return const_cast<fontlib_font_t*>(
+        reinterpret_cast<fontlib_font_t const *>(
+            reinterpret_cast<unsigned char const *>(font_pack) + (uintptr_t)offset
+        )
+    );
 }
 
 fontlib_font_t *fontlib_GetFontByIndex(
@@ -795,7 +807,7 @@ fontlib_font_t *fontlib_GetFontByStyleRaw(
     uint8_t style_bits_reset
 ) {
     uint8_t font_count = font_pack->fontCount;
-    packed_int24_t const * font_list = (packed_int24_t *)font_pack->font_list;
+    packed_int24_t const * font_list = (packed_int24_t const *)font_pack->font_list;
     for (uint8_t B = font_count; B --> 0;) {
         int24_t offset;
         memcpy(&offset, font_list, 3);
@@ -819,7 +831,7 @@ fontlib_font_t *fontlib_GetFontByStyleRaw(
         if ((style_bits_reset & font->style) == 0) {
             continue;
         }
-        return (fontlib_font_t*)font;
+        return const_cast<fontlib_font_t*>(font);
     }
     return nullptr;
 }

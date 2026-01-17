@@ -299,7 +299,7 @@ int ti_GetC(uint8_t handle);
  * @param[in] handle AppVar/variable handle.
  * @returns `EOF` on failure.
  */
-int ti_Seek(int offset, size_t origin, uint8_t handle);
+int ti_Seek(int offset, int origin, uint8_t handle);
 
 /**
  * Seeks to the start of an AppVar/variable's data.

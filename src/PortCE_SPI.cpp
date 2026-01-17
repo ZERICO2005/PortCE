@@ -80,6 +80,7 @@ static const void* SPI_gamma_set(SPI_State* const state, const void* const args)
         case 0x4:
         case 0x8:
             state->gamma_curve = curve;
+            break;
         default:
             state->gamma_curve = 0x1;
     }
@@ -618,7 +619,7 @@ void lcd_SendSizedCommandBytes(unsigned int sized_cmd, ...) {
         params[i] = (uint8_t)va_arg(args, int);
     }
     va_end(args);
-    lcd_SendSizedCommandRaw(sized_cmd, (const void*)params);
+    lcd_SendSizedCommandRaw(static_cast<uint16_t>(sized_cmd), (const void*)params);
 }
 void lcd_SendSizedCommandWords(unsigned int sized_cmd, ...) {
     uint16_t params[256];
@@ -629,7 +630,7 @@ void lcd_SendSizedCommandWords(unsigned int sized_cmd, ...) {
         params[i] = (uint16_t)va_arg(args, int);
     }
     va_end(args);
-    lcd_SendSizedCommandRaw(sized_cmd, (const void*)params);
+    lcd_SendSizedCommandRaw(static_cast<uint16_t>(sized_cmd), (const void*)params);
 }
 void lcd_SetUniformGamma(void) {
     // Gamma of 1.0 is probably incorrect for this function

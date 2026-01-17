@@ -304,7 +304,7 @@ void os_EnableHomeTextBuffer(void) {
     *(IY + 0x4C) &= ~(1 << 5); // use shadow buffer
 }
 
-void os_GetStringInput(const char *prompt, __attribute__((unused)) char *buf, __attribute__((unused)) size_t bufsize) {
+void os_GetStringInput(const char *prompt, char *buf, size_t bufsize) {
     os_PutStrFull(prompt);
     if (buf != nullptr && bufsize > 0) {
         *buf = '\0';
@@ -327,7 +327,7 @@ font_t *os_FontGetID(void) {
 }
 
 uint24_t os_FontGetWidth(const char *string) {
-    return strlen(string) * 10;
+    return static_cast<uint24_t>(strlen(string) * 10);
 }
 
 uint24_t os_FontGetHeight(void) {
@@ -335,7 +335,9 @@ uint24_t os_FontGetHeight(void) {
 }
 
 uint24_t os_FontDrawText(const char *str, uint16_t col, uint8_t row) {
-    os_SetCursorPos(row, col);
+    os_PenCol = col;
+    os_PenRow = row;
+    os_SetCursorPos(static_cast<uint8_t>(row / CRSR_HEIGHT), static_cast<uint8_t>(col / CRSR_WIDTH));
     while (*str != '\0') {
         TiOS_putchar(*str);
     }
@@ -343,7 +345,9 @@ uint24_t os_FontDrawText(const char *str, uint16_t col, uint8_t row) {
 }
 
 uint24_t os_FontDrawTransText(const char *str, uint16_t col, uint8_t row) {
-    os_SetCursorPos(row, col);
+    os_PenCol = col;
+    os_PenRow = row;
+    os_SetCursorPos(static_cast<uint8_t>(row / CRSR_HEIGHT), static_cast<uint8_t>(col / CRSR_WIDTH));
     while (*str != '\0') {
         TiOS_putchar(*str);
     }

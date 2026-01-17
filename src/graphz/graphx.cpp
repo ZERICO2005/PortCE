@@ -623,13 +623,13 @@ void GraphX::gfz_Sprite(const gfz_sprite_t *sprite, int32_t x, int32_t y) {
         gfz_Sprite_NoClip(sprite, (uint32_t)x, (uint8_t)y);
         return;
     }
-    const uint8_t min_clipX = (x < lib.ClipXMin) ? (lib.ClipXMin - x) : 0;
-    const uint8_t min_clipY = (y < lib.ClipYMin) ? (lib.ClipYMin - y) : 0;
-    const uint8_t max_clipX = ((x + sprite->width) > lib.ClipXMax) ? ((x + sprite->width) - lib.ClipXMax) : 0;
-    const uint8_t max_clipY = ((y + sprite->height) > lib.ClipYMax) ? ((y + sprite->height) - lib.ClipYMax) : 0;
+    const int32_t min_clipX = (x < lib.ClipXMin) ? (lib.ClipXMin - x) : 0;
+    const int32_t min_clipY = (y < lib.ClipYMin) ? (lib.ClipYMin - y) : 0;
+    const int32_t max_clipX = ((x + sprite->width) > lib.ClipXMax) ? ((x + sprite->width) - lib.ClipXMax) : 0;
+    const int32_t max_clipY = ((y + sprite->height) > lib.ClipYMax) ? ((y + sprite->height) - lib.ClipYMax) : 0;
 
-    uint8_t sizeX = sprite->width - (min_clipX + max_clipX);
-    uint8_t sizeY = sprite->height - (min_clipY + max_clipY);
+    uint32_t sizeX = static_cast<uint32_t>(sprite->width - (min_clipX + max_clipX));
+    uint8_t sizeY = static_cast<uint8_t>(sprite->height - (min_clipY + max_clipY));
 
     const uint8_t* src_buf = sprite->data + min_clipX + (min_clipY * sprite->width);
 
@@ -677,16 +677,16 @@ void GraphX::gfz_TransparentSprite(const gfz_sprite_t *sprite, int32_t x, int32_
         gfz_TransparentSprite_NoClip(sprite, (uint32_t)x, (uint8_t)y);
         return;
     }
-    const uint8_t min_clipX = (x < lib.ClipXMin) ? (lib.ClipXMin - x) : 0;
-    const uint8_t min_clipY = (y < lib.ClipYMin) ? (lib.ClipYMin - y) : 0;
-    const uint8_t max_clipX = ((x + sprite->width) > lib.ClipXMax) ? ((x + sprite->width) - lib.ClipXMax) : 0;
-    const uint8_t max_clipY = ((y + sprite->height) > lib.ClipYMax) ? ((y + sprite->height) - lib.ClipYMax) : 0;
+    const int32_t min_clipX = (x < lib.ClipXMin) ? (lib.ClipXMin - x) : 0;
+    const int32_t min_clipY = (y < lib.ClipYMin) ? (lib.ClipYMin - y) : 0;
+    const int32_t max_clipX = ((x + sprite->width) > lib.ClipXMax) ? ((x + sprite->width) - lib.ClipXMax) : 0;
+    const int32_t max_clipY = ((y + sprite->height) > lib.ClipYMax) ? ((y + sprite->height) - lib.ClipYMax) : 0;
 
-    uint8_t sizeX = sprite->width - (min_clipX + max_clipX);
-    uint8_t sizeY = sprite->height - (min_clipY + max_clipY);
+    uint32_t sizeX = static_cast<uint32_t>(sprite->width - (min_clipX + max_clipX));
+    uint8_t sizeY = static_cast<uint8_t>(sprite->height - (min_clipY + max_clipY));
 
     const uint8_t* src_buf = sprite->data + min_clipX + (min_clipY * sprite->width);
-    const uint8_t clip_jumpX = min_clipX + max_clipX;
+    const uint32_t clip_jumpX = static_cast<uint32_t>(min_clipX + max_clipX);
 
     uint8_t* dst_buf = (uint8_t*)RAM_ADDRESS(CurrentBuffer) + (x + min_clipX) + ((y + min_clipY) * GFZ_LCD_WIDTH);
     const uint32_t dst_jump = GFZ_LCD_WIDTH - sizeX;
@@ -820,7 +820,7 @@ gfz_sprite_t *GraphX::gfz_RotateScaleSprite(
 ) {
     const uint8_t in_size = sprite_in->width;
     uint32_t temp_size = sprite_in->width * scale / 64;
-    const uint8_t out_size = (temp_size >= 256) ? 255 : temp_size;
+    const uint8_t out_size = static_cast<uint8_t>((temp_size >= 256) ? 255 : temp_size);
     sprite_out->width = out_size;
     sprite_out->height = out_size;
     memset(sprite_out->data, lib.Transparent_Color, out_size * out_size);
@@ -861,7 +861,7 @@ uint8_t GraphX::gfz_RotatedScaledSprite_NoClip(const gfz_sprite_t *sprite, uint3
     uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
     const uint8_t in_size = sprite->width;
     uint32_t temp_size = sprite->width * scale / 64;
-    const uint8_t out_size = (temp_size >= 256) ? 255 : temp_size;
+    const uint8_t out_size = static_cast<uint8_t>((temp_size >= 256) ? 255 : temp_size);
 
     const float angle_f = (float)angle * -0.0245436926f;
 
@@ -911,7 +911,7 @@ uint8_t GraphX::gfz_RotatedScaledTransparentSprite_NoClip(const gfz_sprite_t *sp
     uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
     const uint8_t in_size = sprite->width;
     uint32_t temp_size = sprite->width * scale / 64;
-    const uint8_t out_size = (temp_size >= 256) ? 255 : temp_size;
+    const uint8_t out_size = static_cast<uint8_t>((temp_size >= 256) ? 255 : temp_size);
 
     const float angle_f = (float)angle * -0.0245436926f;
 
@@ -963,7 +963,7 @@ uint8_t GraphX::gfz_RotatedScaledSprite(const gfz_sprite_t *sprite, int32_t x0, 
     uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
     const uint8_t in_size = sprite->width;
     uint32_t temp_size = sprite->width * scale / 64;
-    const uint8_t out_size = (temp_size >= 256) ? 255 : temp_size;
+    const uint8_t out_size = static_cast<uint8_t>((temp_size >= 256) ? 255 : temp_size);
 
     const float angle_f = (float)angle * -0.0245436926f;
 
@@ -1020,7 +1020,7 @@ uint8_t GraphX::gfz_RotatedScaledTransparentSprite(const gfz_sprite_t *sprite, i
     uint8_t * const buffer = (uint8_t*)RAM_ADDRESS(CurrentBuffer);
     const uint8_t in_size = sprite->width;
     uint32_t temp_size = sprite->width * scale / 64;
-    const uint8_t out_size = (temp_size >= 256) ? 255 : temp_size;
+    const uint8_t out_size = static_cast<uint8_t>((temp_size >= 256) ? 255 : temp_size);
 
     const float angle_f = (float)angle * -0.0245436926f;
 

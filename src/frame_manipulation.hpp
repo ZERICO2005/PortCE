@@ -85,53 +85,148 @@ struct Frame_Manipulation {
 
 void frame_copy(const Frame_Manipulation& data);
 
+inline uint32_t bgr888_to_abgr8888(uint8_t b, uint8_t g, uint8_t r) {
+    constexpr uint8_t alpha = UINT8_C(0xFF);
+    uint32_t ret = 0;
+    ret |= (static_cast<uint32_t>(r    ) <<  0);
+    ret |= (static_cast<uint32_t>(g    ) <<  8);
+    ret |= (static_cast<uint32_t>(b    ) << 16);
+    ret |= (static_cast<uint32_t>(alpha) << 24);
+    return ret;
+}
+
+inline uint32_t rgb888_to_abgr8888(uint8_t b, uint8_t g, uint8_t r) {
+    constexpr uint8_t alpha = UINT8_C(0xFF);
+    uint32_t ret = 0;
+    ret |= (static_cast<uint32_t>(b    ) <<  0);
+    ret |= (static_cast<uint32_t>(g    ) <<  8);
+    ret |= (static_cast<uint32_t>(r    ) << 16);
+    ret |= (static_cast<uint32_t>(alpha) << 24);
+    return ret;
+}
+
+inline uint32_t bgr24_to_abgr8888(uint32_t color) {
+    uint8_t r = static_cast<uint8_t>(color >>  0);
+    uint8_t g = static_cast<uint8_t>(color >>  8);
+    uint8_t b = static_cast<uint8_t>(color >> 16);
+    return bgr888_to_abgr8888(b, g, r);
+}
+
+inline uint32_t rgb24_to_abgr888(uint32_t color) {
+    uint8_t b = static_cast<uint8_t>(color >>  0);
+    uint8_t g = static_cast<uint8_t>(color >>  8);
+    uint8_t r = static_cast<uint8_t>(color >> 16);
+    return rgb888_to_abgr8888(b, g, r);
+}
+
 inline void rgb1555_to_bgr888(uint16_t color, uint8_t& b, uint8_t& g, uint8_t& r) {
-    r = (uint8_t)(color & 0x1F);
-    g = (uint8_t)((color & 0x3E0) >> 4) + ((color & 0x8000) ? 1 : 0);
-    b = (uint8_t)((color & 0x7C00) >> 10);
-    r *= 8; g *= 4; b *= 8;
-    r += r / 32;
-    g += g / 64;
-    b += b / 32;
-}
-
-inline void rgb555_to_bgr888(uint16_t color, uint8_t& b, uint8_t& g, uint8_t& r) {
-    r = (uint8_t)(color & 0x1F);
-    g = (uint8_t)((color & 0x3E0) >> 5);
-    b = (uint8_t)((color & 0x7C00) >> 10);
-    r *= 8; g *= 8; b *= 8;
-    r += r / 32;
-    g += g / 32;
-    b += b / 32;
-}
-
-inline void rgb565_to_bgr888(uint16_t color, uint8_t& b, uint8_t& g, uint8_t& r) {
+    constexpr int r_comp = 5;
+    constexpr int g_comp = 5;
+    constexpr int b_comp = 5;
+    constexpr int a_comp = 1;
+    constexpr int r_shift = r_comp;
+    constexpr int g_shift = g_comp + a_comp;
+    constexpr int b_shift = b_comp;
     union {
         uint16_t bin;
         struct {
-            uint16_t r : 5;
-            uint16_t g : 6;
-            uint16_t b : 5;
+            uint16_t r : r_comp;
+            uint16_t g : g_comp;
+            uint16_t b : b_comp;
+            uint16_t a : a_comp;
         } comp;
     } c;
     c.bin = color;
-    r = c.comp.r;
-    g = c.comp.g;
-    b = c.comp.b;
-    r *= 8; g *= 4; b *= 8;
-    r += r / 32;
-    g += g / 64;
-    b += b / 32;
+    r = static_cast<uint8_t>(c.comp.r);
+    g = static_cast<uint8_t>((c.comp.g << 1) | (c.comp.a));
+    b = static_cast<uint8_t>(c.comp.b);
+    r <<= (8 - r_shift);
+    g <<= (8 - g_shift);
+    b <<= (8 - b_shift);
+    r += (r >> r_shift);
+    g += (g >> g_shift);
+    b += (b >> b_shift);
+}
+
+inline void rgb555_to_bgr888(uint16_t color, uint8_t& b, uint8_t& g, uint8_t& r) {
+    constexpr int r_comp = 5;
+    constexpr int g_comp = 5;
+    constexpr int b_comp = 5;
+    constexpr int r_shift = r_comp;
+    constexpr int g_shift = g_comp;
+    constexpr int b_shift = b_comp;
+    union {
+        uint16_t bin;
+        struct {
+            uint16_t r : r_comp;
+            uint16_t g : g_comp;
+            uint16_t b : b_comp;
+        } comp;
+    } c;
+    c.bin = color;
+    r = static_cast<uint8_t>(c.comp.r);
+    g = static_cast<uint8_t>(c.comp.g);
+    b = static_cast<uint8_t>(c.comp.b);
+    r <<= (8 - r_shift);
+    g <<= (8 - g_shift);
+    b <<= (8 - b_shift);
+    r += (r >> r_shift);
+    g += (g >> g_shift);
+    b += (b >> b_shift);
+}
+
+inline void rgb565_to_bgr888(uint16_t color, uint8_t& b, uint8_t& g, uint8_t& r) {
+    constexpr int r_comp = 5;
+    constexpr int g_comp = 5;
+    constexpr int b_comp = 5;
+    constexpr int r_shift = r_comp;
+    constexpr int g_shift = g_comp;
+    constexpr int b_shift = b_comp;
+    union {
+        uint16_t bin;
+        struct {
+            uint16_t r : r_comp;
+            uint16_t g : g_comp;
+            uint16_t b : b_comp;
+        } comp;
+    } c;
+    c.bin = color;
+    r = static_cast<uint8_t>(c.comp.r);
+    g = static_cast<uint8_t>(c.comp.g);
+    b = static_cast<uint8_t>(c.comp.b);
+    r <<= (8 - r_shift);
+    g <<= (8 - g_shift);
+    b <<= (8 - b_shift);
+    r += (r >> r_shift);
+    g += (g >> g_shift);
+    b += (b >> b_shift);
 }
 
 inline void rgb444_to_bgr888(uint16_t color, uint8_t& b, uint8_t& g, uint8_t& r) {
-    r = (uint8_t)(color & 0xF);
-    g = (uint8_t)((color & 0xF0) >> 4);
-    b = (uint8_t)((color & 0xF00) >> 8);
-    r *= 16; g *= 16; b *= 16;
-    r += r / 16;
-    g += g / 16;
-    b += b / 16;
+    constexpr int r_comp = 4;
+    constexpr int g_comp = 4;
+    constexpr int b_comp = 4;
+    constexpr int r_shift = r_comp;
+    constexpr int g_shift = g_comp;
+    constexpr int b_shift = b_comp;
+    union {
+        uint16_t bin;
+        struct {
+            uint16_t r : r_comp;
+            uint16_t g : g_comp;
+            uint16_t b : b_comp;
+        } comp;
+    } c;
+    c.bin = color;
+    r = static_cast<uint8_t>(c.comp.r);
+    g = static_cast<uint8_t>(c.comp.g);
+    b = static_cast<uint8_t>(c.comp.b);
+    r <<= (8 - r_shift);
+    g <<= (8 - g_shift);
+    b <<= (8 - b_shift);
+    r += (r >> r_shift);
+    g += (g >> g_shift);
+    b += (b >> b_shift);
 }
 
 inline void bgr1555_to_bgr888(uint16_t color, uint8_t& b, uint8_t& g, uint8_t& r) {
@@ -143,7 +238,7 @@ inline void bgr555_to_bgr888(uint16_t color, uint8_t& b, uint8_t& g, uint8_t& r)
 }
 
 inline void bgr565_to_bgr888(uint16_t color, uint8_t& b, uint8_t& g, uint8_t& r) {
-    rgb565_to_bgr888 (color, r, g, b);
+    rgb565_to_bgr888(color, r, g, b);
 }
 
 inline void bgr444_to_bgr888(uint16_t color, uint8_t& b, uint8_t& g, uint8_t& r) {
@@ -153,49 +248,49 @@ inline void bgr444_to_bgr888(uint16_t color, uint8_t& b, uint8_t& g, uint8_t& r)
 inline uint32_t bgr1555_to_abgr8888(uint16_t color) {
     uint8_t b, g, r;
     bgr1555_to_bgr888(color, b, g, r);
-    return (UINT32_C(0xFF) << 24) | (b << 16) | (g << 8) | (r << 0);
+    return bgr888_to_abgr8888(b, g, r);
 }
 
 inline uint32_t bgr555_to_abgr8888(uint16_t color) {
     uint8_t b, g, r;
     bgr555_to_bgr888(color, b, g, r);
-    return (UINT32_C(0xFF) << 24) | (b << 16) | (g << 8) | (r << 0);
+    return bgr888_to_abgr8888(b, g, r);
 }
 
 inline uint32_t bgr565_to_abgr8888(uint16_t color) {
     uint8_t b, g, r;
     bgr565_to_bgr888(color, b, g, r);
-    return (UINT32_C(0xFF) << 24) | (b << 16) | (g << 8) | (r << 0);
+    return bgr888_to_abgr8888(b, g, r);
 }
 
 inline uint32_t bgr444_to_abgr8888(uint16_t color) {
     uint8_t b, g, r;
     bgr444_to_bgr888(color, b, g, r);
-    return (UINT32_C(0xFF) << 24) | (b << 16) | (g << 8) | (r << 0);
+    return bgr888_to_abgr8888(b, g, r);
 }
 
 inline uint32_t rgb1555_to_abgr8888(uint16_t color) {
     uint8_t b, g, r;
-    bgr1555_to_bgr888(color, b, g, r);
-    return (UINT32_C(0xFF) << 24) | (b << 16) | (g << 8) | (r << 0);
+    rgb1555_to_bgr888(color, b, g, r);
+    return bgr888_to_abgr8888(b, g, r);
 }
 
 inline uint32_t rgb555_to_abgr8888(uint16_t color) {
     uint8_t b, g, r;
-    bgr555_to_bgr888(color, b, g, r);
-    return (UINT32_C(0xFF) << 24) | (b << 16) | (g << 8) | (r << 0);
+    rgb555_to_bgr888(color, b, g, r);
+    return bgr888_to_abgr8888(b, g, r);
 }
 
 inline uint32_t rgb565_to_abgr8888(uint16_t color) {
     uint8_t b, g, r;
-    bgr565_to_bgr888(color, b, g, r);
-    return (UINT32_C(0xFF) << 24) | (b << 16) | (g << 8) | (r << 0);
+    rgb565_to_bgr888(color, b, g, r);
+    return bgr888_to_abgr8888(b, g, r);
 }
 
 inline uint32_t rgb444_to_abgr8888(uint16_t color) {
     uint8_t b, g, r;
-    bgr444_to_bgr888(color, b, g, r);
-    return (UINT32_C(0xFF) << 24) | (b << 16) | (g << 8) | (r << 0);
+    rgb444_to_bgr888(color, b, g, r);
+    return bgr888_to_abgr8888(b, g, r);
 }
 
 #endif /* FRAME_MANIPULATION_HPP */

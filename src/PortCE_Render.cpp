@@ -33,15 +33,15 @@ bool PortCE_color_idle_mode = false;
 static bool PortCE_SDL_initialized = false;
 static SDL_ScaleMode PortCE_scale_mode = SDL_ScaleModeNearest;
 
-static int32_t RESX_MINIMUM = LCD_RESX;
-static int32_t RESY_MINIMUM = LCD_RESY;
+static int RESX_MINIMUM = LCD_RESX;
+static int RESY_MINIMUM = LCD_RESY;
 
 /* Modern Code */
 
 struct BufferBox {
     uint32_t* vram;
-    int32_t resX;
-    int32_t resY;
+    int resX;
+    int resY;
     size_t pitch;
 }; typedef struct BufferBox BufferBox;
 
@@ -93,8 +93,6 @@ SDL_Event* grab_SDL_event();
 SDL_Event* grab_SDL_event() {
     return &event;
 }
-
-static __attribute__((__unused__)) const int32_t pitch = LCD_RESX * VIDEO_CHANNELS;
 
 static uint8_t videoCopy[153600];
 static uint16_t paletteRAM[256];
@@ -416,7 +414,7 @@ static void renderCursor(uint32_t* data) {
         // printf("\nError: Everything is clipped");
         return; // Everything is clipped
     }
-    const int32_t LCD_RESV = PortCE_query_column_major() ? LCD_RESX : LCD_RESY;
+    const int LCD_RESV = PortCE_query_column_major() ? LCD_RESX : LCD_RESY;
     if (cursor_PosX >= LCD_RESV || cursor_PosY >= LCD_RESY) {
         // printf("\nError: Out of bounds");
         return; // Out of bounds
@@ -424,8 +422,8 @@ static void renderCursor(uint32_t* data) {
     const uint16_t limitX = (cursor_PosX + cursorDim > LCD_RESV) ? static_cast<uint8_t>(( cursorDim - ((cursor_PosX + cursorDim) - LCD_RESV) )) : cursorDim;
     const uint16_t limitY = (cursor_PosY + cursorDim > LCD_RESY) ? static_cast<uint8_t>(( cursorDim - ((cursor_PosY + cursorDim) - LCD_RESY) )) : cursorDim;
 
-    uint32_t color_palette0 = (lcd_CrsrPalette0 & 0xFF) | ((lcd_CrsrPalette0 >> 8) & 0xFF) | ((lcd_CrsrPalette0 >> 16) & 0xFF) | (0xFF << 24);
-    uint32_t color_palette1 = (lcd_CrsrPalette1 & 0xFF) | ((lcd_CrsrPalette1 >> 8) & 0xFF) | ((lcd_CrsrPalette1 >> 16) & 0xFF) | (0xFF << 24);
+    uint32_t color_palette0 = bgr24_to_abgr8888(lcd_CrsrPalette0);
+    uint32_t color_palette1 = bgr24_to_abgr8888(lcd_CrsrPalette1);
 
     uint32_t invert_color_mask = 0x00FFFFFF;
     if (PortCE_color_idle_mode) {
@@ -558,7 +556,7 @@ void initLCDcontroller(const char* window_title, const PortCE_Config* config) {
 
     Master.resX = LCD_RESX;
     Master.resY = LCD_RESY;
-    Master.pitch = Master.resX * VIDEO_CHANNELS;
+    Master.pitch = static_cast<size_t>(Master.resX) * VIDEO_CHANNELS;
     Master.vram = (uint32_t*)calloc((size_t)Master.resY * Master.pitch, sizeof(uint8_t));
     if (Master.vram == nullptr) {
         fprintf(stderr, "Error: Failed to calloc Master.vram\n");
@@ -593,44 +591,43 @@ void PortCE_set_window_title(const char *window_title) {
     SDL_SetWindowTitle(window, window_title);
 }
 
+
 // Returns True if the window was resized. Optional: Returns new window size.
-static bool resizeWindow(int32_t resX, int32_t resY, uint32_t* resizeX, uint32_t* resizeY) {
-    bool reVal = false;
-    static int32_t rX = 0, rY = 0;
-    if (rX != resX || rY != resY) {
-        resX = resX < RESX_MINIMUM ? RESX_MINIMUM : resX;
-        resY = resY < RESY_MINIMUM ? RESY_MINIMUM : resY;
-
-        SDL_SetWindowSize(window,resX,resY);
-
-        SDL_RenderSetLogicalSize(renderer, resX, resY);
-
-        if (resizeX != nullptr) { *resizeX = resX; }
-        if (resizeY != nullptr) { *resizeY = resY; }
-
-        if (texture != nullptr) {
-            SDL_DestroyTexture(texture);
-        }
-
-        texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, (int)Master.resX, (int)Master.resY);
-        SDL_SetTextureScaleMode(texture, PortCE_scale_mode);
-        if (texture == nullptr) {
-            printf("\nError: SDL_CreateTexture failed while resizing window");
-            terminateLCDcontroller();
-            return true;
-        }
-
-        memset(Master.vram, 0, Master.pitch * Master.resY);
-        reVal = true;
+static bool resizeWindow(int resX, int resY, int* resizeX, int* resizeY) {
+    static int resX_prev = 0, resY_prev = 0;
+    if (resX_prev == resX && resY_prev == resY) {
+        return false;
     }
-    rX = resX;
-    rY = resY;
-    return reVal;
+    resX = resX < RESX_MINIMUM ? RESX_MINIMUM : resX;
+    resY = resY < RESY_MINIMUM ? RESY_MINIMUM : resY;
+
+    SDL_SetWindowSize(window,resX,resY);
+
+    SDL_RenderSetLogicalSize(renderer, resX, resY);
+
+    if (resizeX != nullptr) { *resizeX = resX; }
+    if (resizeY != nullptr) { *resizeY = resY; }
+
+    if (texture != nullptr) {
+        SDL_DestroyTexture(texture);
+    }
+
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, (int)Master.resX, (int)Master.resY);
+    SDL_SetTextureScaleMode(texture, PortCE_scale_mode);
+    if (texture == nullptr) {
+        fprintf(stderr, "Error: SDL_CreateTexture failed while resizing window\n");
+        terminateLCDcontroller();
+        return true;
+    }
+
+    memset(Master.vram, 0, Master.pitch * static_cast<size_t>(Master.resY));
+
+    return true;
 }
 
 // Returns True if the window was resized. Optional: Returns new window size.
-static bool windowResizingCode(uint32_t* resX, uint32_t* resY) {
-    int32_t x = 0, y = 0;
+static bool windowResizingCode(int* resX, int* resY) {
+    int x = 0, y = 0;
     SDL_GetWindowSize(window, &x, &y);
     return resizeWindow(x, y, resX, resY);
 }

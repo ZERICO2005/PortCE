@@ -85,10 +85,10 @@ extern "C" {
 
 /* PortCE */
 
-    #define VIDEO_CHANNELS 4
+    constexpr size_t VIDEO_CHANNELS = 4;
 
-    #define LCD_RESX (320)
-    #define LCD_RESY (240)
+    constexpr int LCD_RESX = (320);
+    constexpr int LCD_RESY = (240);
 
     typedef struct PortCE_Config {
         uint8_t window_scale;      /**< Set the initial window scaling (1-8) */

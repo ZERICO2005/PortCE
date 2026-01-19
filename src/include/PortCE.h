@@ -46,6 +46,12 @@ typedef unsigned _BitInt(48) uint48_t;
 #define  INT48_MAX  INT48_C( 140737488355327)
 #define UINT48_MAX UINT48_C( 281474976710655)
 
+#define INT24_WIDTH (24)
+#define UINT24_WIDTH (24)
+
+#define INT48_WIDTH (48)
+#define UINT48_WIDTH (48)
+
 typedef  int32_t  int_least24_t;
 typedef uint32_t uint_least24_t;
 typedef  int32_t   int_fast24_t;
@@ -220,11 +226,11 @@ inline int48_t i48abs(int48_t value) {
 
 #ifdef __cplusplus
 
-inline int24_t abs(int24_t value) {
+extern "C++" inline int24_t abs(int24_t value) {
     return (value < 0) ? -value : value;
 }
 
-inline int48_t abs(int48_t value) {
+extern "C++" inline int48_t abs(int48_t value) {
     return i48abs(value);
 }
 

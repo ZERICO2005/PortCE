@@ -106,18 +106,6 @@ size_t usb_GetConfigurationDescriptorTotalLength(
     return 0;
 }
 
-/**
- * Gets the descriptor of a \p device of \p type at \p index.
- * @note Blocks while the descriptor is fetched.
- * @param device The device to communicate with.
- * @param type The \c usb_descriptor_type_t to fetch.
- * @param index Descriptor index to fetch.
- * @param descriptor Returns the fetched descriptor.
- * @param length The maximum number of bytes to receive.
- * The \p descriptor buffer must be at least this large.
- * @param transferred nullptr or returns the number of bytes actually received.
- * @return USB_SUCCESS if the transfer succeeded or an error.
- */
 usb_error_t usb_GetDescriptor(
     __attribute__((__unused__)) usb_device_t device,
     __attribute__((__unused__)) usb_descriptor_type_t type,
@@ -339,26 +327,15 @@ void usb_RepeatTimerCycles(
     return;
 }
 
-/**
- * Returns a counter that increments once every cpu cycle, or 48000 times every
- * millisecond.  This counter overflows every 90 seconds or so.
- * @return Cpu cycle counter.
- */
 uint32_t usb_GetCycleCounter(void) {
     double time = getDecimalTime();
-    // time *= Ti84CE_Clockspeed;
-    time *= 48.0e6; // 48Mhz
+    // typically 48MHz
+    time *= get_clockspeed();
     // mod 2^32 for casting
     time = fmod(time, 4294967296.0);
-    return (uint32_t)time;
+    return static_cast<uint32_t>(time);
 }
 
-/**
- * Returns a counter that increments once every 256 cpu cycles, or 375 times
- * every 2 milliseconds.  This is the high 24 bits of the same counter returned
- * by usb_GetCycleCounter().
- * @return Cpu cycle counter >> 8.
- */
 uint24_t usb_GetCounter(void) {
-    return (uint24_t)(usb_GetCycleCounter() >> 8);
+    return static_cast<uint24_t>(usb_GetCycleCounter() >> 8);
 }

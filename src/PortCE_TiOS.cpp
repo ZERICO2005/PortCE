@@ -12,6 +12,8 @@
 
 #include "PortCE_TiOS_Font.h"
 
+#include "os_flags.hpp"
+
 #include <tice.h>
 #include <ctype.h>
 
@@ -291,17 +293,15 @@ void os_ClrTxtShd(void) {
 }
 
 void os_DisableHomeTextBuffer(void) {
-    uint8_t * const IY = (uint8_t*)RAM_ADDRESS(0xD00080);
-    *(IY + 0x0D) &= ~(1 << 1); // no text buffer
-    *(IY + 0x4A) &= ~(1 << 3); // use first shadow buffer
-    *(IY + 0x4C) |=  (1 << 5); // only display
+    iy_flag_res(1, +0x0D); // no text buffer
+    iy_flag_res(3, +0x4A); // use first shadow buffer
+    iy_flag_set(5, +0x4C); // only display
 }
 
 void os_EnableHomeTextBuffer(void) {
-    uint8_t * const IY = (uint8_t*)RAM_ADDRESS(0xD00080);
-    *(IY + 0x0D) |=  (1 << 1); // use text buffer
-    *(IY + 0x4A) &= ~(1 << 3); // use first shadow buffer
-    *(IY + 0x4C) &= ~(1 << 5); // use shadow buffer
+    iy_flag_set(1, +0x0D); // use text buffer
+    iy_flag_res(3, +0x4A); // use first shadow buffer
+    iy_flag_res(5, +0x4C); // use shadow buffer
 }
 
 void os_GetStringInput(const char *prompt, char *buf, size_t bufsize) {
@@ -368,53 +368,4 @@ void os_SetDrawBGColor(uint24_t color) {
 
 uint24_t os_GetDrawBGColor(void) {
     return os_DrawBGColor;
-}
-
-void *os_GetAnsData(__attribute__((unused)) uint8_t *type) {
-    return nullptr;
-}
-
-const system_info_t *os_GetSystemInfo(void) {
-    static system_info_t info;
-    memset(&info, 0, sizeof(system_info_t));
-
-    /* size = bytes after this field */
-    info.size = sizeof(system_info_t) - sizeof(size_t);
-
-    /* Hardware (TI-84 Plus CE) */
-    info.hardwareVersion = 7;
-    info.hardwareType    = 0;   /* TI-84+ CE */
-    info.hardwareType2   = 9;
-
-    /* OS version: 5.4.0.0034 */
-    info.osMajorVersion    = 5;
-    info.osMinorVersion    = 4;
-    info.osRevisionVersion = 0;
-    info.osBuildVersion    = 34;
-
-    /* Boot version: 5.3.6.0017 */
-    info.bootMajorVersion    = 5;
-    info.bootMinorVersion    = 3;
-    info.bootRevisionVersion = 6;
-    info.bootBuildVersion    = 17;
-
-    /* Unknown constant block observed on CE:
-       40 01 00 F0 00 00 10 30 00 00 */
-    static const uint8_t ce_unknown[10] = {
-        0x40, 0x01, 0x00, 0xF0, 0x00,
-        0x00, 0x10, 0x30, 0x00, 0x00
-    };
-
-    memcpy(info.unknown, ce_unknown, sizeof(ce_unknown));
-
-    /* Calculator ID (certificate-derived) â€“ unknown here */
-    memset(info.calcid, 0, sizeof(info.calcid));
-
-    /* Device name prefix */
-    info.ti[0] = 'T';
-    info.ti[1] = 'I';
-
-    /* Language: English */
-    info.language = 0x0109;
-    return &info;
 }

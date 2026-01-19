@@ -104,9 +104,13 @@ extern "C" {
 
 /* Function Declarations */
 
-    void PortCE_terminate_fileioc(void);
+void PortCE_terminate_fileioc(void);
 
-    void reset_ti84ce_registers(void);
+void reset_ti84ce_registers(void);
+
+void set_clockspeed(double clock_speed);
+
+double get_clockspeed();
 
 #ifdef __cplusplus
 }

@@ -91,7 +91,7 @@ set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${SAN_FLAG}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SAN_FLAG}")
 
 target_compile_options(
-	${PROJECT_NAME} PUBLIC ${SAN_FLAG} ${OPT_FLAG}
+	${PROJECT_NAME} PRIVATE ${SAN_FLAG} ${OPT_FLAG}
 	-Wall -Wextra -Wshadow
 
 	-Wpointer-arith

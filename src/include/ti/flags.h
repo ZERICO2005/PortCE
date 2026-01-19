@@ -23,7 +23,7 @@ extern "C" {
  * @param[in] offset Offset to particular flag in list
  * @param[in] set Bitmask of flag to set
  */
-void os_SetFlagByte(ti_int offset, uint8_t set);
+void os_SetFlagByte(int offset, uint8_t set);
 
 /**
  * Get a particular OS flag
@@ -31,7 +31,7 @@ void os_SetFlagByte(ti_int offset, uint8_t set);
  * @param[in] offset Offset to particular flag in list
  * @returns Bitmask of flag
  */
-uint8_t os_GetFlagByte(ti_int offset);
+uint8_t os_GetFlagByte(int offset);
 
 /**
  * Check OS flag bits
@@ -44,14 +44,14 @@ ti_int os_TestFlagBits(uint16_t offset_pattern);
 /**
  * Set OS flag bits
  *
- * @param offset_pattern High 8 is unsigned offset, low 8 is bits to test
+ * @param offset_pattern High 8 is signed offset, low 8 is bits to test
  */
 void os_SetFlagBits(int16_t offset_pattern);
 
 /**
  * Clear OS flag bits
  *
- * @param offset_pattern High 8 is unsigned offset, low 8 is bits to test
+ * @param offset_pattern High 8 is signed offset, low 8 is bits to test
  */
 void os_ResetFlagBits(int16_t offset_pattern);
 

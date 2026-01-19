@@ -50,7 +50,9 @@ static fontlib_font_t currentFont = {};
 static uint8_t const * widthsTablePtr = nullptr;
 static uint16_t const * bitmapsTablePtr = nullptr;
 
-#define CurrentBuffer ((uint8_t*)RAM_ADDRESS(lcd_LpBase))
+inline uint8_t *get_vBuffer() {
+    return static_cast<uint8_t*>(RAM_ADDRESS(lcd_LpBase));
+}
 
 //------------------------------------------------------------------------------
 // utilities
@@ -78,10 +80,10 @@ static void util_ClearRect(int x_pos, int y_pos, int width, int height) {
     if (width <= 0 || height <= 0) {
         return;
     }
-    uint8_t * dst = CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
+    uint8_t * dst = get_vBuffer() + x_pos + (y_pos * GFX_LCD_WIDTH);
     gfx_Wait();
     for (int y = 0; y < height; y++) {
-        memset(dst, TEXT_BG_COLOR, width);
+        memset(dst, TEXT_BG_COLOR, static_cast<size_t>(width));
         dst += GFX_LCD_WIDTH;
     }
 }
@@ -93,7 +95,7 @@ static void util_ClearRect(int x_pos, int y_pos, int width, int height) {
 /* window */
 
 ti_unsigned_int fontlib_GetWindowXMin(void) {
-    return (ti_unsigned_int)textXMin;
+    return static_cast<ti_unsigned_int>(textXMin);
 }
 
 uint8_t fontlib_GetWindowYMin(void) {
@@ -101,7 +103,7 @@ uint8_t fontlib_GetWindowYMin(void) {
 }
 
 ti_unsigned_int fontlib_GetWindowWidth(void) {
-    return (ti_unsigned_int)(textXMax - textXMin);
+    return static_cast<ti_unsigned_int>(textXMax - textXMin);
 }
 
 uint8_t fontlib_GetWindowHeight(void) {
@@ -126,7 +128,7 @@ void fontlib_SetWindow(unsigned int x_min, uint8_t y_min, unsigned int width, ui
 /* cursor */
 
 ti_unsigned_int fontlib_GetCursorX(void) {
-    return (ti_unsigned_int)textX;
+    return static_cast<ti_unsigned_int>(textX);
 }
 
 uint8_t fontlib_GetCursorY(void) {
@@ -141,8 +143,8 @@ void fontlib_SetCursorPosition(unsigned int x, uint8_t y) {
 
 void fontlib_ShiftCursorPosition(int x, int y) {
     // assembly truncates to 16 bit
-    textX = (uint16_t)(textX + x);
-    textY = (uint8_t)(textY + y);
+    textX = static_cast<uint16_t>(textX + static_cast<unsigned>(x));
+    textY = static_cast<uint8_t>(textY + static_cast<unsigned>(y));
     test_fontlibc_state();
 }
 
@@ -209,44 +211,44 @@ size_t fontlib_GetTotalGlyphs(void) {
 }
 
 char fontlib_GetFirstGlyph(void) {
-    return (char)currentFont.first_glyph;
+    return static_cast<char>(currentFont.first_glyph);
 }
 
 void fontlib_SetNewlineCode(char code_point) {
-    drawNewLine = code_point;
+    drawNewLine = static_cast<unsigned char>(code_point);
 }
 
 char fontlib_GetNewlineCode(void) {
-    return (char)drawNewLine;
+    return static_cast<char>(drawNewLine);
 }
 
 void fontlib_SetAlternateStopCode(char code_point) {
-    alternateStopCode = code_point;
+    alternateStopCode = static_cast<unsigned char>(code_point);
 }
 
 char fontlib_GetAlternateStopCode(void) {
-    return (char)alternateStopCode;
+    return static_cast<char>(alternateStopCode);
 }
 
 void fontlib_SetFirstPrintableCodePoint(char code_point) {
-    currentFont.first_glyph = code_point;
+    currentFont.first_glyph = static_cast<unsigned char>(code_point);
 }
 
 char fontlib_GetFirstPrintableCodePoint(void) {
-    return (char)currentFont.first_glyph;
+    return static_cast<char>(currentFont.first_glyph);
 }
 
 void fontlib_SetDrawIntCodePoints(char minus, char zero) {
-    drawIntMinus = minus;
-    drawIntZero = zero;
+    drawIntMinus = static_cast<unsigned char>(minus);
+    drawIntZero = static_cast<unsigned char>(zero);
 }
 
 char fontlib_GetDrawIntMinus(void) {
-    return (char)drawIntMinus;
+    return static_cast<char>(drawIntMinus);
 }
 
 char fontlib_GetDrawIntZero(void) {
-    return (char)drawIntZero;
+    return static_cast<char>(drawIntZero);
 }
 
 void fontlib_SetLineSpacing(uint8_t space_above, uint8_t space_below) {
@@ -298,21 +300,23 @@ bool fontlib_SetFont(const fontlib_font_t *font_data, fontlib_load_options_t fla
         return false;
     }
     const size_t Maximum_Reasonable_Font_Size = 0xFF00;
-    if ((size_t)currentFont.widths_table >= Maximum_Reasonable_Font_Size) {
+    if (static_cast<size_t>(currentFont.widths_table) >= Maximum_Reasonable_Font_Size) {
         return false;
     }
-    widthsTablePtr = (const uint8_t*)currentFontRoot + (size_t)currentFont.widths_table;
-    if ((size_t)currentFont.bitmaps >= Maximum_Reasonable_Font_Size) {
+    widthsTablePtr = reinterpret_cast<const uint8_t*>(currentFontRoot) + static_cast<size_t>(currentFont.widths_table);
+    if (static_cast<size_t>(currentFont.bitmaps) >= Maximum_Reasonable_Font_Size) {
         return false;
     }
-    bitmapsTablePtr = (const uint16_t*)((const uint8_t*)currentFontRoot + (size_t)currentFont.bitmaps);
+    bitmapsTablePtr = reinterpret_cast<const uint16_t*>(
+        reinterpret_cast<const uint8_t*>(currentFontRoot) + static_cast<size_t>(currentFont.bitmaps)
+    );
 #if 0
-    if (flags == FONTLIB_IGNORE_LINE_SPACING || (int)flags != 0) {
+    if (flags == FONTLIB_IGNORE_LINE_SPACING || static_cast<int>(flags) != 0) {
         currentFont.space_above = 0;
         currentFont.space_below = 0;
     }
 #else
-    if (flags == FONTLIB_IGNORE_LINE_SPACING || (int)flags != 0 || true) {
+    if (flags == FONTLIB_IGNORE_LINE_SPACING || static_cast<int>(flags) != 0 || true) {
         currentFont.space_above = 0;
         currentFont.space_below = 0;
     }
@@ -321,18 +325,18 @@ bool fontlib_SetFont(const fontlib_font_t *font_data, fontlib_load_options_t fla
 }
 
 bool fontlib_ValidateCodePoint(char code_point) {
-    unsigned char c = code_point;
+    unsigned char c = static_cast<unsigned char>(code_point);
     if (c < fontlib_GetFirstGlyph()) {
         return false;
     }
-    if (c >= fontlib_GetTotalGlyphs() - fontlib_GetFirstGlyph()) {
+    if (c >= fontlib_GetTotalGlyphs() - static_cast<unsigned char>(fontlib_GetFirstGlyph())) {
         return false;
     }
     return true;
 }
 
 uint8_t fontlib_GetGlyphWidth(char codepoint) {
-    unsigned char ch = codepoint;
+    unsigned char ch = static_cast<unsigned char>(codepoint);
     if (ch < currentFont.first_glyph) {
         // invalid index
         return 0;
@@ -359,7 +363,7 @@ ti_unsigned_int fontlib_GetStringWidthL(const char *str, size_t max_characters) 
             break;
         }
         --charactersLeft;
-        unsigned char ch = (unsigned char)*str;
+        unsigned char ch = static_cast<unsigned char>(*str);
         if (ch < firstPrintableCodePoint) {
             break;
         }
@@ -385,7 +389,7 @@ ti_unsigned_int fontlib_GetStringWidthL(const char *str, size_t max_characters) 
     strReadPtr = str;
     int adjust = currentFont.italic_space_adjust;
     total_width -= adjust;
-    return (ti_unsigned_int)total_width;
+    return static_cast<ti_unsigned_int>(total_width);
 }
 
 ti_unsigned_int fontlib_GetStringWidth(const char *str) {
@@ -402,17 +406,18 @@ static uint8_t util_DrawGlyphRawKnownWidth(uint8_t ch, uint8_t *__restrict const
     const uint8_t fg_color = TEXT_FG_COLOR;
     const bool is_transparent = textTransparentMode;
 
-    uint16_t const *__restrict const bitmap_table_ptr = (uint16_t const *__restrict)bitmapsTablePtr;
-    uint8_t const *__restrict src = (uint8_t const *__restrict)currentFontRoot + bitmap_table_ptr[(unsigned char)ch];
+    uint16_t const *__restrict const bitmap_table_ptr = bitmapsTablePtr;
+    size_t bitmap_offset = bitmap_table_ptr[static_cast<unsigned char>(ch)];
+    uint8_t const *__restrict src = reinterpret_cast<uint8_t const *__restrict>(currentFontRoot) + bitmap_offset;
 
-    const uint8_t font_jump = ((uint8_t)(width - 1) >> 3) + 1;
+    const uint8_t font_jump = (static_cast<uint8_t>(width - 1) >> 3) + 1;
 
     if (is_transparent) {
         uint8_t *__restrict dst = buf;
         const size_t line_jump = GFX_LCD_WIDTH - width;
         dst += space_above * GFX_LCD_WIDTH;
         for (uint8_t y = 0; y < height; y++) {
-            uint24_t HL = *(uint24_t const *__restrict)src;
+            uint24_t HL = *reinterpret_cast<uint24_t const *__restrict>(src);
             for (uint8_t x = 0; x < width; x++) {
                 if (HL & 0x800000) {
                     *dst = fg_color;
@@ -430,7 +435,7 @@ static uint8_t util_DrawGlyphRawKnownWidth(uint8_t ch, uint8_t *__restrict const
         const size_t line_jump = GFX_LCD_WIDTH - width;
         dst += space_above * GFX_LCD_WIDTH;
         for (uint8_t y = 0; y < height; y++) {
-            uint24_t HL = *(uint24_t const *__restrict)src;
+            uint24_t HL = *reinterpret_cast<uint24_t const *__restrict>(src);
             for (uint8_t x = 0; x < width; x++) {
                 if (HL & 0x800000) {
                     *dst = fg_color;
@@ -464,18 +469,18 @@ static uint8_t util_DrawGlyphRawKnownWidth(uint8_t ch, uint8_t *__restrict const
 
 static uint8_t util_DrawGlyphRaw(unsigned char ch, uint8_t *__restrict const buf) {
     ch -= currentFont.first_glyph;
-    uint8_t const *__restrict const width_table_ptr = (uint8_t const *__restrict)widthsTablePtr;
+    uint8_t const *__restrict const width_table_ptr = widthsTablePtr;
     const uint8_t width = width_table_ptr[ch];
     gfx_Wait();
     return util_DrawGlyphRawKnownWidth(ch, buf, width);
 }
 
 ti_unsigned_int fontlib_DrawGlyph(unsigned char ch) {
-    uint8_t *__restrict buf = (uint8_t *__restrict)CurrentBuffer + textX + (textY * GFX_LCD_WIDTH);
+    uint8_t *__restrict buf = get_vBuffer() + textX + (textY * GFX_LCD_WIDTH);
     uint8_t width = util_DrawGlyphRaw(ch, buf);
     textX += width;
     textX -= currentFont.italic_space_adjust;
-    return (ti_unsigned_int)textX;
+    return static_cast<ti_unsigned_int>(textX);
 }
 
 static void util_DrawStringL(const char *str, size_t max_characters) {
@@ -484,14 +489,14 @@ static void util_DrawStringL(const char *str, size_t max_characters) {
     charactersLeft = max_characters;
 restartX:
     gfx_Wait();
-    uint8_t *__restrict buf = (uint8_t *__restrict)CurrentBuffer + textX + (textY * GFX_LCD_WIDTH);
+    uint8_t *__restrict buf = get_vBuffer() + textX + (textY * GFX_LCD_WIDTH);
 mainLoop:
     if (charactersLeft == 0) {
         return;
     }
     --charactersLeft;
     ++strReadPtr;
-    unsigned char ch = *strReadPtr;
+    unsigned char ch = static_cast<unsigned char>(*strReadPtr);
 
     if (ch < firstPrintableCodePoint) {
         if (ch == '\0') {
@@ -514,13 +519,13 @@ mainLoop:
     }
     {
         uint8_t width = widthsTablePtr[ch];
-        int x_pos = textX + (int)width;
+        int x_pos = static_cast<int>(textX + width);
         int adjust = currentFont.italic_space_adjust;
-        if ((unsigned int)x_pos > textXMax) {
+        if (static_cast<unsigned int>(x_pos) > textXMax) {
             goto newLine;
         }
         x_pos -= adjust;
-        textX = x_pos;
+        textX = static_cast<unsigned int>(x_pos);
         buf += util_DrawGlyphRawKnownWidth(ch, buf, width);
         buf -= adjust;
     }
@@ -554,7 +559,7 @@ ti_unsigned_int fontlib_DrawStringL(const char *str, size_t max_characters) {
         max_characters = UINT24_MAX;
     }
     util_DrawStringL(str, max_characters);
-    return (ti_unsigned_int)textX;
+    return static_cast<ti_unsigned_int>(textX);
 }
 
 ti_unsigned_int fontlib_DrawString(const char *str) {
@@ -621,7 +626,7 @@ void fontlib_DrawUInt(uint24_t n, uint8_t length) {
 }
 
 void fontlib_DrawInt(int24_t n, uint8_t length) {
-    uint24_t N = (uint24_t)n;
+    uint24_t N = static_cast<uint24_t>(n);
     if (n < 0) {
         fontlib_DrawGlyph(drawIntMinus);
         N = -N;
@@ -633,7 +638,7 @@ void fontlib_DrawInt(int24_t n, uint8_t length) {
 }
 
 void fontlib_ClearEOL(void) {
-    int width = textXMax - textX;
+    int width = static_cast<int>(textXMax - textX);
     if (width <= 0) {
         return;
     }
@@ -641,13 +646,23 @@ void fontlib_ClearEOL(void) {
     if (height <= 0) {
         return;
     }
-    util_ClearRect(textX, textY, width, height);
+    util_ClearRect(
+        static_cast<int>(textXMin),
+        static_cast<int>(textYMin),
+        static_cast<int>(width),
+        static_cast<int>(height)
+    );
 }
 
 void fontlib_ClearWindow(void) {
-    int width = textXMax - textXMin;
-    int height = textYMax - textYMin;
-    util_ClearRect(textXMin, textYMin, width, height);
+    int width = static_cast<int>(textXMax - textX);
+    int height = static_cast<int>(textYMax - textYMin);
+    util_ClearRect(
+        static_cast<int>(textXMin),
+        static_cast<int>(textYMin),
+        static_cast<int>(width),
+        static_cast<int>(height)
+    );
 }
 
 bool fontlib_Newline(void) {
@@ -684,7 +699,7 @@ noScroll:
     return true;
 //------------------------------------------------------------------------------
 writeCursorY:
-    textY = (uint8_t)(height_cmp - font_height);
+    textY = static_cast<uint8_t>(height_cmp - font_height);
 checkPreClear:
     if (!(newlineControl & mPreclearNewline)) {
         return false;
@@ -703,14 +718,14 @@ void fontlib_ScrollWindowDown(void) {
     if (lines <= 0) {
         return;
     }
-    if (lines < (int)height) {
+    if (lines < static_cast<int>(height)) {
         return;
     }
-    const size_t line_count = (size_t)lines;
-    const size_t x_pos = (size_t)textXMin;
-    const uint8_t y_pos = (uint8_t)textYMin;
+    const size_t line_count = static_cast<size_t>(lines);
+    const size_t x_pos = static_cast<size_t>(textXMin);
+    const uint8_t y_pos = static_cast<uint8_t>(textYMin);
 
-    uint8_t * const buf = CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
+    uint8_t * const buf = get_vBuffer() + x_pos + (y_pos * GFX_LCD_WIDTH);
     uint8_t * dst = buf;
     uint8_t const * src = buf + (GFX_LCD_WIDTH * height);
     gfx_Wait();
@@ -731,14 +746,14 @@ void fontlib_ScrollWindowUp(void) {
     if (lines <= 0) {
         return;
     }
-    if (lines < (int)height) {
+    if (lines < static_cast<int>(height)) {
         return;
     }
-    const size_t line_count = (size_t)lines;
-    const size_t x_pos = (size_t)textXMin;
-    const uint8_t y_pos = (uint8_t)(textYMax - 1);
+    const size_t line_count = static_cast<size_t>(lines);
+    const size_t x_pos = static_cast<size_t>(textXMin);
+    const uint8_t y_pos = static_cast<uint8_t>(textYMax - 1);
 
-    uint8_t * const buf = CurrentBuffer + x_pos + (y_pos * GFX_LCD_WIDTH);
+    uint8_t * const buf = get_vBuffer() + x_pos + (y_pos * GFX_LCD_WIDTH);
     uint8_t * dst = buf;
     uint8_t const * src = buf - (GFX_LCD_WIDTH * height);
     gfx_Wait();
@@ -762,12 +777,12 @@ fontlib_font_t *fontlib_GetFontByIndexRaw(
     if (font_count <= index) {
         return nullptr;
     }
-    packed_int24_t const * font_list = (packed_int24_t const *)font_pack->font_list;
+    packed_int24_t const * font_list = reinterpret_cast<packed_int24_t const *>(font_pack->font_list);
     int24_t offset;
     memcpy(&offset, &font_list[index], 3);
     return const_cast<fontlib_font_t*>(
         reinterpret_cast<fontlib_font_t const *>(
-            reinterpret_cast<unsigned char const *>(font_pack) + (uintptr_t)offset
+            reinterpret_cast<unsigned char const *>(font_pack) + static_cast<uintptr_t>(offset)
         )
     );
 }
@@ -781,7 +796,7 @@ fontlib_font_t *fontlib_GetFontByIndex(
         return nullptr;
     }
 
-    fontlib_font_pack_t *font_pack = (fontlib_font_pack_t *)ti_GetDataPtr(handle);
+    fontlib_font_pack_t *font_pack = reinterpret_cast<fontlib_font_pack_t *>(ti_GetDataPtr(handle));
     if (font_pack == nullptr) {
         ti_Close(handle);
         return nullptr;
@@ -807,11 +822,13 @@ fontlib_font_t *fontlib_GetFontByStyleRaw(
     uint8_t style_bits_reset
 ) {
     uint8_t font_count = font_pack->fontCount;
-    packed_int24_t const * font_list = (packed_int24_t const *)font_pack->font_list;
+    packed_int24_t const * font_list = reinterpret_cast<packed_int24_t const *>(font_pack->font_list);
     for (uint8_t B = font_count; B --> 0;) {
         int24_t offset;
         memcpy(&offset, font_list, 3);
-        fontlib_font_t const * font = (fontlib_font_t const *)(font_pack + (uintptr_t)offset);
+        fontlib_font_t const * font = reinterpret_cast<fontlib_font_t const *>(
+            font_pack + static_cast<uintptr_t>(offset)
+        );
         font_list++;
         if (font->height < size_min) {
             continue;
@@ -850,7 +867,7 @@ fontlib_font_t *fontlib_GetFontByStyle(
         return nullptr;
     }
 
-    fontlib_font_pack_t *font_pack = (fontlib_font_pack_t *)ti_GetDataPtr(handle);
+    fontlib_font_pack_t *font_pack = reinterpret_cast<fontlib_font_pack_t *>(ti_GetDataPtr(handle));
     if (font_pack == nullptr) {
         ti_Close(handle);
         return nullptr;

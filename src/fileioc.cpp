@@ -46,7 +46,7 @@ list_t *ti_AllocList(size_t dim, void *(*malloc_routine)(size_t)) {
 
 matrix_t *ti_AllocMatrix(uint8_t rows, uint8_t cols, void *(*malloc_routine)(size_t)) {
     return reinterpret_cast<matrix_t*>(
-        util_alloc_var((rows << 8) | cols, rows * cols, malloc_routine)
+        util_alloc_var(static_cast<size_t>((rows << 8) | cols), rows * cols, malloc_routine)
     );
 }
 

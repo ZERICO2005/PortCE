@@ -42,12 +42,13 @@ static uint8_t* const rtc_IntStatus_ptr = (uint8_t*)((void*)&simulated_ram[0xF30
 
 uint32_t ti_random(void) {
     uint32_t ret = 0;
+    // RAND_MAX is at least 15 bits wide
     ret <<= 15;
-    ret ^= rand();
+    ret ^= static_cast<uint32_t>(rand());
     ret <<= 15;
-    ret ^= rand();
+    ret ^= static_cast<uint32_t>(rand());
     ret <<= 15;
-    ret ^= rand();
+    ret ^= static_cast<uint32_t>(rand());
     return ret;
 }
 

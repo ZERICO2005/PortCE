@@ -132,8 +132,8 @@ void zx0_Decompress(void *arg_dst, const void *arg_src) {
     intptr_t offset = -1;
 
     // preserve default offset 1
-    iy = -1;
-    bc = 1;
+    iy = uint16_t(-1);
+    bc = uint16_t(1);
     scf();
     goto dzx0t_start;
 

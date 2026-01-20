@@ -117,18 +117,15 @@ kb_key_t kb_ScanGroup(uint8_t row) {
     return static_cast<kb_key_t>(internal_kb_Data(row));
 }
 
-
 uint8_t kb_AnyKey(void) {
     return internal_kb_Scan();
 }
-
 
 void kb_Reset(void) {
     for (uint8_t i = 0; i < 7; i++) {
         internal_kb_Data(i) = 0;
     }
 }
-
 
 static uint8_t internal_CSC_Scan(void) {
     SDL_Event event;

@@ -20,7 +20,16 @@
 # option, see https://cmake.org/cmake/help/latest/command/set.html.
 set(LIBRARY_TARGET_NAME ${PROJECT_NAME})
 
-file(GLOB_RECURSE SRC_FILES "*.c" "*.cpp")
+file(
+	GLOB SRC_FILES
+	# PortCE
+	"*.c" "*.cpp"
+	"graphz/*.c" "graphz/*.cpp"
+	# imgui
+	"imgui/*.c" "imgui/*.cpp"
+	"imgui/backends/imgui_impl_sdl2.cpp"
+	"imgui/backends/imgui_impl_sdlrenderer2.cpp"
+)
 file(GLOB_RECURSE HDR_FILES "include/*.h" "include/*.hpp")
 
 # List of CPP (source) library files.
@@ -162,6 +171,13 @@ target_include_directories(
 	"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 	"$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
 )
+
+target_include_directories(
+	${PROJECT_NAME}
+	PRIVATE
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui"
+)
+
 
 # If you used find_package() you need to use target_include_directories() and/or
 # target_link_libraries(). As explained previously, depending on the imported

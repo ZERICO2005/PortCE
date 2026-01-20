@@ -6,6 +6,8 @@
 #include "bitGraphics.h"
 #include "copyBuffer.h"
 
+bool keyPressed(SDL_Scancode key);
+
 /* See keybind_data.h */
 enum Keyboard_Enum {KEYB_ANSI, KEYB_ANSI_Numpad, KEYB_Extended,KEYB_Extended_Numpad,KEYB_Complete,KEYB_Complete_Numpad};
 const KeyBox* Keyboard_List[] = {Keyboard_ANSI,Keyboard_ANSI_Numpad,Keyboard_Extended,Keyboard_Extended_Numpad,Keyboard_Complete,Keyboard_Complete_Numpad};
@@ -40,8 +42,8 @@ static void renderKeyText(
 	Text_Graphic.getDrawBufferBox(&src);
 	Keyboard_Graphic.getDrawBufferBox(&dst);
 	if (src.vram == NULL || dst.vram == NULL) {
-		if (src.vram == NULL) { printfInterval(0.4,"\nsrc.vram is NULL"); }
-		if (dst.vram == NULL) { printfInterval(0.4,"\ndst.vram is NULL"); }
+		if (src.vram == NULL) { fprintf(stderr, "src.vram is nullptr\n"); }
+		if (dst.vram == NULL) { fprintf(stderr, "dst.vram is nullptr\n"); }
 		return;
 	}
 	copyBuffer(src,dst,0,0,x1,y1,x0,y0,x1,y1,true);
@@ -85,7 +87,7 @@ void initKeyboardGraphics(double hue, double sat, double val) {
 	if (Text_Graphic.isInitialized() == false) {
 		Text_Graphic = Bit_Graphics(rktX,rktY);
 		if (Text_Graphic.isInitialized() == false) {
-			printError("Text_Graphic failed to initialize");
+			fprintf(stderr, "Text_Graphic failed to initialize");
 			return;
 		}
 	}
@@ -178,7 +180,7 @@ void renderBoard(
 			Keyboard_Graphic.gColor_RGB(col[pos], col[pos + 1], col[pos + 2]);
 			Keyboard_Graphic.fillRect((size_t)(int64_t)(x0+1),(size_t)(int64_t)(y0+1),(size_t)(int64_t)(x1-2),(size_t)(int64_t)(y1-2));
 			renderKeyText(
-				(char*)Keyboard_List[board][i].name,
+				Keyboard_List[board][i].name,
 				col[pos],col[pos + 1],col[pos + 2],
 				x0 + 2, y0 + 2, x1 - 4, y1 - 4
 			);
@@ -240,7 +242,7 @@ void renderKeyboard(
 		);
 	}
 	if (maxDimX == INT32_MIN || maxDimY == INT32_MIN || minDimX == INT32_MAX || minDimY == INT32_MAX) {
-		printError("Unable to get Keyboard_Graphic dimensions");
+		fprintf(stderr, "Unable to get Keyboard_Graphic dimensions");
 		return;
 	}
 
@@ -271,13 +273,13 @@ void renderKeyboard(
 	if (Keyboard_Graphic.isInitialized() == true) {
 		Keyboard_Graphic.resizeBuffer((size_t)buf->resX,(size_t)buf->resY);
 		if (Keyboard_Graphic.isInitialized() == false) {
-			printError("Failed to reallocate buffers for Keyboard_Graphic");
+			fprintf(stderr, "Failed to reallocate buffers for Keyboard_Graphic");
 			return;
 		}
 	} else {
 		Keyboard_Graphic = Bit_Graphics((size_t)buf->resX,(size_t)buf->resY);
 		if (Keyboard_Graphic.isInitialized() == false) {
-			printError("Keyboard_Graphic failed to initialize");
+			fprintf(stderr, "Keyboard_Graphic failed to initialize");
 			return;
 		}
 	}

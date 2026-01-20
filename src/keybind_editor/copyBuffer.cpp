@@ -7,7 +7,7 @@
 */
 
 #include "copyBuffer.h"
-#include <cstdio.h>
+#include <cstdio>
 
 void initBufferBox(BufferBox* box, uint8_t* vram, int resX, int resY, size_t channels, size_t padding) {
 	if (box == nullptr) {

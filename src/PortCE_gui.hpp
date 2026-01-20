@@ -2,7 +2,6 @@
 #define PORTCE_GUI_HPP
 
 #include <SDL_events.h>
-#include <stdint.h>
 
 void begin_PortCE_IMGUI(void);
 

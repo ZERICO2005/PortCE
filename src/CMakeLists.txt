@@ -25,6 +25,7 @@ file(
 	# PortCE
 	"*.c" "*.cpp"
 	"graphz/*.c" "graphz/*.cpp"
+	"keybind_editor/*.c" "keybind_editor/*.cpp"
 	# imgui
 	"imgui/*.c" "imgui/*.cpp"
 	"imgui/backends/imgui_impl_sdl2.cpp"

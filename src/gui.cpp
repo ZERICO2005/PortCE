@@ -111,6 +111,8 @@ void finish_PortCE_IMGUI(void) {
 	io_IMGUI = nullptr;
 }
 
+void Menu_Keybinds();
+
 void render_IMGUI(void) {
 	if (imgui_window == nullptr || imgui_renderer == nullptr || !imgui_visible || !imgui_initialized) {
 		return;
@@ -128,6 +130,8 @@ void render_IMGUI(void) {
 	}
 	ImGui::End();
 
+    Menu_Keybinds();
+
 	if (!open) {
 		PortCE_set_imgui_visible(false);
 	}
@@ -137,4 +141,8 @@ void render_IMGUI(void) {
 	SDL_RenderClear(imgui_renderer);
 	ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), imgui_renderer);
 	SDL_RenderPresent(imgui_renderer);
+}
+
+SDL_Renderer* get_imgui_SDL_renderer() {
+    return imgui_renderer;
 }

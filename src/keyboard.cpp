@@ -2,6 +2,7 @@
 #include <PortCE_Keybinds.h>
 #include "PortCE_Render.h"
 #include "PortCE_Common.h"
+#include "PortCE_gui.hpp"
 
 #include <cstdlib>
 #include <keypadc.h>
@@ -81,9 +82,18 @@ bool boot_CheckOnPressed(void) {
 static uint8_t internal_kb_Scan(void) {
     static uint8_t tempKey[56];
     SDL_Event event;
-    if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
-        terminateLCDcontroller();
-        exit(0);
+    if (SDL_PollEvent(&event)) {
+        PortCE_process_imgui_event(&event);
+        if (event.type == SDL_QUIT) {
+            terminateLCDcontroller();
+            exit(0);
+        }
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE) {
+            if (!PortCE_is_imgui_window_id(event.window.windowID)) {
+                terminateLCDcontroller();
+                exit(0);
+            }
+        }
     }
     KEYS = SDL_GetKeyboardState(&KEYCOUNT);
     uint32_t length = sizeof(PortCE_Keybind_Selection)/sizeof(PortCE_Keybind_Selection[0]);
@@ -129,9 +139,18 @@ void kb_Reset(void) {
 
 static uint8_t internal_CSC_Scan(void) {
     SDL_Event event;
-    if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
-        terminateLCDcontroller();
-        exit(0);
+    if (SDL_PollEvent(&event)) {
+        PortCE_process_imgui_event(&event);
+        if (event.type == SDL_QUIT) {
+            terminateLCDcontroller();
+            exit(0);
+        }
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE) {
+            if (!PortCE_is_imgui_window_id(event.window.windowID)) {
+                terminateLCDcontroller();
+                exit(0);
+            }
+        }
     }
     KEYS = SDL_GetKeyboardState(&KEYCOUNT);
     uint32_t length = sizeof(PortCE_Keybind_Selection)/sizeof(PortCE_Keybind_Selection[0]);

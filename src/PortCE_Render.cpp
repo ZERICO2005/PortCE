@@ -7,6 +7,7 @@
 #include "PortCE_Common.h"
 #include "PortCE_Render.h"
 #include "PortCE_internal.h"
+#include "PortCE_gui.hpp"
 #include "PortCE.h"
 
 #include "PortCE_Extra.h"
@@ -38,14 +39,14 @@ static int RESY_MINIMUM = LCD_RESY;
 
 /* Modern Code */
 
-struct BufferBox {
+struct RenderBox {
     uint32_t* vram;
     int resX;
     int resY;
     size_t pitch;
-}; typedef struct BufferBox BufferBox;
+}; typedef struct RenderBox RenderBox;
 
-static BufferBox Master;
+static RenderBox Master;
 
 static SDL_Window* window;
 static SDL_Texture* texture;
@@ -261,6 +262,9 @@ void PortCE_terminate_sound(void);
 int terminateLCDcontroller() {
     PortCE_terminate_sound();
     PortCE_SDL_initialized = false;
+
+    finish_PortCE_IMGUI();
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -310,6 +314,8 @@ void initLCDcontroller(const char* window_title, const PortCE_Config* config) {
     PortCE_initialize_sound();
 
     PortCE_SDL_initialized = true;
+
+    begin_PortCE_IMGUI();
 }
 
 void PortCE_set_window_title(const char *window_title) {
@@ -401,9 +407,19 @@ void PortCE_new_frame(void) {
     // nano64_t startTime = getNanoTime();
 
     SDL_Event event;
-    if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
-        terminateLCDcontroller();
-        exit(0);
+    const Uint32 main_window_id = SDL_GetWindowID(window);
+    while (SDL_PollEvent(&event)) {
+        PortCE_process_imgui_event(&event);
+        if (event.type == SDL_QUIT) {
+            terminateLCDcontroller();
+            exit(0);
+        }
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE) {
+            if (!PortCE_is_imgui_window_id(event.window.windowID) && event.window.windowID == main_window_id) {
+                terminateLCDcontroller();
+                exit(0);
+            }
+        }
     }
     windowResizingCode(nullptr,nullptr);
     copyFrame(Master.vram);
@@ -435,6 +451,7 @@ void PortCE_new_frame(void) {
 
         SDL_RenderCopy(renderer, texture, nullptr, &dstRect);
     }
+    render_IMGUI();
     SDL_RenderPresent(renderer);
 
     // nano64_t endTime = getNanoTime();

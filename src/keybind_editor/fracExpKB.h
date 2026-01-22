@@ -36,22 +36,34 @@ struct KeyBind_Preset {
 
 /* Key-bind List Functions */
 	// Default Key-binds for ABS-Fractal-Explorer
-	const std::list<KeyBind> defaultKeyBind = {
-		{Key_Function::incRealPos,SDL_SCANCODE_D},{Key_Function::decRealPos,SDL_SCANCODE_A},{Key_Function::incImagPos,SDL_SCANCODE_W},{Key_Function::decImagPos,SDL_SCANCODE_S},
-		{Key_Function::incMaxItr,SDL_SCANCODE_T},{Key_Function::decMaxItr,SDL_SCANCODE_G},{Key_Function::incZoom,SDL_SCANCODE_E},{Key_Function::decZoom,SDL_SCANCODE_Q},{Key_Function::resetCoordinates,SDL_SCANCODE_R},
-		/* {Key_Function::openSettingsMenu,SDL_SCANCODE_Y},{Key_Function::exportFractal,SDL_SCANCODE_H}, */ // Deprecated
-		{Key_Function::takeScreenshot,SDL_SCANCODE_P},{Key_Function::takeSuperScreenshot,SDL_SCANCODE_GRAVE},
-		{Key_Function::toggleFullscreen,SDL_SCANCODE_F11},
-		{Key_Function::refreshFractal,SDL_SCANCODE_F5},
-		{Key_Function::incZReal,SDL_SCANCODE_L},{Key_Function::decZReal,SDL_SCANCODE_J},{Key_Function::incZImag,SDL_SCANCODE_I},{Key_Function::decZImag,SDL_SCANCODE_K},
-		{Key_Function::resetZReal,SDL_SCANCODE_U},{Key_Function::resetZImag,SDL_SCANCODE_O},{Key_Function::toggleJulia,SDL_SCANCODE_C},{Key_Function::toggleStartingZ,SDL_SCANCODE_V},
-		{Key_Function::resetTransformations,SDL_SCANCODE_F},{Key_Function::clockwiseRot,SDL_SCANCODE_RIGHT},{Key_Function::counterclockwiseRot,SDL_SCANCODE_LEFT},{Key_Function::incStretch,SDL_SCANCODE_UP},{Key_Function::decStretch,SDL_SCANCODE_DOWN},
-		{Key_Function::inputFormula,SDL_SCANCODE_Z},{Key_Function::incFormula,SDL_SCANCODE_RIGHTBRACKET},{Key_Function::decFormula,SDL_SCANCODE_LEFTBRACKET},{Key_Function::incFamily,SDL_SCANCODE_EQUALS},{Key_Function::decFamily,SDL_SCANCODE_MINUS},
-		{Key_Function::inputPower,SDL_SCANCODE_X},{Key_Function::incPower,SDL_SCANCODE_LALT},{Key_Function::decPower,SDL_SCANCODE_LCTRL},
-		{Key_Function::incSuperSample,SDL_SCANCODE_APOSTROPHE},{Key_Function::decSuperSample,SDL_SCANCODE_SEMICOLON},{Key_Function::incSubSample,SDL_SCANCODE_PERIOD},{Key_Function::decSubSample,SDL_SCANCODE_COMMA},
-		/* {Key_Function::fp16GpuRendering,SDL_SCANCODE_UNKNOWN}, */ {Key_Function::fp32GpuRendering,SDL_SCANCODE_M}, /* {Key_Function::fp64GpuRendering,SDL_SCANCODE_RALT}, */
-		/* {Key_Function::fp32CpuRendering,SDL_SCANCODE_APPLICATION}, */ {Key_Function::fp64CpuRendering,SDL_SCANCODE_N},{Key_Function::fp80CpuRendering,SDL_SCANCODE_B},{Key_Function::fp64x2CpuRendering,SDL_SCANCODE_RCTRL}
-	};
+const std::list<KeyBind> defaultKeyBind = {
+	{Key_Function::toggle_menu, SDL_SCANCODE_ESCAPE},
+	{Key_Function::toggle_debug, SDL_SCANCODE_F10},
+	{Key_Function::key_0, SDL_SCANCODE_KP_0},
+    /* Keypad Numbers */
+    {Key_Function::key_0, SDL_SCANCODE_KP_0},{Key_Function::key_1, SDL_SCANCODE_KP_1},{Key_Function::key_2, SDL_SCANCODE_KP_2},{Key_Function::key_3, SDL_SCANCODE_KP_3},{Key_Function::key_4, SDL_SCANCODE_KP_4},
+    {Key_Function::key_5, SDL_SCANCODE_KP_5},{Key_Function::key_6, SDL_SCANCODE_KP_6},{Key_Function::key_7, SDL_SCANCODE_KP_7},{Key_Function::key_8, SDL_SCANCODE_KP_8},{Key_Function::key_9, SDL_SCANCODE_KP_9},
+    {Key_Function::key_0, SDL_SCANCODE_0},{Key_Function::key_1, SDL_SCANCODE_1},{Key_Function::key_2, SDL_SCANCODE_2},{Key_Function::key_3, SDL_SCANCODE_3},{Key_Function::key_4, SDL_SCANCODE_4},
+    {Key_Function::key_5, SDL_SCANCODE_5},{Key_Function::key_6, SDL_SCANCODE_6},{Key_Function::key_7, SDL_SCANCODE_7},{Key_Function::key_8, SDL_SCANCODE_8},{Key_Function::key_9, SDL_SCANCODE_9},
+    /* Keypad Symbols */
+    {Key_Function::key_Add, SDL_SCANCODE_KP_PLUS},{Key_Function::key_Sub, SDL_SCANCODE_KP_MINUS},{Key_Function::key_Mul, SDL_SCANCODE_KP_MULTIPLY},{Key_Function::key_Div, SDL_SCANCODE_KP_DIVIDE},{Key_Function::key_DecPnt, SDL_SCANCODE_KP_PERIOD},
+    /* Arrows */
+    {Key_Function::key_Up, SDL_SCANCODE_W},{Key_Function::key_Down, SDL_SCANCODE_S},{Key_Function::key_Left, SDL_SCANCODE_A},{Key_Function::key_Right, SDL_SCANCODE_D},
+    {Key_Function::key_Up, SDL_SCANCODE_UP},{Key_Function::key_Down, SDL_SCANCODE_DOWN},{Key_Function::key_Left, SDL_SCANCODE_LEFT},{Key_Function::key_Right, SDL_SCANCODE_RIGHT},
+    /* Primary */
+    {Key_Function::key_Alpha, SDL_SCANCODE_E}, {Key_Function::key_Alpha, SDL_SCANCODE_APOSTROPHE},
+    {Key_Function::key_2nd, SDL_SCANCODE_Q}, {Key_Function::key_2nd, SDL_SCANCODE_SEMICOLON},
+    {Key_Function::key_Enter, SDL_SCANCODE_RETURN}, {Key_Function::key_Enter, SDL_SCANCODE_KP_ENTER},
+    /* Other */
+    {Key_Function::key_Yequ, SDL_SCANCODE_Z},
+    {Key_Function::key_GraphVar, SDL_SCANCODE_LSHIFT}, {Key_Function::key_GraphVar, SDL_SCANCODE_RSHIFT},
+    {Key_Function::key_Mode, SDL_SCANCODE_X}, {Key_Function::key_Mode, SDL_SCANCODE_BACKSPACE},
+    {Key_Function::key_Clear, SDL_SCANCODE_C}, {Key_Function::key_Clear, SDL_SCANCODE_ESCAPE},
+    {Key_Function::key_Del, SDL_SCANCODE_P}, {Key_Function::key_Del, SDL_SCANCODE_DELETE},
+    {Key_Function::key_Power, SDL_SCANCODE_GRAVE},
+    /* Functions */
+    {Key_Function::key_Graph, SDL_SCANCODE_F1}, {Key_Function::key_Trace, SDL_SCANCODE_F2}, {Key_Function::key_Zoom, SDL_SCANCODE_F3}, {Key_Function::key_Window, SDL_SCANCODE_F4}, {Key_Function::key_Yequ, SDL_SCANCODE_F5},
+};
 	// Resets a Key-bind to defaults
 	int initDefaultKeyBind(std::list<KeyBind>* keyBindList);
 	// Clears a Key-bind

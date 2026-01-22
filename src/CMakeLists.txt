@@ -134,7 +134,7 @@ target_compile_options(
 
 # Test everything else possible (leave disabled)
 	# -Weverything
-	# -Wno-sign-conversion
+	-Wno-sign-conversion
 	# -Wno-unsafe-buffer-usage
 	# -Wno-old-style-cast
 	# -Wno-c++98-c++11-compat-binary-literal

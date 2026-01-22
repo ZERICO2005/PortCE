@@ -68,7 +68,7 @@ void Menu_Keybinds() {
 	}
 	ImGui::NewLine();
 	{
-        SDL_Texture* kTexture = nullptr;
+        static SDL_Texture* kTexture = nullptr;
 		constexpr int kMaxResX = 1440;
 		constexpr int kMinResX = 300;
 		__attribute__((unused)) constexpr int kMinResY = 140;
@@ -110,7 +110,7 @@ void Menu_Keybinds() {
 			fprintf(stderr, "Failed to create SDL surface: %s\n", SDL_GetError());
 		}
         if (kTexture) {
-            FREE(kTexture);
+            SDL_DestroyTexture(kTexture);
         }
 		kTexture = SDL_CreateTextureFromSurface(get_imgui_SDL_renderer(), kSurface);
 		if (kTexture == nullptr) {

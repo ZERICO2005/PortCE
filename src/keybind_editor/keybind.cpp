@@ -112,9 +112,9 @@ void updateKeys() {
 				Key_Function::Key_Function_Enum func = bind.func;
                 bool Lock_Key_Inputs = false;
 				if (Lock_Key_Inputs == true) { // Only listens to FUNCTION key-binds when key inputs are locked
-					if (func <= Key_Function::FORMULA /* Key_Function::SCREEN_SPLIT */ || func >= Key_Function::FUNCTIONS) {
-						continue;
-					}
+					// if (func <= Key_Function::FORMULA /* Key_Function::SCREEN_SPLIT */ || func >= Key_Function::FUNCTIONS) {
+					// 	continue;
+					// }
 				}
 				if (Key_List[i].pressed == true) {
 						func_stat[func].triggered = true;
@@ -135,9 +135,9 @@ void recolorKeyboard() {
 		};
 		init_key_HSV InitKeyHSV[] = {
 			{NONE,0.0,0.0,0.5},
-			{COORDINATES,0.0,0.7,1.0},{TRANSFORMATIONS,180.0,0.7,1.0},{JULIA,300.0,0.6,1.0},
-			{PARAMETERS,59.9,1.0,1.0},{POLAR,240.0,0.7,0.7},{FORMULA,210.0,0.3,0.8},
-			/* {SCREEN_SPLIT,30.0,0.3,1.0}, */ {FUNCTIONS,120.0,0.8,0.8},{RENDERING,180.0,0.4,0.6},
+			{PORTCE,0.0,0.7,1.0},{DIRECTION,180.0,0.7,1.0},{ACTION,300.0,0.6,1.0},
+			{TOP_ROW,59.9,1.0,1.0},{NUMBER,240.0,0.7,0.7},{OTHER,210.0,0.3,0.8},
+			/* {SCREEN_SPLIT,30.0,0.3,1.0}, */ {POWER,120.0,0.8,0.8}, /* {RENDERING,180.0,0.4,0.6}, */
 		};
 		struct init_key_RGB {
 			enum Key_Function_Enum type;

@@ -16,6 +16,8 @@ MacOS: Use Clang to compile
 
 # PortCE Setup Guide
 
+## Building PortCE
+
 1. Compile the library
 
 * To start, set the `current directory` to `PortCE`
@@ -25,8 +27,27 @@ MacOS: Use Clang to compile
 2. Building the examples
 
 * Set the `current directory` to `PortCE/examples/hello_world`. Then run `mkdir build` and `cd build`. You should now be in `PortCE/examples/hello_world/build`.
-* Then run `cmake -G Ninja ..`, and then run `Ninja`. This will compile `hello_world`.
+* Then run `cmake -G Ninja ..`, and then run `ninja`. This will compile `hello_world`.
 * To run the program, do `bin/hello_world`.
+
+## Targetting Emscripten
+
+Building PortCE for `Emscripten` is similar. You might have to try using `WSL` to get it to work on Windows.
+
+Follow this guide to setup `Emscripten`:
+https://emscripten.org/docs/getting_started/downloads.html
+
+1. Compile the library
+
+* To start, set the `current directory` to `PortCE`
+* Then run `emcmake cmake -S . -B build -G Ninja -DCMAKE_EXPORT_PACKAGE_REGISTRY=ON`
+* Then PortCE can be built with `cmake --build build`
+
+2. Building the examples
+
+* Set the `current directory` to `PortCE/examples/hello_world`. Then run `mkdir build` and `cd build`. You should now be in `PortCE/examples/hello_world/build`.
+* Then run `emcmake cmake -G Ninja ..`, and then run `ninja`. This will compile `hello_world`.
+* To run the program, do `python3 -m http.server 8000 --directory bin`. This will create a webpage that you can visit at `http://localhost:8000/hello_world.html`.
 
 # Compiling PortCE Projects
 

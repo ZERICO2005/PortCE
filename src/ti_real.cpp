@@ -499,11 +499,11 @@ int os_RealCompare(const real_t *arg1, const real_t *arg2) {
 
 int24_t os_RealToInt24(const real_t *arg) {
     long_double val = real_to_long_double(*arg);
-    if (val > static_cast<long_double>(std::numeric_limits<int24_t>::max())) {
-        return std::numeric_limits<int24_t>::max();
+    if (val > static_cast<long_double>(INT24_MAX)) {
+        return INT24_MAX;
     }
-    if (val < static_cast<long_double>(std::numeric_limits<int24_t>::lowest())) {
-        return std::numeric_limits<int24_t>::lowest();
+    if (val < static_cast<long_double>(INT24_MIN)) {
+        return INT24_MIN;
     }
     return static_cast<int24_t>(val);
 }

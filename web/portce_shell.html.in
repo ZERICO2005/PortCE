@@ -79,6 +79,41 @@
         border-radius: 8px;
         padding: 10px;
       }
+      .keypad {
+        margin-top: 12px;
+        position: relative;
+        background: #1a1a1a;
+        border: 1px solid #2b2b2b;
+        border-radius: 10px;
+        padding: 12px;
+        overflow: hidden;
+      }
+      .keypad-grid {
+        position: relative;
+      }
+      .keypad-key {
+        position: absolute;
+        background: #232323;
+        border: 1px solid #333;
+        color: var(--text);
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        user-select: none;
+        touch-action: none;
+        padding: 4px 6px;
+      }
+      .keypad-key[data-active="true"] {
+        border-color: var(--accent);
+        color: var(--accent);
+        box-shadow: inset 0 0 0 1px rgba(242, 200, 121, 0.4);
+      }
+      .keypad-key[data-disabled="true"] {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
       #canvas {
         width: 320px;
         height: 240px;
@@ -125,13 +160,15 @@
               <button type="button" data-scale="2" class="active">2x</button>
               <button type="button" data-scale="3">3x</button>
               <button type="button" id="fullscreen-btn">Full-screen</button>
+              <button type="button" id="lang-toggle">EN</button>
             </div>
             <button type="button" id="reset-btn">Reset</button>
           </div>
           <div class="screen">
             <canvas id="canvas" width="320" height="240"></canvas>
           </div>
-          <div class="note">Click the canvas to focus input.</div>
+          <div class="note">Click the canvas to focus input. Use the keypad for touch/mouse input.</div>
+          <div class="keypad" id="keypad"></div>
         </div>
         <div class="hint">PortCE Web</div>
       </div>
@@ -144,9 +181,11 @@
         const buttons = document.querySelectorAll("[data-scale]");
         const resetBtn = document.getElementById("reset-btn");
         const fullscreenBtn = document.getElementById("fullscreen-btn");
+        const langToggle = document.getElementById("lang-toggle");
         const panel = document.querySelector(".panel");
         const screen = document.querySelector(".screen");
         let fullscreenActive = false;
+        let keypadLanguage = "english";
 
         function setScale(scale) {
           fullscreenActive = false;
@@ -204,6 +243,209 @@
           }
         });
         setScale(2);
+
+        const keyNamesEnglish = [
+          "y=","window","zoom","trace","graph",
+          "🡩","🡫","🡨","🡪",
+          "🡔","🡕","🡗","🡖",
+          "2nd","mode","del",
+          "alpha","xt0n","stat",
+          "math","apps","prgm","vars","clear",
+          "x^-1","sin","cos","tan","^",
+          "x^2",",","(",")","/",
+          "log","7","8","9","*",
+          "ln","4","5","6","-",
+          "sto->","1","2","3","+",
+          "on","0",".","(-)","enter"
+        ];
+
+        const keyNamesFrench = [
+          "f(x)","fenêtre","zoom","trace","graphe",
+          "🡩","🡫","🡨","🡪",
+          "🡔","🡕","🡗","🡖",
+          "2nde","mode","suppr",
+          "alpha","xt0n","stats",
+          "math","matrice","prgm","var","annul",
+          "< >","trig","résol","-/-","^",
+          "x^2",",","(",")","/",
+          "log","7","8","9","*",
+          "ln","4","5","6","-",
+          "sto->","1","2","3","+",
+          "on","0",".","(-)","entrer"
+        ];
+
+        const keyIds = [
+          "Yequ","Window","Zoom","Trace","Graph",
+          "Up","Down","Left","Right",
+          "UpLeft","UpRight","DownLeft","DownRight",
+          "2nd","Mode","Del",
+          "Alpha","GraphVar","Stat",
+          "Math","Apps","Prgm","Vars","Clear",
+          "Recip","Sin","Cos","Tan","Power",
+          "Square","Comma","LParen","RParen","Div",
+          "Log","7","8","9","Mul",
+          "Ln","4","5","6","Sub",
+          "Sto","1","2","3","Add",
+          "On","0","DecPnt","Chs","Enter"
+        ];
+
+        const keyBoxes = [
+          { x: 1, y: 1, w: 4, h: 2 },
+          { x: 6, y: 1, w: 4, h: 2 },
+          { x: 11, y: 1, w: 4, h: 2 },
+          { x: 16, y: 1, w: 4, h: 2 },
+          { x: 21, y: 1, w: 4, h: 2 },
+          { x: 19, y: 4, w: 3, h: 3 },
+          { x: 19, y: 10, w: 3, h: 3 },
+          { x: 16, y: 7, w: 3, h: 3 },
+          { x: 22, y: 7, w: 3, h: 3 },
+          { x: 16, y: 4, w: 3, h: 3 },
+          { x: 22, y: 4, w: 3, h: 3 },
+          { x: 16, y: 10, w: 3, h: 3 },
+          { x: 22, y: 10, w: 3, h: 3 },
+          { x: 1, y: 5, w: 4, h: 3 },
+          { x: 6, y: 5, w: 4, h: 3 },
+          { x: 11, y: 5, w: 4, h: 3 },
+          { x: 1, y: 9, w: 4, h: 3 },
+          { x: 6, y: 9, w: 4, h: 3 },
+          { x: 11, y: 9, w: 4, h: 3 },
+          { x: 1, y: 14, w: 4, h: 2 },
+          { x: 6, y: 14, w: 4, h: 2 },
+          { x: 11, y: 14, w: 4, h: 2 },
+          { x: 16, y: 14, w: 4, h: 2 },
+          { x: 21, y: 14, w: 4, h: 2 },
+          { x: 1, y: 17, w: 4, h: 2 },
+          { x: 6, y: 17, w: 4, h: 2 },
+          { x: 11, y: 17, w: 4, h: 2 },
+          { x: 16, y: 17, w: 4, h: 2 },
+          { x: 21, y: 17, w: 4, h: 2 },
+          { x: 1, y: 20, w: 4, h: 2 },
+          { x: 6, y: 20, w: 4, h: 2 },
+          { x: 11, y: 20, w: 4, h: 2 },
+          { x: 16, y: 20, w: 4, h: 2 },
+          { x: 21, y: 20, w: 4, h: 2 },
+          { x: 1, y: 23, w: 4, h: 2 },
+          { x: 6, y: 24, w: 4, h: 2 },
+          { x: 11, y: 24, w: 4, h: 2 },
+          { x: 16, y: 24, w: 4, h: 2 },
+          { x: 21, y: 23, w: 4, h: 2 },
+          { x: 1, y: 26, w: 4, h: 2 },
+          { x: 6, y: 27, w: 4, h: 2 },
+          { x: 11, y: 27, w: 4, h: 2 },
+          { x: 16, y: 27, w: 4, h: 2 },
+          { x: 21, y: 26, w: 4, h: 2 },
+          { x: 1, y: 29, w: 4, h: 2 },
+          { x: 6, y: 30, w: 4, h: 2 },
+          { x: 11, y: 30, w: 4, h: 2 },
+          { x: 16, y: 30, w: 4, h: 2 },
+          { x: 21, y: 29, w: 4, h: 2 },
+          { x: 1, y: 32, w: 4, h: 2 },
+          { x: 6, y: 33, w: 4, h: 2 },
+          { x: 11, y: 33, w: 4, h: 2 },
+          { x: 16, y: 33, w: 4, h: 2 },
+          { x: 21, y: 32, w: 4, h: 2 }
+        ];
+
+        const keypad = document.getElementById("keypad");
+
+        function callNativeKey(method, code) {
+          const moduleRef = window.Module;
+          if (moduleRef && typeof moduleRef.ccall === "function") {
+            moduleRef.ccall(method, null, ["number"], [code]);
+            return true;
+          }
+          if (moduleRef && typeof moduleRef[method] === "function") {
+            moduleRef[method](code);
+            return true;
+          }
+          return false;
+        }
+
+        function activateKey(btn) {
+          btn.dataset.active = "true";
+          const code = Number(btn.dataset.keyCode);
+          if (!Number.isNaN(code)) {
+            callNativeKey("Key_Input_key_down", code);
+          }
+        }
+
+        function deactivateKey(btn) {
+          btn.dataset.active = "false";
+          const code = Number(btn.dataset.keyCode);
+          if (!Number.isNaN(code)) {
+            callNativeKey("Key_Input_key_up", code);
+          }
+        }
+
+        function buildKeypad() {
+          const unit = 12;
+          const padding = 10;
+          let maxX = 0;
+          let maxY = 0;
+          keyBoxes.forEach(function (box) {
+            maxX = Math.max(maxX, box.x + box.w);
+            maxY = Math.max(maxY, box.y + box.h);
+          });
+
+          const grid = document.createElement("div");
+          grid.className = "keypad-grid";
+          grid.style.width = (maxX * unit + padding * 2) + "px";
+          grid.style.height = (maxY * unit + padding * 2) + "px";
+
+          keyBoxes.forEach(function (box, index) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "keypad-key";
+            btn.dataset.keyId = keyIds[index];
+            btn.dataset.keyCode = String(index + 1);
+            btn.style.left = (box.x * unit + padding) + "px";
+            btn.style.top = (box.y * unit + padding) + "px";
+            btn.style.width = (box.w * unit) + "px";
+            btn.style.height = (box.h * unit) + "px";
+
+            const label = keypadLanguage === "english"
+              ? keyNamesEnglish[index]
+              : keyNamesFrench[index];
+            btn.textContent = label;
+
+            btn.addEventListener("pointerdown", function (event) {
+              event.preventDefault();
+              canvas.focus();
+              btn.setPointerCapture(event.pointerId);
+              activateKey(btn);
+            });
+            btn.addEventListener("pointerup", function (event) {
+              event.preventDefault();
+              deactivateKey(btn);
+            });
+            btn.addEventListener("pointercancel", function () {
+              deactivateKey(btn);
+            });
+            btn.addEventListener("pointerleave", function () {
+              deactivateKey(btn);
+            });
+
+            grid.appendChild(btn);
+          });
+
+          keypad.appendChild(grid);
+        }
+
+        function updateKeypadLabels() {
+          const labels = keypadLanguage === "english" ? keyNamesEnglish : keyNamesFrench;
+          const buttons = keypad.querySelectorAll(".keypad-key");
+          buttons.forEach(function (btn, index) {
+            btn.textContent = labels[index] || "";
+          });
+          langToggle.textContent = keypadLanguage === "english" ? "EN" : "FR";
+        }
+
+        buildKeypad();
+        updateKeypadLabels();
+        langToggle.addEventListener("click", function () {
+          keypadLanguage = keypadLanguage === "english" ? "french" : "english";
+          updateKeypadLabels();
+        });
       })();
       var Module = {
         canvas: (function () {

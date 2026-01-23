@@ -155,6 +155,7 @@ target_compile_options(
 	# -Wno-format-nonliteral
 	# -Wno-zero-length-array
 	# -Wno-float-equal
+	# -Wno-switch-enum
 )
 
 # Specify include directories for both compilation and installation process.
@@ -177,9 +178,17 @@ target_include_directories(
 #   target_link_libraries(${LIBRARY_TARGET_NAME} FooPackage_LIBRARIES::FooPackage_LIBRARIES)
 if(EMSCRIPTEN)
 	target_compile_options(${PROJECT_NAME} PUBLIC "SHELL:-sUSE_SDL=2" "SHELL:-sUSE_SDL_MIXER=2")
-	target_link_options(${PROJECT_NAME} PUBLIC "SHELL:-sUSE_SDL=2" "SHELL:-sUSE_SDL_MIXER=2" "SHELL:-sASYNCIFY")
+	target_link_options(
+		${PROJECT_NAME}
+		PUBLIC
+		"SHELL:-sUSE_SDL=2"
+		"SHELL:-sUSE_SDL_MIXER=2"
+		"SHELL:-sASYNCIFY"
+		"SHELL:-sEXPORTED_FUNCTIONS=_main,_Key_Input_key_down,_Key_Input_key_up"
+		"SHELL:-sEXPORTED_RUNTIME_METHODS=ccall"
+	)
 else()
-	target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::SDL2 SDL2_mixer::SDL2_mixer)
+	target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::SDL2 ${SDL2_MIXER_LIBRARIES})
 endif()
 target_link_libraries(${PROJECT_NAME} PUBLIC m)
 

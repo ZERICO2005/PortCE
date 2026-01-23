@@ -20,12 +20,15 @@
 #include <stdio.h>
 
 #include "frame_manipulation.hpp"
+#include "key_input.hpp"
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 #endif
+
+#include "key_input.hpp"
 
 #include <pthread.h>
 #include <sched.h>
@@ -129,6 +132,7 @@ static struct bound expandedPos[56] = {
 
 static const uint8_t* KEYS;
 static int KEYCOUNT;
+static uint8_t PortCE_web_keys[56];
 
 // enum keyBit {
 //     kb_Graph = 1    , kb_Trace = 2  , kb_Zoom = 4   , kb_Window = 8 , kb_Yequ = 16  , kb_2nd = 32   , kb_Mode = 64  , kb_Del = 128      ,
@@ -140,7 +144,7 @@ static int KEYCOUNT;
 //     kb_Down = 1     , kb_Left = 2   , kb_Right = 4  , kb_Up = 8
 // };
 
-#define internal_kb_Data(k) (((volatile uint16_t*)RAM_ADDRESS(0xF50010))[k])
+#define internal_kb_Data(k) (((uint16_t*)RAM_ADDRESS(0xF50010))[k])
 
 static void setKey(uint8_t k) {
     if (k >= 64) { //Out of Bounds
@@ -157,6 +161,84 @@ static void resetKey(uint8_t k) {
     uint8_t bit = static_cast<uint8_t>(1 << (k % 8));
     uint8_t off = k / 8;
     internal_kb_Data(off + 1) &= ~(bit);
+}
+
+static void Key_Input_set_key_down(Key_Input code) {
+    const PortCE_Keycode ce = to_PortCE_Keycode(code);
+    if (ce == KB_None) {
+        return;
+    }
+    const uint8_t ceKey = static_cast<uint8_t>(ce);
+    if (ceKey < 56) {
+        PortCE_web_keys[ceKey] = 1;
+        setKey(ceKey);
+    }
+}
+
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif
+void Key_Input_key_down(Key_Input code) {
+    switch (code) {
+        case Key_Input::key_UpLeft: {
+            Key_Input_set_key_down(Key_Input::key_Up);
+            Key_Input_set_key_down(Key_Input::key_Left);
+        } break;
+        case Key_Input::key_UpRight: {
+            Key_Input_set_key_down(Key_Input::key_Up);
+            Key_Input_set_key_down(Key_Input::key_Right);
+        } break;
+        case Key_Input::key_DownLeft: {
+            Key_Input_set_key_down(Key_Input::key_Down);
+            Key_Input_set_key_down(Key_Input::key_Left);
+        } break;
+        case Key_Input::key_DownRight: {
+            Key_Input_set_key_down(Key_Input::key_Down);
+            Key_Input_set_key_down(Key_Input::key_Right);
+        } break;
+        default: {
+            Key_Input_set_key_down(code);
+        } break;
+    }
+}
+
+static void Key_Input_set_key_up(Key_Input code) {
+    const PortCE_Keycode ce = to_PortCE_Keycode(code);
+    if (ce == KB_None) {
+        return;
+    }
+    const uint8_t ceKey = static_cast<uint8_t>(ce);
+    if (ceKey < 56) {
+        PortCE_web_keys[ceKey] = 0;
+        resetKey(ceKey);
+    }
+}
+
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif
+void Key_Input_key_up(Key_Input code) {
+    switch (code) {
+        case Key_Input::key_UpLeft: {
+            Key_Input_set_key_up(Key_Input::key_Up);
+            Key_Input_set_key_up(Key_Input::key_Left);
+        } break;
+        case Key_Input::key_UpRight: {
+            Key_Input_set_key_up(Key_Input::key_Up);
+            Key_Input_set_key_up(Key_Input::key_Right);
+        } break;
+        case Key_Input::key_DownLeft: {
+            Key_Input_set_key_up(Key_Input::key_Down);
+            Key_Input_set_key_up(Key_Input::key_Left);
+        } break;
+        case Key_Input::key_DownRight: {
+            Key_Input_set_key_up(Key_Input::key_Down);
+            Key_Input_set_key_up(Key_Input::key_Right);
+        } break;
+        default: {
+            Key_Input_set_key_up(code);
+        } break;
+    }
 }
 
 /* Replacement Libary Functions */
@@ -179,6 +261,13 @@ static uint8_t internal_kb_Scan(void) {
             tempKey[PortCE_Keybind_Selection[i].CE] = 1;
         }
     }
+    for (uint8_t i = 0; i < 56; i++) {
+        if (PortCE_web_keys[i] == 1) {
+            setKey(i);
+            tempKey[i] = 1;
+        }
+    }
+
     uint8_t pressed_key_count = 0;
     for (uint8_t i = 0; i < 56; i++) {
         if (tempKey[i] == 0) {
@@ -228,6 +317,11 @@ static uint8_t internal_CSC_Scan(void) {
     for (uint32_t i = 0; i < length; i++) {
         if (KEYS[PortCE_Keybind_Selection[i].SDL] == 1) {
             return PortCE_Keybind_Selection[i].CE;
+        }
+    }
+    for (uint8_t i = 0; i < 56; i++) {
+        if (PortCE_web_keys[i] == 1) {
+            return i;
         }
     }
     return 0;

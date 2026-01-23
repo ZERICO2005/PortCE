@@ -76,18 +76,10 @@ target_compile_options(
 
 target_link_libraries(${PROJECT_NAME} PUBLIC PortCE::PortCE)
 
-if(EMSCRIPTEN)
-	include("${PORTCE_SOURCE_ROOT}/cmake/PortCEWeb.cmake")
-	get_filename_component(
-		PORTCE_WEB_OUT_DIR
-		"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-		ABSOLUTE
-		BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}"
-	)
-	portce_add_web_shell(
-		${PROJECT_NAME}
-		OUT_DIR "${PORTCE_WEB_OUT_DIR}"
-		TEMPLATE "${PORTCE_SOURCE_ROOT}/web/portce_shell.html.in"
-		TITLE "PortCE Hello World"
-	)
-endif()
+include("${PORTCE_SOURCE_ROOT}/cmake/PortCEWeb.cmake")
+portce_web_shell_config(
+	${PROJECT_NAME}
+	OUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+	TEMPLATE "${PORTCE_SOURCE_ROOT}/web/portce_shell.html.in"
+	TITLE ${PROJECT_NAME}
+)

@@ -16,7 +16,12 @@ function(portce_add_web_shell target)
 		message(FATAL_ERROR "portce_add_web_shell: TEMPLATE is required.")
 	endif()
 
-	get_filename_component(PORTCE_WEB_OUT_DIR_ABS "${PORTCE_WEB_OUT_DIR}" ABSOLUTE)
+	get_filename_component(
+		PORTCE_WEB_OUT_DIR_ABS
+		"${PORTCE_WEB_OUT_DIR}"
+		ABSOLUTE
+		BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}"
+	)
 	file(MAKE_DIRECTORY "${PORTCE_WEB_OUT_DIR_ABS}")
 
 	set(PORTCE_APP_JS "${target}.js")
@@ -31,4 +36,12 @@ function(portce_add_web_shell target)
 		"${PORTCE_WEB_OUT_DIR_ABS}/${target}.html"
 		@ONLY
 	)
+endfunction()
+
+function(portce_web_shell_config target)
+	if(NOT EMSCRIPTEN)
+		return()
+	endif()
+
+	portce_add_web_shell("${target}" ${ARGN})
 endfunction()

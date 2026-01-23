@@ -186,6 +186,7 @@ if(EMSCRIPTEN)
 		"SHELL:-sASYNCIFY"
 		"SHELL:-sEXPORTED_FUNCTIONS=_main,_Key_Input_key_down,_Key_Input_key_up"
 		"SHELL:-sEXPORTED_RUNTIME_METHODS=ccall"
+		# "SHELL:-sSINGLE_FILE=1"
 	)
 else()
 	target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::SDL2 ${SDL2_MIXER_LIBRARIES})

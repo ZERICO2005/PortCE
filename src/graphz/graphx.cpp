@@ -1154,7 +1154,6 @@ void GraphX::gfz_RLETSprite(const gfz_rletsprite_t *__restrict sprite, const int
             }
 
             const uint8_t len = *src_buf++;
-            posX += len;
             for (uint8_t r = 0; r < len; r++) {
                 if (
                     static_cast<int32_t>(posX) + x >= lib.ClipXMin &&
@@ -1165,6 +1164,7 @@ void GraphX::gfz_RLETSprite(const gfz_rletsprite_t *__restrict sprite, const int
                     *dst_buf = *src_buf;
                 }
                 ++dst_buf;
+                ++posX;
                 ++src_buf;
             }
         }

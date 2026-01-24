@@ -29,13 +29,11 @@
 // #include <sys/types.h>
 // #include <unistd.h>
 
-extern uint8_t simulated_ram[16777216];
-
 uint16_t timer_IntAcknowledge;
-static uint16_t* const timer_IntStatus_ptr = (uint16_t*)((void*)&simulated_ram[0xF20034]);
+#define timer_IntStatus_ptr static_cast<uint16_t*>(RAM_ADDRESS(0xF20034))
 
 uint8_t rtc_IntAcknowledge;
-static uint8_t* const rtc_IntStatus_ptr = (uint8_t*)((void*)&simulated_ram[0xF30034]);
+#define rtc_IntStatus_ptr static_cast<uint8_t*>(RAM_ADDRESS(0xF30034))
 
 /* <sys/util.h> */
 
@@ -221,16 +219,6 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
 
 /* Update */
 
-// typedef struct Ti_Timer {
-//     uint32_t Counter;
-//     uint32_t ReloadValue;
-//     uint32_t MatchValue_1;
-//     uint32_t MatchValue_2;
-// } Ti_Timer;
-
-// static Ti_Timer* const timer_list = (Ti_Timer*)((void*)&simulated_ram[0xF20000]);
-// static const size_t timer_count = 3;
-
 static const double timer_mult = 1.0;
 
 ti_clock_t ti_clock() {
@@ -262,7 +250,7 @@ static const uint16_t Timer_MATCH1  [3] = {(1<<0), (1<<3), (1<<6)};
 static const uint16_t Timer_MATCH2  [3] = {(1<<1), (1<<4), (1<<7)};
 static const uint16_t Timer_RELOADED[3] = {(1<<2), (1<<5), (1<<8)};
 
-static Timer_Struct* const timer_list = (Timer_Struct*)((void*)&simulated_ram[0xF20000]);
+#define timer_list static_cast<Timer_Struct*>(RAM_ADDRESS(0xF20000))
 
 // accounts for the clock wrapping around
 static bool is_between_times(uint32_t time, uint32_t t0, uint32_t t1, bool forwards) {
@@ -396,15 +384,15 @@ static void get_RTC_time(uint8_t* Seconds, uint8_t* Minutes, uint8_t* Hours, uin
     *Days    = (uint8_t)tm->tm_yday;
 }
 
-static uint32_t* const RTC_Time    = (uint32_t*)((void*)&simulated_ram[0xF30044]);
-static uint8_t*  const RTC_Seconds = (uint8_t* )((void*)&simulated_ram[0xF30000]); /**< RTC seconds */
-static uint8_t*  const RTC_Minutes = (uint8_t* )((void*)&simulated_ram[0xF30004]); /**< RTC minutes */
-static uint8_t*  const RTC_Hours   = (uint8_t* )((void*)&simulated_ram[0xF30008]); /**< RTC hours */
-static uint16_t* const RTC_Days    = (uint16_t*)((void*)&simulated_ram[0xF3000C]); /**< RTC days */
+#define RTC_Time    (static_cast<uint32_t*>(RAM_ADDRESS(0xF30044)))
+#define RTC_Seconds (static_cast<uint8_t* >(RAM_ADDRESS(0xF30000)))
+#define RTC_Minutes (static_cast<uint8_t* >(RAM_ADDRESS(0xF30004)))
+#define RTC_Hours   (static_cast<uint8_t* >(RAM_ADDRESS(0xF30008)))
+#define RTC_Days    (static_cast<uint16_t*>(RAM_ADDRESS(0xF3000C)))
 
-static uint8_t* const RTC_AlarmSeconds = (uint8_t*)((void*)&simulated_ram[0xF30010]);    /**< RTC alarm seconds */
-static uint8_t* const RTC_AlarmMinutes = (uint8_t*)((void*)&simulated_ram[0xF30014]);    /**< RTC alarm minutes */
-static uint8_t* const RTC_AlarmHours   = (uint8_t*)((void*)&simulated_ram[0xF30018]);    /**< RTC alarm hours */
+#define RTC_AlarmSeconds (static_cast<uint8_t*>(RAM_ADDRESS(0xF30010)))
+#define RTC_AlarmMinutes (static_cast<uint8_t*>(RAM_ADDRESS(0xF30014)))
+#define RTC_AlarmHours   (static_cast<uint8_t*>(RAM_ADDRESS(0xF30018)))
 
 // Doesn't properly support internal counter/latching
 static void PortCE_update_RTC(void) {
@@ -494,8 +482,8 @@ void reset_ti84ce_registers(void) {
     calc_seconds = 0   ;
 
     /* Timers */
-        memset(&simulated_ram[0xF20000], 0, 0x38);
+        memset(RAM_ADDRESS(0xF20000), 0, 0x38);
         last_timer_update = getNanoTime();
     /* RTC */
-        memset(&simulated_ram[0xF30000], 0, 0x38);
+        memset(RAM_ADDRESS(0xF30000), 0, 0x38);
 }

@@ -21,8 +21,8 @@ gfx_sprite_t *gfx_AllocSprite(
 
 void gfx_Tilemap(
     const gfx_tilemap_t *tilemap,
-    ti_unsigned_int x_offset,
-    ti_unsigned_int y_offset
+    ti_uint x_offset,
+    ti_uint y_offset
 ) {
     lib.gfz_Tilemap(
         reinterpret_cast<const gfz_tilemap_t*>(tilemap),
@@ -32,8 +32,8 @@ void gfx_Tilemap(
 
 void gfx_Tilemap_NoClip(
     const gfx_tilemap_t *tilemap,
-    ti_unsigned_int x_offset,
-    ti_unsigned_int y_offset
+    ti_uint x_offset,
+    ti_uint y_offset
 ) {
     lib.gfz_Tilemap_NoClip(
         reinterpret_cast<const gfz_tilemap_t*>(tilemap),
@@ -43,8 +43,8 @@ void gfx_Tilemap_NoClip(
 
 void gfx_TransparentTilemap(
     const gfx_tilemap_t *tilemap,
-    ti_unsigned_int x_offset,
-    ti_unsigned_int y_offset
+    ti_uint x_offset,
+    ti_uint y_offset
 ) {
     lib.gfz_TransparentTilemap(
         reinterpret_cast<const gfz_tilemap_t*>(tilemap),
@@ -54,8 +54,8 @@ void gfx_TransparentTilemap(
 
 void gfx_TransparentTilemap_NoClip(
     const gfx_tilemap_t *tilemap,
-    ti_unsigned_int x_offset,
-    ti_unsigned_int y_offset
+    ti_uint x_offset,
+    ti_uint y_offset
 ) {
     lib.gfz_TransparentTilemap_NoClip(
         reinterpret_cast<const gfz_tilemap_t*>(tilemap),
@@ -65,8 +65,8 @@ void gfx_TransparentTilemap_NoClip(
 
 uint8_t *gfx_TilePtr(
     const gfx_tilemap_t *tilemap,
-    ti_unsigned_int x_offset,
-    ti_unsigned_int y_offset
+    ti_uint x_offset,
+    ti_uint y_offset
 ) {
     return lib.gfz_TilePtr(
         reinterpret_cast<const gfz_tilemap_t*>(tilemap),
@@ -109,11 +109,11 @@ void gfx_ZeroScreen(void) {
     lib.gfz_ZeroScreen();
 }
 
-void gfx_SetPixel(ti_unsigned_int x, uint8_t y) {
+void gfx_SetPixel(ti_uint x, uint8_t y) {
     lib.gfz_SetPixel(x, y);
 }
 
-uint8_t gfx_GetPixel(ti_unsigned_int x, uint8_t y) {
+uint8_t gfx_GetPixel(ti_uint x, uint8_t y) {
     return lib.gfz_GetPixel(x, y);
 }
 
@@ -125,8 +125,8 @@ void gfx_Line(
 }
 
 void gfx_Line_NoClip(
-    ti_unsigned_int x0, uint8_t y0,
-    ti_unsigned_int x1, uint8_t y1
+    ti_uint x0, uint8_t y0,
+    ti_uint x1, uint8_t y1
 ) {
     lib.gfz_Line_NoClip(x0, y0, x1, y1);
 }
@@ -135,7 +135,7 @@ void gfx_HorizLine(ti_int x, ti_int y, ti_int length) {
     lib.gfz_HorizLine(x, y, length);
 }
 
-void gfx_HorizLine_NoClip(ti_unsigned_int x, uint8_t y, ti_unsigned_int length) {
+void gfx_HorizLine_NoClip(ti_uint x, uint8_t y, ti_uint length) {
     lib.gfz_HorizLine_NoClip(x, y, length);
 }
 
@@ -143,7 +143,7 @@ void gfx_VertLine(ti_int x, ti_int y, ti_int length) {
     lib.gfz_VertLine(x, y, length);
 }
 
-void gfx_VertLine_NoClip(ti_unsigned_int x, uint8_t y, ti_unsigned_int length) {
+void gfx_VertLine_NoClip(ti_uint x, uint8_t y, ti_uint length) {
     lib.gfz_VertLine_NoClip(x, y, length);
 }
 
@@ -155,8 +155,8 @@ void gfx_Rectangle(
 }
 
 void gfx_Rectangle_NoClip(
-    ti_unsigned_int x, uint8_t y,
-    ti_unsigned_int width, uint8_t height
+    ti_uint x, uint8_t y,
+    ti_uint width, uint8_t height
 ) {
     lib.gfz_Rectangle_NoClip(x, y, width, height);
 }
@@ -169,35 +169,35 @@ void gfx_FillRectangle(
 }
 
 void gfx_FillRectangle_NoClip(
-    ti_unsigned_int x, uint8_t y,
-    ti_unsigned_int width, uint8_t height
+    ti_uint x, uint8_t y,
+    ti_uint width, uint8_t height
 ) {
     lib.gfz_FillRectangle_NoClip(x, y, width, height);
 }
 
 void gfx_Circle(
     ti_int x, ti_int y,
-    ti_unsigned_int radius
+    ti_uint radius
 ) {
     lib.gfz_Circle(x, y, radius);
 }
 
 void gfx_FillCircle(
     ti_int x, ti_int y,
-    ti_unsigned_int radius
+    ti_uint radius
 ) {
     lib.gfz_FillCircle(x, y, radius);
 }
 
 void gfx_FillCircle_NoClip(
-    ti_unsigned_int x, uint8_t y,
-    ti_unsigned_int radius
+    ti_uint x, uint8_t y,
+    ti_uint radius
 ) {
     lib.gfz_FillCircle_NoClip(x, y, radius);
 }
 
 void gfx_FillEllipse_NoClip(
-    ti_unsigned_int x, ti_unsigned_int y,
+    ti_uint x, ti_uint y,
     uint8_t a, uint8_t b
 ) {
     lib.gfz_FillEllipse_NoClip(x, y, a, b);
@@ -205,13 +205,13 @@ void gfx_FillEllipse_NoClip(
 
 void gfx_FillEllipse(
     ti_int x, ti_int y,
-    ti_unsigned_int a, ti_unsigned_int b
+    ti_uint a, ti_uint b
 ) {
     lib.gfz_FillEllipse(x, y, a, b);
 }
 
 void gfx_Ellipse_NoClip(
-    ti_unsigned_int x, ti_unsigned_int y,
+    ti_uint x, ti_uint y,
     uint8_t a, uint8_t b
 ) {
     lib.gfz_Ellipse_NoClip(x, y, a, b);
@@ -219,7 +219,7 @@ void gfx_Ellipse_NoClip(
 
 void gfx_Ellipse(
     ti_int x, ti_int y,
-    ti_unsigned_int a, ti_unsigned_int b
+    ti_uint a, ti_uint b
 ) {
     lib.gfz_Ellipse(x, y, a, b);
 }
@@ -282,8 +282,8 @@ void gfx_BlitLines(gfx_location_t src, uint8_t y_loc, uint8_t num_rows) {
 
 void gfx_BlitRectangle(
     gfx_location_t src,
-    ti_unsigned_int x, uint8_t y,
-    ti_unsigned_int width, ti_unsigned_int height
+    ti_uint x, uint8_t y,
+    ti_uint width, ti_uint height
 ) {
     lib.gfz_BlitRectangle(
         static_cast<gfz_location_t>(src),
@@ -294,9 +294,9 @@ void gfx_BlitRectangle(
 
 void gfx_CopyRectangle(
     gfx_location_t src, gfx_location_t dst,
-    ti_unsigned_int src_x, uint8_t src_y,
-    ti_unsigned_int dst_x, uint8_t dst_y,
-    ti_unsigned_int width, uint8_t height
+    ti_uint src_x, uint8_t src_y,
+    ti_uint dst_x, uint8_t dst_y,
+    ti_uint width, uint8_t height
 ) {
     lib.gfz_CopyRectangle(
         static_cast<gfz_location_t>(src), static_cast<gfz_location_t>(dst),
@@ -373,7 +373,7 @@ void gfx_Sprite(
 
 void gfx_Sprite_NoClip(
     const gfx_sprite_t *sprite,
-    ti_unsigned_int x, uint8_t y
+    ti_uint x, uint8_t y
 ) {
     lib.gfz_Sprite_NoClip(
         reinterpret_cast<const gfz_sprite_t*>(sprite),
@@ -393,7 +393,7 @@ void gfx_TransparentSprite(
 
 void gfx_TransparentSprite_NoClip(
     const gfx_sprite_t *sprite,
-    ti_unsigned_int x,uint8_t y
+    ti_uint x,uint8_t y
 ) {
     lib.gfz_TransparentSprite_NoClip(
         reinterpret_cast<const gfz_sprite_t*>(sprite),
@@ -415,7 +415,7 @@ gfx_sprite_t *gfx_GetSprite(
 
 void gfx_ScaledSprite_NoClip(
     const gfx_sprite_t *sprite,
-    ti_unsigned_int x, uint8_t y,
+    ti_uint x, uint8_t y,
     uint8_t width_scale, uint8_t height_scale
 ) {
     lib.gfz_ScaledSprite_NoClip(
@@ -427,7 +427,7 @@ void gfx_ScaledSprite_NoClip(
 
 void gfx_ScaledTransparentSprite_NoClip(
     const gfx_sprite_t *sprite,
-    ti_unsigned_int x, uint8_t y,
+    ti_uint x, uint8_t y,
     uint8_t width_scale, uint8_t height_scale
 ) {
     lib.gfz_ScaledTransparentSprite_NoClip(
@@ -439,7 +439,7 @@ void gfx_ScaledTransparentSprite_NoClip(
 
 uint8_t gfx_RotatedScaledTransparentSprite_NoClip(
     const gfx_sprite_t *sprite,
-    ti_unsigned_int x, uint8_t y,
+    ti_uint x, uint8_t y,
     uint8_t angle, uint8_t scale
 ) {
     return lib.gfz_RotatedScaledTransparentSprite_NoClip(
@@ -451,7 +451,7 @@ uint8_t gfx_RotatedScaledTransparentSprite_NoClip(
 
 uint8_t gfx_RotatedScaledSprite_NoClip(
     const gfx_sprite_t *sprite,
-    ti_unsigned_int x, uint8_t y,
+    ti_uint x, uint8_t y,
     uint8_t angle, uint8_t scale
 ) {
     return lib.gfz_RotatedScaledSprite_NoClip(
@@ -596,12 +596,12 @@ void gfx_SetMonospaceFont(uint8_t spacing) {
     lib.gfz_SetMonospaceFont(spacing);
 }
 
-ti_unsigned_int gfx_GetStringWidth(const char *string) {
-    return static_cast<ti_unsigned_int>(lib.gfz_GetStringWidth(string));
+ti_uint gfx_GetStringWidth(const char *string) {
+    return static_cast<ti_uint>(lib.gfz_GetStringWidth(string));
 }
 
-ti_unsigned_int gfx_GetCharWidth(const char c) {
-    return static_cast<ti_unsigned_int>(lib.gfz_GetCharWidth(c));
+ti_uint gfx_GetCharWidth(const char c) {
+    return static_cast<ti_uint>(lib.gfz_GetCharWidth(c));
 }
 
 void gfx_SetClipRegion(ti_int xmin, ti_int ymin, ti_int xmax, ti_int ymax) {
@@ -620,11 +620,11 @@ void gfx_ShiftUp(uint8_t pixels) {
     lib.gfz_ShiftUp(pixels);
 }
 
-void gfx_ShiftLeft(ti_unsigned_int pixels) {
+void gfx_ShiftLeft(ti_uint pixels) {
     lib.gfz_ShiftLeft(pixels);
 }
 
-void gfx_ShiftRight(ti_unsigned_int pixels) {
+void gfx_ShiftRight(ti_uint pixels) {
     lib.gfz_ShiftRight(pixels);
 }
 
@@ -636,7 +636,7 @@ uint16_t gfx_Darken(uint16_t color, uint8_t amount) {
     return lib.gfz_Darken(color, amount);
 }
 
-void gfx_FloodFill(ti_unsigned_int x, uint8_t y, uint8_t color) {
+void gfx_FloodFill(ti_uint x, uint8_t y, uint8_t color) {
     lib.gfz_FloodFill(x, y, color);
 }
 
@@ -652,7 +652,7 @@ void gfx_RLETSprite(
 
 void gfx_RLETSprite_NoClip(
     const gfx_rletsprite_t *sprite,
-    ti_unsigned_int x, uint8_t y
+    ti_uint x, uint8_t y
 ) {
     lib.gfz_RLETSprite_NoClip(
         reinterpret_cast<const gfz_rletsprite_t*>(sprite),

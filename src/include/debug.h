@@ -78,7 +78,7 @@ do { \
  */
 #define dbg_SetBreakpoint(address) \
 do { \
-    *(volatile ti_unsigned_int*)RAM_ADDRESS(0xFFFFE4) = (ti_unsigned_int)(address); \
+    *(volatile ti_uint*)RAM_ADDRESS(0xFFFFE4) = (ti_uint)(address); \
     *(volatile unsigned char*)RAM_ADDRESS(0xFFFFE0) = 1; \
 } while (0)
 
@@ -89,7 +89,7 @@ do { \
  */
 #define dbg_RemoveBreakpoint(address) \
 do { \
-    *(volatile ti_unsigned_int*)RAM_ADDRESS(0xFFFFE4) = (address); \
+    *(volatile ti_uint*)RAM_ADDRESS(0xFFFFE4) = (address); \
     *(volatile unsigned char*)RAM_ADDRESS(0xFFFFE0) = 2; \
 } while (0)
 
@@ -103,8 +103,8 @@ do { \
  */
 #define dbg_SetWatchpoint(address, length, flags) \
 do { \
-    *(volatile ti_unsigned_int*)RAM_ADDRESS(0xFFFFE4) = (ti_unsigned_int)(address); \
-    *(volatile ti_unsigned_int*)RAM_ADDRESS(0xFFFFE8) = ((ti_unsigned_int)(address) + (length) - 1); \
+    *(volatile ti_uint*)RAM_ADDRESS(0xFFFFE4) = (ti_uint)(address); \
+    *(volatile ti_uint*)RAM_ADDRESS(0xFFFFE8) = ((ti_uint)(address) + (length) - 1); \
     *(volatile unsigned char*)RAM_ADDRESS(0xFFFFEC) = (unsigned char)(flags); \
     *(volatile unsigned char*)RAM_ADDRESS(0xFFFFE0) = 3; \
 } while (0)
@@ -116,7 +116,7 @@ do { \
  */
 #define dbg_RemoveWatchpoint(address) \
 do { \
-    *(volatile ti_unsigned_int*)RAM_ADDRESS(0xFFFFE4) = (ti_unsigned_int)(address); \
+    *(volatile ti_uint*)RAM_ADDRESS(0xFFFFE4) = (ti_uint)(address); \
     *(volatile unsigned char*)RAM_ADDRESS(0xFFFFE0) = 4; \
 } while (0)
 

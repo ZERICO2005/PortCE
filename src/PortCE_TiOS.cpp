@@ -215,9 +215,9 @@ void os_SetCursorPos(uint8_t curRow, uint8_t curCol) {
     }
 }
 
-void os_GetCursorPos(ti_unsigned_int *curRow, ti_unsigned_int *curCol) {
-    if (curRow != nullptr) { *curRow = (ti_unsigned_int)os_CurRow; }
-    if (curCol != nullptr) { *curCol = (ti_unsigned_int)os_CurCol; }
+void os_GetCursorPos(ti_uint *curRow, ti_uint *curCol) {
+    if (curRow != nullptr) { *curRow = (ti_uint)os_CurRow; }
+    if (curCol != nullptr) { *curCol = (ti_uint)os_CurCol; }
 }
 
 uint24_t os_PutStrFull(const char *str) {

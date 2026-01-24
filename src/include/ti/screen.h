@@ -91,7 +91,7 @@ void os_SetCursorPos(uint8_t curRow, uint8_t curCol);
  * @param[in] curRow Pointer to store the row aligned offset
  * @param[in] curCol Pointer to store the column aligned offset
  */
-void os_GetCursorPos(ti_unsigned_int *curRow, ti_unsigned_int *curCol);
+void os_GetCursorPos(ti_uint *curRow, ti_uint *curCol);
 
 /**
  * Puts some text at the current homescreen cursor location

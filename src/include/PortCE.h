@@ -412,29 +412,29 @@ ti_clock_t ti_clock(void);
 // Deprecated
 //------------------------------------------------------------------------------
 
-typedef ez80_ushort ez80_unsigned_short;
-typedef ez80_uint ez80_unsigned_int; /** @note Remember to account for integer promotion */
-typedef ez80_ulong ez80_unsigned_long;
+typedef ez80_ushort ez80_unsigned_short __attribute__((__deprecated__("use ez80_ushort instead")));
+typedef ez80_uint ez80_unsigned_int __attribute__((__deprecated__("use ez80_uint instead"))); /** @note Remember to account for integer promotion */
+typedef ez80_ulong ez80_unsigned_long __attribute__((__deprecated__("use ez80_ulong instead")));
 
-typedef ti_ushort ti_unsigned_short;
-typedef ti_uint ti_unsigned_int; /** @note Remember to account for integer promotion */
-typedef ti_ulong ti_unsigned_long;
+typedef ti_ushort ti_unsigned_short __attribute__((__deprecated__("use ti_ushort instead")));
+typedef ti_uint ti_unsigned_int __attribute__((__deprecated__("use ti_uint instead"))); /** @note Remember to account for integer promotion */
+typedef ti_ulong ti_unsigned_long __attribute__((__deprecated__("use ti_ulong instead")));
 
-typedef ti_short ti_signed_short;
-typedef ti_int ti_signed_int; /** @note Remember to account for integer promotion */
-typedef ti_long ti_signed_long;
+typedef ti_short ti_signed_short __attribute__((__deprecated__("use ti_short instead")));
+typedef ti_int ti_signed_int __attribute__((__deprecated__("use ti_int instead"))); /** @note Remember to account for integer promotion */
+typedef ti_long ti_signed_long __attribute__((__deprecated__("use ti_long instead")));
 
-typedef ez80_llong ez80_long_long;
-typedef ez80_ullong ez80_unsigned_long_long;
-typedef ez80_llong ez80_signed_long_long;
+typedef ez80_llong ez80_long_long __attribute__((__deprecated__("use ez80_llong instead")));
+typedef ez80_ullong ez80_unsigned_long_long __attribute__((__deprecated__("use ez80_ullong instead")));
+typedef ez80_llong ez80_signed_long_long __attribute__((__deprecated__("use ez80_llong instead")));
 
 typedef ez80_llong ti_long_long __attribute__((__deprecated__("use ez80_llong instead")));
 typedef ez80_ullong ti_unsigned_long_long __attribute__((__deprecated__("use ez80_ullong instead")));
 typedef ez80_llong ti_signed_long_long __attribute__((__deprecated__("use ez80_llong instead")));
 
-typedef packed_int24_t packed_ti_int;
-typedef packed_int24_t packed_ti_signed_int;
-typedef packed_uint24_t packed_ti_unsigned_int;
+typedef packed_int24_t packed_ti_int __attribute__((__deprecated__("use packed_int24_t instead")));
+typedef packed_int24_t packed_ti_signed_int __attribute__((__deprecated__("use packed_int24_t instead")));
+typedef packed_uint24_t packed_ti_unsigned_int __attribute__((__deprecated__("use packed_uint24_t instead")));
 
 //------------------------------------------------------------------------------
 

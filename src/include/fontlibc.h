@@ -332,7 +332,7 @@ void fontlib_SetWindow(unsigned int x_min, uint8_t y_min, unsigned int width, ui
  * Returns the starting column of the current text window
  * @return Window X
  */
-ti_unsigned_int fontlib_GetWindowXMin(void);
+ti_uint fontlib_GetWindowXMin(void);
 
 /**
  * Returns the starting row of the current text window
@@ -344,7 +344,7 @@ uint8_t fontlib_GetWindowYMin(void);
  * Returns the width of the current text window
  * @return Window width
  */
-ti_unsigned_int fontlib_GetWindowWidth(void);
+ti_uint fontlib_GetWindowWidth(void);
 
 /**
  * Returns the height of the current text window
@@ -365,7 +365,7 @@ void fontlib_SetCursorPosition(unsigned int x, uint8_t y);
  * Returns the cursor column.
  * @return Current cursor X
  */
-ti_unsigned_int fontlib_GetCursorX(void);
+ti_uint fontlib_GetCursorX(void);
 
 /**
  * Returns the cursor row.
@@ -606,7 +606,7 @@ uint8_t fontlib_GetGlyphWidth(char codepoint);
  * @param[in] str Pointer to string
  * @return Width of string
  */
-ti_unsigned_int fontlib_GetStringWidth(const char *str);
+ti_uint fontlib_GetStringWidth(const char *str);
 
 /**
  * Returns the width of a string printed in the current font.
@@ -617,7 +617,7 @@ ti_unsigned_int fontlib_GetStringWidth(const char *str);
  * @param[in] max_characters Maximum number of characters to process
  * @return Width of string
  */
-ti_unsigned_int fontlib_GetStringWidthL(const char *str, size_t max_characters);
+ti_uint fontlib_GetStringWidthL(const char *str, size_t max_characters);
 
 /**
  * Gets the location of the last character processed by GetStringWidth or
@@ -645,7 +645,7 @@ size_t fontlib_GetCharactersRemaining(void);
  * @param[in] glyph Codepoint
  * @return The new X value of the cursor
  */
-ti_unsigned_int fontlib_DrawGlyph(uint8_t glyph);
+ti_uint fontlib_DrawGlyph(uint8_t glyph);
 
 /**
  * Draws a string.
@@ -667,7 +667,7 @@ ti_unsigned_int fontlib_DrawGlyph(uint8_t glyph);
  * @return The new X value of the cursor (probably not useful if a newline was
  * processed.)
  */
-ti_unsigned_int fontlib_DrawString(const char *str);
+ti_uint fontlib_DrawString(const char *str);
 
 /**
  * Draws a string, up to a maximum number of characters.
@@ -683,7 +683,7 @@ ti_unsigned_int fontlib_DrawString(const char *str);
  * @return The new X value of the cursor (probably not useful if a newline was
  * processed.)
  */
-ti_unsigned_int fontlib_DrawStringL(const char *str, size_t max_characters);
+ti_uint fontlib_DrawStringL(const char *str, size_t max_characters);
 
 /**
  * Prints a signed integer

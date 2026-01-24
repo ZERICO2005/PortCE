@@ -94,16 +94,16 @@ static void util_ClearRect(int x_pos, int y_pos, int width, int height) {
 
 /* window */
 
-ti_unsigned_int fontlib_GetWindowXMin(void) {
-    return static_cast<ti_unsigned_int>(textXMin);
+ti_uint fontlib_GetWindowXMin(void) {
+    return static_cast<ti_uint>(textXMin);
 }
 
 uint8_t fontlib_GetWindowYMin(void) {
     return textYMin;
 }
 
-ti_unsigned_int fontlib_GetWindowWidth(void) {
-    return static_cast<ti_unsigned_int>(textXMax - textXMin);
+ti_uint fontlib_GetWindowWidth(void) {
+    return static_cast<ti_uint>(textXMax - textXMin);
 }
 
 uint8_t fontlib_GetWindowHeight(void) {
@@ -127,8 +127,8 @@ void fontlib_SetWindow(unsigned int x_min, uint8_t y_min, unsigned int width, ui
 
 /* cursor */
 
-ti_unsigned_int fontlib_GetCursorX(void) {
-    return static_cast<ti_unsigned_int>(textX);
+ti_uint fontlib_GetCursorX(void) {
+    return static_cast<ti_uint>(textX);
 }
 
 uint8_t fontlib_GetCursorY(void) {
@@ -348,7 +348,7 @@ uint8_t fontlib_GetGlyphWidth(char codepoint) {
     return widthsTablePtr[ch];
 }
 
-ti_unsigned_int fontlib_GetStringWidthL(const char *str, size_t max_characters) {
+ti_uint fontlib_GetStringWidthL(const char *str, size_t max_characters) {
     if (max_characters > UINT24_MAX) {
         max_characters = UINT24_MAX;
     }
@@ -357,7 +357,7 @@ ti_unsigned_int fontlib_GetStringWidthL(const char *str, size_t max_characters) 
         strReadPtr = str;
         return 0;
     }
-    ti_unsigned_int total_width = 0;
+    ti_uint total_width = 0;
     for (;;) {
         if (charactersLeft == 0) {
             break;
@@ -389,10 +389,10 @@ ti_unsigned_int fontlib_GetStringWidthL(const char *str, size_t max_characters) 
     strReadPtr = str;
     int adjust = currentFont.italic_space_adjust;
     total_width -= adjust;
-    return static_cast<ti_unsigned_int>(total_width);
+    return static_cast<ti_uint>(total_width);
 }
 
-ti_unsigned_int fontlib_GetStringWidth(const char *str) {
+ti_uint fontlib_GetStringWidth(const char *str) {
     return fontlib_GetStringWidthL(str, UINT24_MAX);
 }
 
@@ -475,12 +475,12 @@ static uint8_t util_DrawGlyphRaw(unsigned char ch, uint8_t *__restrict const buf
     return util_DrawGlyphRawKnownWidth(ch, buf, width);
 }
 
-ti_unsigned_int fontlib_DrawGlyph(unsigned char ch) {
+ti_uint fontlib_DrawGlyph(unsigned char ch) {
     uint8_t *__restrict buf = get_vBuffer() + textX + (textY * GFX_LCD_WIDTH);
     uint8_t width = util_DrawGlyphRaw(ch, buf);
     textX += width;
     textX -= currentFont.italic_space_adjust;
-    return static_cast<ti_unsigned_int>(textX);
+    return static_cast<ti_uint>(textX);
 }
 
 static void util_DrawStringL(const char *str, size_t max_characters) {
@@ -554,15 +554,15 @@ doNewLine:
     goto restartX;
 }
 
-ti_unsigned_int fontlib_DrawStringL(const char *str, size_t max_characters) {
+ti_uint fontlib_DrawStringL(const char *str, size_t max_characters) {
     if (max_characters > UINT24_MAX) {
         max_characters = UINT24_MAX;
     }
     util_DrawStringL(str, max_characters);
-    return static_cast<ti_unsigned_int>(textX);
+    return static_cast<ti_uint>(textX);
 }
 
-ti_unsigned_int fontlib_DrawString(const char *str) {
+ti_uint fontlib_DrawString(const char *str) {
     return fontlib_DrawStringL(str, UINT24_MAX);
 }
 

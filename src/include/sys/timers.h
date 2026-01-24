@@ -44,7 +44,7 @@ void msleep(uint16_t msec);
  * @return zero if the requested time has elapsed, or the number of seconds left
  *         to sleep, if the call was interrupted by a signal handler
  */
-ti_unsigned_int sleep(ti_unsigned_int seconds);
+ti_uint sleep(ti_uint seconds);
 
 /**
  * Suspends execution of the calling thread for (at least) @p ticks clock ticks.
@@ -52,7 +52,7 @@ ti_unsigned_int sleep(ti_unsigned_int seconds);
  * @param[in] ticks number of clock ticks
  * @see CLOCKS_PER_SEC
  */
-void ticksleep(ti_unsigned_long ticks);
+void ticksleep(ti_ulong ticks);
 
 /**
  * An unsigned integer type capable of holding integers in the range
@@ -60,7 +60,7 @@ void ticksleep(ti_unsigned_long ticks);
  *
  * @see usleep
  */
-typedef ti_unsigned_int ti_useconds_t;
+typedef ti_uint ti_useconds_t;
 
 /**
  * Suspends execution of the calling thread for (at least) @p usec microseconds.

@@ -185,7 +185,7 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
             }
         }
 
-        ti_unsigned_int sleep(ti_unsigned_int seconds) {
+        ti_uint sleep(ti_uint seconds) {
             nano64_t dur = (nano64_t)seconds * 1000000000;
             nano64_t startTime = getNanoTime();
             while (getNanoTime() - startTime < dur) {
@@ -194,7 +194,7 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
             return 0;
         }
 
-        void ticksleep(ti_unsigned_long ticks) {
+        void ticksleep(ti_ulong ticks) {
             nano64_t dur = (nano64_t)((double)ticks * (1000000000.0 / (double)TI_CLOCKS_PER_SEC));
             nano64_t startTime = getNanoTime();
             PortCE_new_frame();

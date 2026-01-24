@@ -429,9 +429,18 @@ inline real::real(int32_t value) noexcept
 {
     int32_t quot = value / 1000;
     int32_t rem = value % 1000;
-    *this = quot;
+    *this = static_cast<int24_t>(quot);
     this->value.exp += 3;
-    *this += rem;
+    *this += static_cast<int24_t>(rem);
+}
+
+inline real::real(uint32_t value) noexcept
+{
+    uint32_t quot = value / 1000;
+    uint32_t rem = value % 1000;
+    *this = static_cast<int24_t>(quot);
+    this->value.exp += 3;
+    *this += static_cast<int24_t>(rem);
 }
 
 inline real& real::operator++()

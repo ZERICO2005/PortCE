@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <cstring>
 
+constexpr size_t VIDEO_CHANNELS = 4;
+
 enum class Color_Mode {
     Indexed_1,
     Indexed_2,

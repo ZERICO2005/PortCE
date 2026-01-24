@@ -1,5 +1,6 @@
 #include "PortCE_Common.h"
 #include <usbdrvce.h>
+#include <cmath>
 
 usb_error_t usb_Init(
     __attribute__((__unused__)) usb_event_callback_t handler,

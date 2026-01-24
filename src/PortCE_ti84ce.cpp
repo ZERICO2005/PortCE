@@ -12,7 +12,6 @@
 #include "PortCE_Common.h"
 
 #include "PortCE_assert.h"
-#include "PortCE_Render.h"
 #include <sys/lcd.h>
 #include <sys/util.h>
 #include <sys/timers.h>
@@ -302,7 +301,7 @@ static void PortCE_update_timers(void) {
 
     const nano64_t delta_nano = (current_time - last_timer_update);
     const uint32_t delta_32K = (uint32_t)((int32_t)((double)delta_nano * (32768.0 / 1.0e9) * timer_mult)); // 32 KHz
-    const uint32_t delta_CPU = (uint32_t)((int32_t)((double)delta_nano * (Ti84CE_Clockspeed / 1.0e9) * timer_mult)); // 8 MHz
+    const uint32_t delta_CPU = (uint32_t)((int32_t)((double)delta_nano * (get_clockspeed() / 1.0e9) * timer_mult)); // 8 MHz
     if (delta_32K == 0 || delta_CPU == 0) {
         // Prevents infinite loops if not enough time passes between updates
         return;

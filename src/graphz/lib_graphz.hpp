@@ -17,8 +17,16 @@
 #define lcd_VideoMode            (*static_cast<uint16_t*>(RAM_ADDRESS(0xE30018)))
 #define lcd_UpBase               (*static_cast<uint24_t*>(RAM_ADDRESS(0xE30010)))
 #define lcd_LpBase               (*static_cast<uint24_t*>(RAM_ADDRESS(0xE30014)))
-#define lcd_BGR8bit 0x927
-#define lcd_BGR16bit 0x92D
+
+constexpr uint16_t lcd_BGR8bit = 0x927;
+constexpr uint16_t lcd_BGR16bit = 0x92D;
+
+constexpr int GFZ_LCD_WIDTH = 320;
+constexpr int GFZ_LCD_HEIGHT = 240;
+constexpr size_t GFZ_LCD_SIZE = GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT;
+
+constexpr uint24_t gfz_Buffer_0 = 0xD40000;
+constexpr uint24_t gfz_Buffer_1 = 0xD40000 + GFZ_LCD_SIZE;
 
 //------------------------------------------------------------------------------
 // Common types and macros
@@ -88,27 +96,6 @@ typedef enum {
 
 #define gfz_vram \
 (static_cast<uint8_t*>(RAM_ADDRESS(0xD40000)))
-
-#define GFZ_LCD_WIDTH \
-(320)
-
-#define GFZ_LCD_HEIGHT \
-(240)
-
-#define gfz_vbuffer \
-(**(uint8_t(**)[240][320])RAM_ADDRESS(0xE30014))
-
-#define gfz_SetDrawBuffer() \
-gfz_SetDraw(gfz_buffer)
-
-#define gfz_SetDrawScreen() \
-gfz_SetDraw(gfz_screen)
-
-#define gfz_BlitScreen() \
-gfz_Blit(gfz_screen)
-
-#define gfz_BlitBuffer() \
-gfz_Blit(gfz_buffer)
 
 //------------------------------------------------------------------------------
 // GraphZ
@@ -511,7 +498,7 @@ template<typename T>
 void util_Begin(GraphZ<T>& lib) {
     assert_PortCE_initialized();
     // ti.boot.ClearVRAM
-    memset(gfz_vram, 0xFF, GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT * 2);
+    memset(gfz_vram, 0xFF, GFZ_LCD_SIZE * 2);
 
     /**
      * @remarks you can write to the default font in graphx.asm, meaning that
@@ -520,10 +507,10 @@ void util_Begin(GraphZ<T>& lib) {
     memcpy(lib.DefaultCharSpacing, lib.CopyOf_DefaultCharSpacing, sizeof(lib.DefaultCharSpacing));
     memcpy(lib.DefaultTextData, lib.CopyOf_DefaultTextData, sizeof(lib.DefaultTextData));
 
+    lcd_UpBase = gfz_Buffer_0;
+    lcd_LpBase = gfz_Buffer_0;
     lib.gfz_SetDefaultPalette(gfz_8bpp);
     lib.gfz_SetDraw(gfz_screen);
-    lcd_UpBase = RAM_OFFSET(gfz_vram);
-    lcd_LpBase = RAM_OFFSET(gfz_vram);
 
     // Resetting temp globals
     lib.Color = 0;
@@ -555,13 +542,29 @@ void util_Begin(GraphZ<T>& lib) {
 
 template<typename T>
 void util_End(__attribute__((__unused__)) GraphZ<T>& lib) {
-    lcd_UpBase = RAM_OFFSET(gfz_vram);
-    memset(gfz_vram, 0xFF, sizeof(uint16_t) * GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT);
+    lcd_UpBase = gfz_Buffer_0;
+    memset(gfz_vram, 0xFF, sizeof(uint16_t) * GFZ_LCD_SIZE);
 }
 
 template<typename T>
 void GraphZ<T>::gfz_Wait(void) {
     PortCE_update_registers();
+}
+
+inline void util_getBuffer(gfz_location_t A, uint24_t& HL, uint24_t& DE) {
+    // based off graphx.asm
+    HL = gfz_Buffer_1;
+    DE = lcd_UpBase;
+    if (HL != DE) {
+        goto check;
+    }
+    HL = gfz_Buffer_0;
+check:
+    static_assert(gfz_screen == 0);
+    if (A != gfz_screen) {
+        return;
+    }
+    std::swap(HL, DE);
 }
 
 template<typename T>
@@ -577,24 +580,32 @@ template<typename T>
 uint8_t GraphZ<T>::gfz_GetDraw(void) {
     // This is what the assembly does
     // (0xD40000 >> 16) ^ (0xD52C00 >> 16) == 0xD4 ^ 0xD5
-    return ((CurrentBuffer >> 16) ^ (RAM_OFFSET(gfz_vram) >> 16)) ? 1 : 0;
+    return ((CurrentBuffer >> 16) ^ (lcd_UpBase >> 16)) ? 1 : 0;
 }
 
 template<typename T>
 void GraphZ<T>::gfz_SetDraw(uint8_t location) {
-    switch (location) {
-        case gfz_screen:
-            CurrentBuffer = lcd_UpBase;
-            return;
-        default:
-        case gfz_buffer:
-            if (lcd_UpBase == RAM_OFFSET(gfz_vram)) {
-                CurrentBuffer = RAM_OFFSET(gfz_vram) + (GFZ_LCD_HEIGHT * GFZ_LCD_WIDTH);
-            } else {
-                CurrentBuffer = RAM_OFFSET(gfz_vram);
-            }
-            return;
+    // based off graphx.asm
+    static_assert(gfz_screen == 0);
+    uint24_t BC = gfz_Buffer_0;
+    bool same_buffer = (BC == lcd_UpBase);
+    if (location == gfz_screen) {
+        goto match;
     }
+    if (!same_buffer) {
+        goto swap;
+    }
+set:
+    BC = gfz_Buffer_1;
+swap:
+    CurrentBuffer = BC;
+    return;
+//------------------------------------------------------------------------------
+match:
+    if (same_buffer) {
+        goto swap;
+    }
+    goto set;
 }
 
 //------------------------------------------------------------------------------
@@ -654,14 +665,12 @@ bool GraphZ<T>::gfz_GetClipRegion(gfz_region_t *region) {
 
 template<typename T>
 void GraphZ<T>::gfz_Blit(gfz_location_t src) {
-    const uint8_t *src_buf = gfz_vram;
-    uint8_t *dst_buf = gfz_vram + (GFZ_LCD_HEIGHT * GFZ_LCD_WIDTH);
-    if (src) {
-        src_buf = gfz_vram + (GFZ_LCD_HEIGHT * GFZ_LCD_WIDTH);
-        dst_buf = gfz_vram;
-    }
-    memcpy(dst_buf, src_buf, GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT);
+    uint24_t HL, DE;
+    util_getBuffer(src, HL, DE);
+    const uint8_t *src_buf = static_cast<const uint8_t*>(RAM_ADDRESS(HL));
+    uint8_t *dst_buf = static_cast<uint8_t*>(RAM_ADDRESS(DE));
     gfz_Wait();
+    memcpy(dst_buf, src_buf, GFZ_LCD_SIZE);
 }
 
 //------------------------------------------------------------------------------
@@ -692,7 +701,7 @@ void gfz_SetPixel_RegionClip(GraphZ<T>& lib, int32_t x, int32_t y, uint8_t color
 
 template<typename T>
 void GraphZ<T>::gfz_FillScreen(uint8_t index) {
-    memset(get_vBuffer(), index, GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT);
+    memset(get_vBuffer(), index, GFZ_LCD_SIZE);
     gfz_Wait();
 }
 

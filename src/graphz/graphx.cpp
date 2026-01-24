@@ -38,15 +38,19 @@ void GraphX::gfz_End(void) {
 
 template<>
 void GraphX::gfz_BlitRows(gfz_location_t src, uint8_t y_loc, uint8_t num_rows) {
-    const uint8_t *src_buf = gfz_vram;
-    uint8_t *dst_buf = gfz_vram + (GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT);
-    if (src) {
-        src_buf = gfz_vram + (GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT);
-        dst_buf = gfz_vram;
+    uint24_t HL, DE;
+    util_getBuffer(src, HL, DE);
+    const uint8_t *src_buf = static_cast<const uint8_t*>(RAM_ADDRESS(HL));
+    uint8_t *dst_buf = static_cast<uint8_t*>(RAM_ADDRESS(DE));
+    size_t copy_size = num_rows * GFZ_LCD_WIDTH;
+    size_t offset = y_loc * GFZ_LCD_WIDTH;
+    src_buf += offset;
+    dst_buf += offset;
+    gfz_Wait();
+    if (num_rows == 0) {
+        return;
     }
-    src_buf += y_loc * GFZ_LCD_WIDTH;
-    dst_buf += y_loc * GFZ_LCD_WIDTH;
-    memcpy(dst_buf, src_buf, num_rows * GFZ_LCD_WIDTH);
+    memcpy(dst_buf, src_buf, copy_size);
 }
 
 template<>
@@ -57,14 +61,16 @@ void GraphX::gfz_BlitRectangle(
     uint32_t width,
     uint32_t height
 ) {
-    const uint8_t *src_buf = gfz_vram;
-    uint8_t *dst_buf = gfz_vram + (GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT);
-    if (src) {
-        src_buf = gfz_vram + (GFZ_LCD_WIDTH * GFZ_LCD_HEIGHT);
-        dst_buf = gfz_vram;
+    uint24_t HL, DE;
+    util_getBuffer(src, HL, DE);
+    const uint8_t *src_buf = static_cast<const uint8_t*>(RAM_ADDRESS(HL));
+    uint8_t *dst_buf = static_cast<uint8_t*>(RAM_ADDRESS(DE));
+    src_buf += x + (y * GFZ_LCD_WIDTH);
+    dst_buf += x + (y * GFZ_LCD_WIDTH);
+    gfz_Wait();
+    if (width == 0 || height == 0) {
+        return;
     }
-    src_buf += y + (x * GFZ_LCD_WIDTH);
-    dst_buf += y + (x * GFZ_LCD_WIDTH);
     for (uint32_t y_cord = 0; y_cord < height; y_cord++) {
         memcpy(dst_buf, src_buf, width);
         src_buf += GFZ_LCD_WIDTH;
@@ -79,28 +85,37 @@ void GraphX::gfz_CopyRectangle(
     uint32_t dst_x, uint8_t dst_y,
     uint32_t width, uint8_t height
 ) {
-    const uint8_t* src_buf = (src == gfz_screen)
-        ? reinterpret_cast<uint8_t*>(RAM_ADDRESS(lcd_UpBase))
-        : reinterpret_cast<uint8_t*>(RAM_ADDRESS(lcd_LpBase));
-    uint8_t* dst_buf = (dst == gfz_screen)
-        ? reinterpret_cast<uint8_t*>(RAM_ADDRESS(lcd_UpBase))
-        : reinterpret_cast<uint8_t*>(RAM_ADDRESS(lcd_LpBase));
-    const bool buf_overlap = (src_buf == dst_buf) ? true : false;
+    const uint8_t *src_buf;
+    uint8_t *dst_buf;
+    {
+        uint24_t HL, DE;
+        util_getBuffer(src, HL, DE);
+        src_buf = static_cast<const uint8_t*>(RAM_ADDRESS(HL));
+        util_getBuffer(dst, HL, DE);
+        dst_buf = static_cast<uint8_t*>(RAM_ADDRESS(HL));
+    }
     src_buf += src_x + (src_y * GFZ_LCD_WIDTH);
     dst_buf += dst_x + (dst_y * GFZ_LCD_WIDTH);
-    const uint32_t jump = GFZ_LCD_WIDTH - width;
-    if (buf_overlap == true) {
-        for (uint32_t y_cord = 0; y_cord < height; y_cord++) {
-            memmove(dst_buf, src_buf, width);
-            src_buf += jump;
-            dst_buf += jump;
-        }
+    gfz_Wait();
+    if (width == 0 || height == 0) {
         return;
     }
-    for (uint32_t y_cord = 0; y_cord < height; y_cord++) {
-        memcpy(dst_buf, src_buf, width);
-        src_buf += jump;
-        dst_buf += jump;
+    if (src_buf < dst_buf) {
+        // copy backwards
+        src_buf += GFZ_LCD_WIDTH * (height - 1);
+        dst_buf += GFZ_LCD_WIDTH * (height - 1);
+        for (uint32_t y_cord = 0; y_cord < height; y_cord++) {
+            memmove(dst_buf, src_buf, width);
+            src_buf -= GFZ_LCD_WIDTH;
+            dst_buf -= GFZ_LCD_WIDTH;
+        }
+    } else {
+        // copy forwards
+        for (uint32_t y_cord = 0; y_cord < height; y_cord++) {
+            memmove(dst_buf, src_buf, width);
+            src_buf += GFZ_LCD_WIDTH;
+            dst_buf += GFZ_LCD_WIDTH;
+        }
     }
 }
 

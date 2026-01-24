@@ -592,8 +592,7 @@ static void renderCursor(uint32_t* data) {
  *
  * @param data buffer to write a LCD_RESX * LCD_RESY image to
  */
-void copyFrame(uint32_t* data);
-void copyFrame(uint32_t* data) {
+static void copyFrame(uint32_t* data) {
     #ifdef Debug_Print_LCD_Registers
         internal_print_LCD_registers();
     #endif
@@ -615,7 +614,8 @@ void copyFrame(uint32_t* data) {
     };
     size_t pixel_count = (size_t)(width * height);
     size_t copyAmount = (pixel_count * bits_per_pixel(color_mode)) / 8;
-    memcpy(videoCopy, ((uint8_t*)&simulated_ram[(0xD00000 | (lcd_UpBase & (0xFFFF << 3)))]), copyAmount);
+    const uint8_t *vram = static_cast<const uint8_t*>(RAM_ADDRESS(0xD00000 | (lcd_UpBase & (0xFFFF << 3))));
+    memcpy(videoCopy, vram, copyAmount);
     memcpy(paletteRAM, lcd_Palette, 256 * sizeof(uint16_t));
     bool bgr_mode = (lcd_VideoMode & LCD_MASK_BGR);
     bool column_major = PortCE_query_column_major();

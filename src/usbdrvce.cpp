@@ -1,4 +1,5 @@
 #include "PortCE_Common.h"
+#include "nano_time.hpp"
 #include <usbdrvce.h>
 #include <cmath>
 

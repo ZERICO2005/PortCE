@@ -5,11 +5,12 @@
  */
 
 #include "PortCE_Common.h"
+#include "nano_time.hpp"
 #include "PortCE_Render.h"
 #include "PortCE_internal.h"
-#include "PortCE.h"
+#include <PortCE.h>
 
-#include "PortCE_Extra.h"
+#include <PortCE_Extra.h>
 #include <sys/lcd.h>
 
 #include <lcddrvce.h>

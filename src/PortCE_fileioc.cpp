@@ -8,10 +8,11 @@
 #include "PortCE_Common.h"
 
 #include <cassert>
-#include <tice.h>
+#include <cstring>
+
 #include <fileioc.h>
 
-#include "PortCE.h"
+#include <PortCE.h>
 
 #undef ti_SetArchiveStatus
 

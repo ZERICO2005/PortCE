@@ -1,10 +1,9 @@
-#include "PortCE_internal.h"
 #include <ti/real.h>
 
-#include <string.h>
+#include <cstring>
 #include <cmath>
-#include <stdio.h>
-#include <inttypes.h>
+#include <cstdio>
+#include <cinttypes>
 #include <limits>
 
 //------------------------------------------------------------------------------

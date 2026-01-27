@@ -14,8 +14,9 @@
 
 #include "os_flags.hpp"
 
-#include <tice.h>
-#include <ctype.h>
+#include <cstring>
+#include <cstdio>
+#include <cctype>
 
 /**
  * @todo Implement TiOS functions

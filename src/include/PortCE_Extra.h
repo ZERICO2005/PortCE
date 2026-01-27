@@ -12,7 +12,7 @@
 #ifndef PORTCE_EXTRA_H
 #define PORTCE_EXTRA_H
 
-#include "PortCE.h"
+#include <PortCE.h>
 
 #ifdef __cplusplus
 extern "C" {

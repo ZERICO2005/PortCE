@@ -10,6 +10,7 @@
 */
 
 #include "PortCE_Common.h"
+#include "nano_time.hpp"
 
 #include "PortCE_assert.h"
 #include <sys/lcd.h>
@@ -17,10 +18,11 @@
 #include <sys/timers.h>
 #include <sys/rtc.h>
 #include <lcddrvce.h>
-#include <algorithm>
-
-#include <tice.h>
 #include <fileioc.h>
+#include <ti/debug.h>
+
+#include <algorithm>
+#include <cstring>
 
 // #include <process.h>
 //#include <dir.h>

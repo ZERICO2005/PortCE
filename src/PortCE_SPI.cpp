@@ -4,10 +4,9 @@
  * @author "zerico2005"
  */
 
-#include <stdint.h>
-#include <stdio.h>
-#include <inttypes.h>
-#include <stdarg.h>
+#include <cstdint>
+#include <cstring>
+#include <cstdarg>
 
 #include "PortCE_Common.h"
 #include "PortCE_Render.h"
@@ -16,7 +15,7 @@
 #include <sys/lcd.h>
 #include <lcddrvce.h>
 
-#include "PortCE.h"
+#include <PortCE.h>
 
 SPI_State PortCE_SPI_State;
 

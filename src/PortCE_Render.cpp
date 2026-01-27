@@ -13,6 +13,8 @@
 #include <PortCE_Extra.h>
 #include <sys/lcd.h>
 
+#include "event.hpp"
+
 #include <lcddrvce.h>
 #include "PortCE_SPI.h"
 #include <cstdio>
@@ -376,11 +378,7 @@ static void pace_frame(nano64_t pace_time) {
 
 #else
     while (current_time - pace_time + yield_threshold < last_frame_time) {
-        SDL_Event event;
-        if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
-            terminateLCDcontroller();
-            exit(0);
-        }
+        handle_SDL_events();
         sched_yield();
         current_time = getNanoTime();
     }
@@ -399,11 +397,7 @@ void PortCE_new_frame(void) {
         return;
     }
     // nano64_t startTime = getNanoTime();
-    SDL_Event event;
-    if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
-        terminateLCDcontroller();
-        exit(0);
-    }
+    handle_SDL_events();
     windowResizingCode(nullptr,nullptr);
     copyFrame(Master.vram);
 

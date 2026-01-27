@@ -19,7 +19,6 @@
 
 #include "frame_manipulation.hpp"
 
-#define SDL_MAIN_HANDLED
 #include <SDL.h>
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>

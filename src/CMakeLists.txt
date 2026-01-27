@@ -96,6 +96,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SAN_FLAG}")
 
 target_compile_options(
 	${PROJECT_NAME} PRIVATE ${SAN_FLAG} ${OPT_FLAG}
+	-DSDL_MAIN_HANDLED
 	-Wall -Wextra -Wshadow
 
 	-Wpointer-arith

@@ -117,6 +117,12 @@ typedef long double ti_long_double;
 #define RAM_ADDRESS(x) ((void*)(x))
 
 /**
+ * @brief Access pointers through this macro.
+ * @example `uint8_t value = *(const uint8_t*)CONST_RAM_ADDRESS(0xD40000)`
+ */
+#define CONST_RAM_ADDRESS(x) ((const void*)(x))
+
+/**
  * @brief Access pointers through this macro at compile time.
  * @example `uint8_t * const vram = RAM_ADDRESS_COMPILETIME(0xD40000)`
  * @note This macro may not be supported in all PortCE addressing modes.
@@ -330,16 +336,44 @@ extern "C++" inline int48_t abs(int48_t value) {
 void *RAM_ADDRESS(uint24_t address);
 
 /**
+ * @brief Access pointers through this macro.
+ * @example `uint8_t value = *(const uint8_t*)CONST_RAM_ADDRESS(0xD40000)`
+ */
+const void *CONST_RAM_ADDRESS(uint24_t address);
+
+#if defined(PORTCE_STATIC_LINEAR_MEMORY)
+
+/**
  * @warning Do NOT access this directly.
  */
-extern uint8_t simulated_ram[16777216];
+extern uint8_t PortCE_static_linear_memory[16777216];
 
 /**
  * @brief Access pointers through this macro at compile time.
  * @example `uint8_t * const vram = RAM_ADDRESS_COMPILETIME(0xD40000)`
  * @note This macro may not be supported in all PortCE addressing modes.
  */
-#define RAM_ADDRESS_COMPILETIME(x) ((void*)(&simulated_ram[x]))
+#define RAM_ADDRESS_COMPILETIME(x) ((void*)(&PortCE_static_linear_memory[x]))
+
+#elif defined(PORTCE_ABSOLUTE_LINEAR_MEMORY)
+
+/**
+ * @brief Access pointers through this macro at compile time.
+ * @example `uint8_t * const vram = RAM_ADDRESS_COMPILETIME(0xD40000)`
+ * @note This macro may not be supported in all PortCE addressing modes.
+ */
+#define RAM_ADDRESS_COMPILETIME(x) ((void*)((uintptr_t)(x)))
+
+#else /* RAM_ADDRESS_COMPILETIME */
+
+/**
+ * @brief Access pointers through this macro at compile time.
+ * @example `uint8_t * const vram = RAM_ADDRESS_COMPILETIME(0xD40000)`
+ * @note This macro may not be supported in all PortCE addressing modes.
+ */
+#define RAM_ADDRESS_COMPILETIME(...) static_assert(0, "RAM_ADDRESS_COMPILETIME is not available in this PortCE addressing mode")
+
+#endif /* RAM_ADDRESS_COMPILETIME */
 
 /**
  * @brief Calculate pointer offsets from this macro.

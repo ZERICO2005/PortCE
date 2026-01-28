@@ -75,7 +75,7 @@ union ti_mant {
         uint8_t d2  : 4;
         uint8_t d1  : 4;
         uint8_t d0  : 4;
-    };
+    } bcd;
     uint8_t mant[7];
 };
 
@@ -179,16 +179,6 @@ static real_t long_double_to_real(long_double arg) {
     ret.mant[0] = hex.mant[6];
     ret.exp = (int8_t)(exponent + 0x80);
     set_sign(ret, sign);
-    #if 0
-        printf(
-            "%016llx "
-            "%u%u%u%u%u%u%u%u%u%u%u%u%u%u "
-            "%02x%02x%02x%02x%02x%02x%02x\n",
-            digits,
-            d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13,
-            mant[6], mant[5], mant[4], mant[3], mant[2], mant[1], mant[0]
-        );
-    #endif
     return ret;
 }
 
@@ -207,7 +197,7 @@ static long_double real_to_long_double(real_t val) {
     hex.mant[1] = val.mant[5];
     hex.mant[0] = val.mant[6];
 
-    while ((hex.d0 == 0) && hex.digits != 0) {
+    while ((hex.bcd.d0 == 0) && hex.digits != 0) {
         // shift by 1 digit
         hex.digits <<= 4;
         expon--;
@@ -216,20 +206,20 @@ static long_double real_to_long_double(real_t val) {
         return sign ? long_double(+0.0L) : long_double(-0.0L);
     }
     uint64_t decimal = 0;
-    decimal += hex.d13 * UINT64_C(1);
-    decimal += hex.d12 * UINT64_C(10);
-    decimal += hex.d11 * UINT64_C(100);
-    decimal += hex.d10 * UINT64_C(1000);
-    decimal += hex.d9  * UINT64_C(10000);
-    decimal += hex.d8  * UINT64_C(100000);
-    decimal += hex.d7  * UINT64_C(1000000);
-    decimal += hex.d6  * UINT64_C(10000000);
-    decimal += hex.d5  * UINT64_C(100000000);
-    decimal += hex.d4  * UINT64_C(1000000000);
-    decimal += hex.d3  * UINT64_C(10000000000);
-    decimal += hex.d2  * UINT64_C(100000000000);
-    decimal += hex.d1  * UINT64_C(1000000000000);
-    decimal += hex.d0  * UINT64_C(10000000000000);
+    decimal += hex.bcd.d13 * UINT64_C(1);
+    decimal += hex.bcd.d12 * UINT64_C(10);
+    decimal += hex.bcd.d11 * UINT64_C(100);
+    decimal += hex.bcd.d10 * UINT64_C(1000);
+    decimal += hex.bcd.d9  * UINT64_C(10000);
+    decimal += hex.bcd.d8  * UINT64_C(100000);
+    decimal += hex.bcd.d7  * UINT64_C(1000000);
+    decimal += hex.bcd.d6  * UINT64_C(10000000);
+    decimal += hex.bcd.d5  * UINT64_C(100000000);
+    decimal += hex.bcd.d4  * UINT64_C(1000000000);
+    decimal += hex.bcd.d3  * UINT64_C(10000000000);
+    decimal += hex.bcd.d2  * UINT64_C(100000000000);
+    decimal += hex.bcd.d1  * UINT64_C(1000000000000);
+    decimal += hex.bcd.d0  * UINT64_C(10000000000000);
     long_double ret = (long_double)decimal;
     ret *= std::pow(long_double(10.0L), (long_double)(expon - 13));
     if (std::isnan(ret)) {

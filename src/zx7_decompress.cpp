@@ -7,7 +7,7 @@ typedef union reg {
     struct {
         uint8_t low;
         uint8_t high;
-    };
+    } split;
 } reg;
 
 static uint8_t* dst;
@@ -19,16 +19,16 @@ static reg reg_bc;
 static reg reg_de;
 
 #define bc reg_bc.full
-#define c  reg_bc.low
-#define b  reg_bc.high
+#define c  reg_bc.split.low
+#define b  reg_bc.split.high
 
 #define de reg_de.full
-#define e  reg_de.low
-#define d  reg_de.high
+#define e  reg_de.split.low
+#define d  reg_de.split.high
 
-#define call(cond, func) if ((cond)) { func(); }
+#define call(cond, func) do { if ((cond)) { func(); } } while(0)
 
-#define jr(cond, label) if ((cond)) { goto label; }
+#define jr(cond, label) do { if ((cond)) { goto label; } } while(0)
 
 static void ccf() {
     carry = !carry;

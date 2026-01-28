@@ -6,7 +6,7 @@ typedef union reg {
     struct {
         uint8_t low;
         uint8_t high;
-    };
+    } split;
 } reg;
 
 static uint8_t a;
@@ -14,23 +14,19 @@ static bool carry;
 static reg reg_bc;
 static reg reg_de;
 static reg reg_hl;
-static reg reg_sp;
+static uint16_t sp;
 
 #define bc reg_bc.full
-#define c  reg_bc.low
-#define b  reg_bc.high
+#define c  reg_bc.split.low
+#define b  reg_bc.split.high
 
 #define de reg_de.full
-#define e  reg_de.low
-#define d  reg_de.high
+#define e  reg_de.split.low
+#define d  reg_de.split.high
 
 #define hl reg_hl.full
-#define l  reg_hl.low
-#define h  reg_hl.high
-
-#define sp  reg_sp.full
-#define spl reg_sp.low
-#define sph reg_sp.high
+#define l  reg_hl.split.low
+#define h  reg_hl.split.high
 
 static void rla() {
     bool next = (a & 0x80);

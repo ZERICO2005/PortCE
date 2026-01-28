@@ -147,11 +147,9 @@ target_compile_options(
 	# -Wno-c++98-compat-pedantic
 	# -Wno-used-but-marked-unused
 	# -Wno-documentation
-	# -Wno-extra-semi-stmt
 	# -Wno-unused-macros
 	# -Wno-reserved-macro-identifier
 	# -Wno-documentation-unknown-command
-	# -Wno-gnu-anonymous-struct
 	# -Wno-cast-align
 	# -Wno-format-nonliteral
 	# -Wno-zero-length-array

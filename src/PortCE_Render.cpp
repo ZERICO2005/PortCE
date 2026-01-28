@@ -225,7 +225,7 @@ static void copyFrame(uint32_t* data) {
         case LCD_MASK_COLOR565 : color_mode = Color_Mode::Color_565 ; break;
         case LCD_MASK_COLOR444 : color_mode = Color_Mode::Color_444 ; break;
         default: color_mode = Color_Mode::Color_555; break;
-    };
+    }
     size_t pixel_count = (size_t)(width * height);
     size_t copyAmount = (pixel_count * bits_per_pixel(color_mode)) / 8;
     const uint8_t *vram = static_cast<const uint8_t*>(RAM_ADDRESS(0xD00000 | (lcd_UpBase & (0xFFFF << 3))));

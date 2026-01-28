@@ -29,6 +29,44 @@ set(${LIBRARY_TARGET_NAME}_SRC ${SRC_FILES} )
 # List of HPP (header) library files.
 set(${LIBRARY_TARGET_NAME}_HDR ${HDR_FILES})
 
+# Memory mode selection (only one should be enabled).
+option(PORTCE_STATIC_LINEAR_MEMORY "Use static linear memory." OFF)
+option(PORTCE_ABSOLUTE_LINEAR_MEMORY "Use absolute linear memory." OFF)
+option(PORTCE_STATIC_SEGREGATED_MEMORY "Use static segregated memory." OFF)
+
+set(_portce_memory_mode_count 0)
+foreach(_portce_mem_var
+	PORTCE_STATIC_LINEAR_MEMORY
+	PORTCE_ABSOLUTE_LINEAR_MEMORY
+	PORTCE_STATIC_SEGREGATED_MEMORY
+)
+	if(${_portce_mem_var})
+		math(EXPR _portce_memory_mode_count "${_portce_memory_mode_count}+1")
+	endif()
+endforeach()
+
+if(_portce_memory_mode_count GREATER 1)
+	message(FATAL_ERROR "Only one PORTCE_*_MEMORY option can be enabled at a time.")
+endif()
+
+list(REMOVE_ITEM ${LIBRARY_TARGET_NAME}_SRC
+	"${CMAKE_CURRENT_SOURCE_DIR}/memory/mmap_linear.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/memory/static_linear.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/memory/static_segregated.cpp"
+)
+
+if(PORTCE_ABSOLUTE_LINEAR_MEMORY)
+	list(APPEND ${LIBRARY_TARGET_NAME}_SRC "${CMAKE_CURRENT_SOURCE_DIR}/memory/mmap_linear.cpp")
+	set(_portce_memory_define PORTCE_ABSOLUTE_LINEAR_MEMORY)
+elseif(PORTCE_STATIC_SEGREGATED_MEMORY)
+	list(APPEND ${LIBRARY_TARGET_NAME}_SRC "${CMAKE_CURRENT_SOURCE_DIR}/memory/static_segregated.cpp")
+	set(_portce_memory_define PORTCE_STATIC_SEGREGATED_MEMORY)
+else()
+	# Default to static linear memory when none explicitly selected.
+	list(APPEND ${LIBRARY_TARGET_NAME}_SRC "${CMAKE_CURRENT_SOURCE_DIR}/memory/static_linear.cpp")
+	set(_portce_memory_define PORTCE_STATIC_LINEAR_MEMORY)
+endif()
+
 # Compiler
 if(NOT EMSCRIPTEN)
 	set(CMAKE_C_COMPILER clang)
@@ -77,6 +115,9 @@ add_library(${LIBRARY_TARGET_NAME} STATIC ${${LIBRARY_TARGET_NAME}_SRC} ${${LIBR
 # always treated as the name of either an alias or imported target. Any attempt
 # to use such a name for a different target type will result in an error.
 add_library(${PROJECT_NAME}::${LIBRARY_TARGET_NAME} ALIAS ${LIBRARY_TARGET_NAME})
+
+# Ensure the selected memory mode macro is defined for consumers.
+target_compile_definitions(${PROJECT_NAME} PUBLIC ${_portce_memory_define})
 
 # Set two minimum target properties for the library.
 # See https://cmake.org/cmake/help/latest/command/set_target_properties.html

@@ -7,7 +7,7 @@ typedef union reg {
     struct {
         uint8_t low;
         uint8_t high;
-    };
+    } split;
 } reg;
 
 static uint8_t* dst;
@@ -19,18 +19,18 @@ static reg reg_bc;
 static reg reg_iy;
 
 #define bc reg_bc.full
-#define c  reg_bc.low
-#define b  reg_bc.high
+#define c  reg_bc.split.low
+#define b  reg_bc.split.high
 
 #define iy  reg_iy.full
-#define iyl reg_iy.low
-#define iyh reg_iy.high
+#define iyl reg_iy.split.low
+#define iyh reg_iy.split.high
 
-#define call(cond, func) if ((cond)) { func(); }
+#define call(cond, func) do { if ((cond)) { func(); } } while(0)
 
-#define jr(cond, label) if ((cond)) { goto label; }
+#define jr(cond, label) do { if ((cond)) { goto label; } } while(0)
 
-#define ret(cond) if ((cond)) { return; }
+#define ret(cond) do { if ((cond)) { return; } } while(0)
 
 static void scf() {
     carry = true;
@@ -106,7 +106,7 @@ dzx0t_elias_loop:
     rl(b);
     add_a_a();
     jr(!carry, dzx0t_elias_loop);
-    ret(!zero)
+    ret(!zero);
     // load another group of 8 bits
     a = *src;
     ++src;

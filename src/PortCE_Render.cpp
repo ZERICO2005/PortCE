@@ -14,6 +14,7 @@
 #include <sys/lcd.h>
 
 #include "event.hpp"
+#include "ti84pceg.hpp"
 
 #include <lcddrvce.h>
 #include "PortCE_SPI.h"
@@ -228,7 +229,8 @@ static void copyFrame(uint32_t* data) {
     }
     size_t pixel_count = (size_t)(width * height);
     size_t copyAmount = (pixel_count * bits_per_pixel(color_mode)) / 8;
-    const uint8_t *vram = static_cast<const uint8_t*>(RAM_ADDRESS(0xD00000 | (lcd_UpBase & (0xFFFF << 3))));
+    uint24_t offset = ti::ramStart | (lcd_UpBase & (0xFFFF << 3));
+    const uint8_t *vram = static_cast<const uint8_t*>(RAM_ADDRESS(offset));
     memcpy(videoCopy, vram, copyAmount);
     memcpy(paletteRAM, lcd_Palette, 256 * sizeof(uint16_t));
     bool bgr_mode = (lcd_VideoMode & LCD_MASK_BGR);

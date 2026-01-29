@@ -175,11 +175,19 @@ typedef long double ti_long_double;
 // (u)int24_t and (u)int48_t
 //------------------------------------------------------------------------------
 
+#if 1
 typedef signed _BitInt(24) int24_t; /** @note Remember to account for integer promotion */
 typedef unsigned _BitInt(24) uint24_t; /** @note Remember to account for integer promotion */
 
 typedef signed _BitInt(48) int48_t;
 typedef unsigned _BitInt(48) uint48_t;
+#else
+typedef  int32_t  int24_t;
+typedef uint32_t uint24_t;
+
+typedef  int64_t  int48_t;
+typedef uint64_t uint48_t;
+#endif
 
 #define  INT24_C(C) (( int24_t)INT32_C(C))
 #define UINT24_C(C) ((uint24_t)UINT32_C(C))

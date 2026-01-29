@@ -14,6 +14,9 @@
 
 #include "os_flags.hpp"
 
+#include "PortCE_memory.hpp"
+#include "ti84pceg.hpp"
+
 #include <cstring>
 #include <cstdio>
 #include <cctype>
@@ -81,10 +84,10 @@ enum TiOS_Colors {
     }
 
     static bool out_of_screen_bounds(void* ptr) {
-        if (ptr < RAM_ADDRESS(0xD40000)) {
+        if (ptr < RAM_ADDRESS(ti::vRam)) {
             return true;
         }
-        if (ptr >= RAM_ADDRESS(0xD65800)) {
+        if (ptr >= RAM_ADDRESS(ti::vRamEnd)) {
             return true;
         }
         return false;
@@ -156,26 +159,27 @@ enum TiOS_Colors {
     }
 
 /* <ti/ui.h> */
-    void boot_ClearVRAM(void) {
-        memset(lcd_Ram, 0xFF, LCD_SIZE);
-    }
 
-    void os_RunIndicOn(void) {
-        gColor = TiOS_YELLOW;
-        fillRect(LCD_RESX - 20,10,10,10);
-    }
-    void os_RunIndicOff(void) {
-        gColor = TiOS_DARKGRAY;
-        fillRect(LCD_RESX - 20,10,10,10);
-    }
-    void os_DrawStatusBar(void) {
-        os_FillRectColor = TiOS_DARKGRAY;
-        gColor = os_FillRectColor;
-        fillRect(0, 0, LCD_RESX, STATUS_BAR_HEIGHT);
-    }
-    void os_ForceCmdNoChar(void) {
-        // Not sure what this function does
-    }
+void boot_ClearVRAM(void) {
+    PortCE_memory_memset(ti::vRam, 0xFF, LCD_SIZE);
+}
+
+void os_RunIndicOn(void) {
+    gColor = TiOS_YELLOW;
+    fillRect(LCD_RESX - 20,10,10,10);
+}
+void os_RunIndicOff(void) {
+    gColor = TiOS_DARKGRAY;
+    fillRect(LCD_RESX - 20,10,10,10);
+}
+void os_DrawStatusBar(void) {
+    os_FillRectColor = TiOS_DARKGRAY;
+    gColor = os_FillRectColor;
+    fillRect(0, 0, LCD_RESX, STATUS_BAR_HEIGHT);
+}
+void os_ForceCmdNoChar(void) {
+    // Not sure what this function does
+}
 
 /* <ti/screen.h> */
 
@@ -288,9 +292,9 @@ void os_ClrLCD(void) {
 }
 
 void os_ClrTxtShd(void) {
-    memset(RAM_ADDRESS(0xD07396),0xFF,8400); // Cmd Pixel Shadow
-    memset(RAM_ADDRESS(0xD031F6),0xFF,8400); // Pixel Shadow
-    memset(RAM_ADDRESS(0xD052C6),0xFF,8400); // Pixel Shadow2
+    PortCE_memory_memset(ti::cmdPixelShadow, 0xFF, 8400);
+    PortCE_memory_memset(ti::pixelShadow   , 0xFF, 8400);
+    PortCE_memory_memset(ti::pixelShadow2  , 0xFF, 8400);
 }
 
 void os_DisableHomeTextBuffer(void) {

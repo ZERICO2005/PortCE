@@ -1,4 +1,4 @@
-PortCE is a tool to port your Ti84-CE C/C++ application to Windows/Linux/MacOS so it can be ran as a native executable.
+PortCE is a tool to port your Ti84-CE C/C++ application to Windows/Linux/MacOS so it can be run as a native executable.
 
 PortCE also allows you to add audio and mouse support, in addition to making debugging easier through the use of `gdb` and memory sanitizers.
 
@@ -30,7 +30,7 @@ MacOS: Use Clang to compile
 * Then run `cmake -G Ninja ..`, and then run `ninja`. This will compile `hello_world`.
 * To run the program, do `bin/hello_world`.
 
-## Targetting Emscripten
+## Targeting Emscripten
 
 Building PortCE for `Emscripten` is similar. You might have to try using `WSL` to get it to work on Windows.
 
@@ -72,21 +72,24 @@ You can call this function to manually output frames.
 
 3. Pointers and Integers
 
-You *MUST* ensure that you use the proper `<stdint.h>` types in your program, or you will run into protability problems.
+You *MUST* ensure that you use the proper `<stdint.h>` types in your program, or you will run into portability problems.
 
-`int` is 24 bits on the Ti84CE but is typically 32 bits on windows and linux:
+`int` is 24 bits on the Ti84-CE but is typically 32 bits on windows and linux:
 - For example, `int` might be changed to: `int24_t`, `intptr_t`, or `ptrdiff_t`.
 - And `unsigned int` might be changed to: `uint24_t`, `uintptr_t`, or `size_t`.
 
 PortCE also provides `ez80_*` and `ti_*` types:
 - `ez80_int` will alias `int24_t`.
-- `ti_int` can be configued to alias `int24_t` or `int32_t` and is only used for libraries and routines from TICE or the CE C/C++ toolchain.
+- `ti_int` can be configured to alias `int24_t` or `int32_t` and is only used for libraries and routines from TICE or the CE C/C++ toolchain.
+- Other types follow the naming convention used in `<stdatomic.h>`, so `unsigned int` will be `ti_uint` or `ez80_uint`, and `unsigned long long` will be `ez80_ullong`.
 
 If you have a packed array of `uint24_t*`, you may have to use `packed_uint24_t*` to ensure that the pointer increments by 3 bytes instead of 4 bytes (since `sizeof(_BitInt(24))` is 4).
 
-If you are directly accessing any pointers, you will need to wrap them in the `RAM_ADDRESS()` or `RAM_OFFSET()` macros. They should have no effect when compiled for the ti84ce.
+If you are directly accessing any pointers, you will need to wrap them in the `RAM_ADDRESS()` or `RAM_OFFSET()` macros. They should have no effect when compiled for the Ti84-CE.
 
-The `void * RAM_ADDRESS(uint24_t)` macro returns a `void*` pointer to `simulated_ram[16777216]`. Example useage:
+PortCE may represent memory in a single contiguous array `simulated_ram[16777216]`, or as multiple arrays to segregate the OS, VRAM, and MMIO addresses.
+
+The `void * RAM_ADDRESS(uint24_t)` macro returns a `void*` pointer to `simulated_ram[16777216]`. Example usage:
 ```c
 // Source (Sets pixel 0,0 of the LCD to 0xFF)
 *(uint8_t*)RAM_ADDRESS(0xD40000) = 0xFF;
@@ -98,15 +101,17 @@ The `void * RAM_ADDRESS(uint24_t)` macro returns a `void*` pointer to `simulated
 *(uint8_t*)((void*)&simulated_ram[0xD40000]) = 0xFF;
 ```
 
-The `void * CONST_ADDRESS(uint24_t)` macro is similar to `RAM_ADDRESS()`, expect that it can be used at compile time to point to a specific address.
+`const void * CONST_RAM_ADDRESS(uint24_t)` is the same as `RAM_ADDRESS` except it returns `const void*` instead of `void*`.
 
-The `uint24_t RAM_OFFSET(void*)` macro calculates the offset from `simulated_ram[16777216]`. Example useage:
+The `void * RAM_ADDRESS_COMPILETIME(uint24_t)` macro is similar to `RAM_ADDRESS`, except that it can be used at compile time to point to a specific address. Note that macro is not supported in every memory configuration.
+
+The `uint24_t RAM_OFFSET(void*)` macro calculates the offset from `simulated_ram[16777216]`. Example usage:
 ```c
 // Source (Resets the LCD position to the start of lcd_Ram)
 lcd_Upbase = RAM_OFFSET(lcd_Ram);
 
 // Compiled for Ti84-CE
-lcd_Upbase = (uint24_t)((void*)0xD40000);
+lcd_Upbase = (uintptr_t)((void*)0xD40000);
 
 // Compiled for Windows/Linux
 lcd_Upbase = ((uint24_t)((uint8_t*)((void*)&simulated_ram[0xD40000]) - (uint8_t*)simulated_ram))
@@ -145,7 +150,7 @@ To compile your code for PortCE, run `mkdir build`, `cd build`, and `cmake -G Ni
 
 7. Keybinds
 
-You can modify the keybinds used for PortCE by editing `PortCE/include/PortCE_Keybinds.h`
+You can modify the keybinds used for PortCE by editing `PortCE/src/SDL_keybind.cpp`.
 
 # Capabilities
 
@@ -154,7 +159,7 @@ The LCD can be configured by accessing the registers/functions defined in `sys/l
 
 Supports:
 * RGB/BGR and inverted colors
-* 16bit Color: 1555, 565, 444
+* 16bit Color: 1555, 565, 444, 555
 * Indexed Color: 1bit, 2bit, 4bit, and 8bit
 * Partial hardware cursor support
 * Row-Major and Column-Major mode
@@ -163,64 +168,3 @@ Supports:
 ## Extra Features
 
 You can include `PortCE_Extra.h` to add extra functionality to the PortCE version of your program, such as mouse support.
-
-# Configuration
-(Unimplemented)
-
-You can edit the PortCE.config file to modify startup behaviour, keybinds, and other settings. If a value cannot be read, the default value will be used.
-
-## Library Settings
-
-### clock_speed
-*(1.0)*
-
-Sets the tick speed of any clocks/timers.
-
-### clock_date
-*(Current)*
-
-Sets the date and time when starting the program.
-
-Options:
-* Current: Uses the current date and time
-* <custom>: Uses the date and time in the following format: `2015/12/31 23:59:59`
-
-## Window Settings
-
-### window_scale
-*(2)*
-
-Sets the initial window scale/size. If the scaled window does not fit, a smaller scaling factor will be used.
-
-### bootup_display
-*(Automatic)*
-
-Choose which monitor the application will open to.
-
-Options:
-* Automatic: Opens on the primary display.
-* <number>: Opens on a specific display. If the display is not available, display 1 will be used.
-* Cursor: Opens on the display the cursor is on.
-* Left/Right/Center/Top/Bottom: Opens on the display matching the direction.
-
-### full_screen
-*(false)*
-
-Starts the application in full-screen.
-
-## LCD Settings
-
-### integer_scaling
-*(false)*
-
-Forces integer scaling on the LCD/Screen.
-
-### stretch_frames
-*(false)*
-
-Stretches the frame to fit the window instead of displaying black borders.
-
-### linear_interpolation
-*(false)*
-
-Uses linear interpolation instead of nearest neighbor interpolation. May result in a blurry image.

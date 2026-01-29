@@ -14,6 +14,8 @@
 
 #include "os_flags.hpp"
 
+#include "PortCE_memory.hpp"
+
 #include <cstring>
 #include <cstdio>
 #include <cctype>

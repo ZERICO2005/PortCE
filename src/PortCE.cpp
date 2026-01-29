@@ -13,6 +13,7 @@
 #include <PortCE.h>
 #include "PortCE_assert.h"
 #include "PortCE_memory.hpp"
+#include "ti84pceg.hpp"
 
 static bool PortCE_init_flag = false;
 

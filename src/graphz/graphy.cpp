@@ -51,7 +51,7 @@ template<>
 void GraphY::gfz_BlitColumns(gfz_location_t src, uint32_t x_loc, uint32_t num_columns) {
     uint24_t HL, DE;
     util_getBuffer(src, HL, DE);
-    const uint8_t *src_buf = static_cast<const uint8_t*>(RAM_ADDRESS(HL));
+    const uint8_t *src_buf = static_cast<const uint8_t*>(CONST_RAM_ADDRESS(HL));
     uint8_t *dst_buf = static_cast<uint8_t*>(RAM_ADDRESS(DE));
     size_t copy_size = num_columns * GFZ_LCD_HEIGHT;
     size_t offset = x_loc * GFZ_LCD_HEIGHT;
@@ -74,7 +74,7 @@ void GraphY::gfz_BlitRectangle(
 ) {
     uint24_t HL, DE;
     util_getBuffer(src, HL, DE);
-    const uint8_t *src_buf = static_cast<const uint8_t*>(RAM_ADDRESS(HL));
+    const uint8_t *src_buf = static_cast<const uint8_t*>(CONST_RAM_ADDRESS(HL));
     uint8_t *dst_buf = static_cast<uint8_t*>(RAM_ADDRESS(DE));
     src_buf += y + (x * GFZ_LCD_HEIGHT);
     dst_buf += y + (x * GFZ_LCD_HEIGHT);
@@ -101,7 +101,7 @@ void GraphY::gfz_CopyRectangle(
     {
         uint24_t HL, DE;
         util_getBuffer(src, HL, DE);
-        src_buf = static_cast<const uint8_t*>(RAM_ADDRESS(HL));
+        src_buf = static_cast<const uint8_t*>(CONST_RAM_ADDRESS(HL));
         util_getBuffer(dst, HL, DE);
         dst_buf = static_cast<uint8_t*>(RAM_ADDRESS(HL));
     }

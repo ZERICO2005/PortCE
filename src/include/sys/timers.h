@@ -244,7 +244,7 @@ void boot_WaitShort(void);
 #define timer_3_MatchValue_1     (*(volatile uint32_t*)RAM_ADDRESS(0xF20028))
 #define timer_3_MatchValue_2     (*(volatile uint32_t*)RAM_ADDRESS(0xF2002C))
 #define timer_Control            (*(volatile uint16_t*)RAM_ADDRESS(0xF20030))
-#define timer_IntStatus          (*(const volatile uint16_t*)RAM_ADDRESS(0xF20034))
+#define timer_IntStatus          (*(const volatile uint16_t*)CONST_RAM_ADDRESS(0xF20034))
 #ifdef _EZ80
 #define timer_IntAcknowledge     (*(volatile uint16_t*)RAM_ADDRESS(0xF20034))
 #else

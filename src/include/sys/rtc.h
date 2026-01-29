@@ -100,7 +100,7 @@ bool boot_IsAfterNoon(void);
 #define rtc_LoadMinutes         (*(volatile uint8_t*)RAM_ADDRESS(0xF30028))
 #define rtc_LoadHours           (*(volatile uint8_t*)RAM_ADDRESS(0xF3002C))
 #define rtc_LoadDays            (*(volatile uint16_t*)RAM_ADDRESS(0xF30030))
-#define rtc_IntStatus           (*(const volatile uint8_t*)RAM_ADDRESS(0xF30034))
+#define rtc_IntStatus           (*(const volatile uint8_t*)CONST_RAM_ADDRESS(0xF30034))
 #ifdef _EZ80
 #define rtc_IntAcknowledge      (*(volatile uint8_t*)RAM_ADDRESS(0xF30034))
 #else

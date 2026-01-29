@@ -40,7 +40,7 @@ template<>
 void GraphX::gfz_BlitRows(gfz_location_t src, uint8_t y_loc, uint8_t num_rows) {
     uint24_t HL, DE;
     util_getBuffer(src, HL, DE);
-    const uint8_t *src_buf = static_cast<const uint8_t*>(RAM_ADDRESS(HL));
+    const uint8_t *src_buf = static_cast<const uint8_t*>(CONST_RAM_ADDRESS(HL));
     uint8_t *dst_buf = static_cast<uint8_t*>(RAM_ADDRESS(DE));
     size_t copy_size = num_rows * GFZ_LCD_WIDTH;
     size_t offset = y_loc * GFZ_LCD_WIDTH;
@@ -63,7 +63,7 @@ void GraphX::gfz_BlitRectangle(
 ) {
     uint24_t HL, DE;
     util_getBuffer(src, HL, DE);
-    const uint8_t *src_buf = static_cast<const uint8_t*>(RAM_ADDRESS(HL));
+    const uint8_t *src_buf = static_cast<const uint8_t*>(CONST_RAM_ADDRESS(HL));
     uint8_t *dst_buf = static_cast<uint8_t*>(RAM_ADDRESS(DE));
     src_buf += x + (y * GFZ_LCD_WIDTH);
     dst_buf += x + (y * GFZ_LCD_WIDTH);
@@ -90,7 +90,7 @@ void GraphX::gfz_CopyRectangle(
     {
         uint24_t HL, DE;
         util_getBuffer(src, HL, DE);
-        src_buf = static_cast<const uint8_t*>(RAM_ADDRESS(HL));
+        src_buf = static_cast<const uint8_t*>(CONST_RAM_ADDRESS(HL));
         util_getBuffer(dst, HL, DE);
         dst_buf = static_cast<uint8_t*>(RAM_ADDRESS(HL));
     }

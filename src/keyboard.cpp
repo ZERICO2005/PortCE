@@ -4,7 +4,6 @@
 #include <keypadc.h>
 #include <ti/getcsc.h>
 #include <ti/getkey.h>
-#include <PortCE_Keybinds.h>
 #include <cstdio>
 #include <array>
 #include <cassert>

@@ -83,11 +83,11 @@ enum TiOS_Colors {
         }
     }
 
-    static bool out_of_screen_bounds(void* ptr) {
-        if (ptr < RAM_ADDRESS(ti::vRam)) {
+    static bool out_of_screen_bounds(const void * ptr) {
+        if (ptr < CONST_RAM_ADDRESS(ti::vRam)) {
             return true;
         }
-        if (ptr >= RAM_ADDRESS(ti::vRamEnd)) {
+        if (ptr >= CONST_RAM_ADDRESS(ti::vRamEnd)) {
             return true;
         }
         return false;

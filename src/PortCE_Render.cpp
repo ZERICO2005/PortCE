@@ -14,11 +14,13 @@
 #include <sys/lcd.h>
 
 #include "event.hpp"
+#include "ti84pceg.hpp"
 
 #include <lcddrvce.h>
 #include "PortCE_SPI.h"
 #include <cstdio>
 
+#include "PortCE_memory.hpp"
 #include "frame_manipulation.hpp"
 
 #include <SDL.h>
@@ -228,9 +230,9 @@ static void copyFrame(uint32_t* data) {
     }
     size_t pixel_count = (size_t)(width * height);
     size_t copyAmount = (pixel_count * bits_per_pixel(color_mode)) / 8;
-    const uint8_t *vram = static_cast<const uint8_t*>(RAM_ADDRESS(0xD00000 | (lcd_UpBase & (0xFFFF << 3))));
-    memcpy(videoCopy, vram, copyAmount);
-    memcpy(paletteRAM, lcd_Palette, 256 * sizeof(uint16_t));
+    uint24_t offset = ti::ramStart | (lcd_UpBase & (0xFFFF << 3));
+    PortCE_memory_read(videoCopy, offset, copyAmount);
+    PortCE_memory_read(paletteRAM, ti::mpLcdPalette, 256 * sizeof(uint16_t));
     bool bgr_mode = (lcd_VideoMode & LCD_MASK_BGR);
     bool column_major = PortCE_query_column_major();
     Frame_Manipulation frame {

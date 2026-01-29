@@ -21,6 +21,9 @@
 #include <fileioc.h>
 #include <ti/debug.h>
 
+#include "PortCE_memory.hpp"
+#include "ti84pceg.hpp"
+
 #include <algorithm>
 #include <cstring>
 
@@ -32,10 +35,10 @@
 // #include <unistd.h>
 
 uint16_t timer_IntAcknowledge;
-#define timer_IntStatus_ptr static_cast<uint16_t*>(RAM_ADDRESS(0xF20034))
+#define timer_IntStatus_ptr static_cast<uint16_t*>(RAM_ADDRESS(ti::mpTmrIntStatus))
 
 uint8_t rtc_IntAcknowledge;
-#define rtc_IntStatus_ptr static_cast<uint8_t*>(RAM_ADDRESS(0xF30034))
+#define rtc_IntStatus_ptr static_cast<uint8_t*>(RAM_ADDRESS(ti::mpRtcIntStatus))
 
 /* <sys/util.h> */
 
@@ -252,7 +255,7 @@ static const uint16_t Timer_MATCH1  [3] = {(1<<0), (1<<3), (1<<6)};
 static const uint16_t Timer_MATCH2  [3] = {(1<<1), (1<<4), (1<<7)};
 static const uint16_t Timer_RELOADED[3] = {(1<<2), (1<<5), (1<<8)};
 
-#define timer_list static_cast<Timer_Struct*>(RAM_ADDRESS(0xF20000))
+#define timer_list static_cast<Timer_Struct*>(RAM_ADDRESS(ti::mpTmrRange))
 
 // accounts for the clock wrapping around
 static bool is_between_times(uint32_t time, uint32_t t0, uint32_t t1, bool forwards) {
@@ -386,15 +389,15 @@ static void get_RTC_time(uint8_t* Seconds, uint8_t* Minutes, uint8_t* Hours, uin
     *Days    = (uint8_t)tm->tm_yday;
 }
 
-#define RTC_Time    (static_cast<uint32_t*>(RAM_ADDRESS(0xF30044)))
-#define RTC_Seconds (static_cast<uint8_t* >(RAM_ADDRESS(0xF30000)))
-#define RTC_Minutes (static_cast<uint8_t* >(RAM_ADDRESS(0xF30004)))
-#define RTC_Hours   (static_cast<uint8_t* >(RAM_ADDRESS(0xF30008)))
-#define RTC_Days    (static_cast<uint16_t*>(RAM_ADDRESS(0xF3000C)))
+#define RTC_Time    (static_cast<uint32_t*>(RAM_ADDRESS(ti::mpRtcTime   )))
+#define RTC_Seconds (static_cast<uint8_t* >(RAM_ADDRESS(ti::mpRtcSeconds)))
+#define RTC_Minutes (static_cast<uint8_t* >(RAM_ADDRESS(ti::mpRtcMinutes)))
+#define RTC_Hours   (static_cast<uint8_t* >(RAM_ADDRESS(ti::mpRtcHours  )))
+#define RTC_Days    (static_cast<uint16_t*>(RAM_ADDRESS(ti::mpRtcDays   )))
 
-#define RTC_AlarmSeconds (static_cast<uint8_t*>(RAM_ADDRESS(0xF30010)))
-#define RTC_AlarmMinutes (static_cast<uint8_t*>(RAM_ADDRESS(0xF30014)))
-#define RTC_AlarmHours   (static_cast<uint8_t*>(RAM_ADDRESS(0xF30018)))
+#define RTC_AlarmSeconds (static_cast<uint8_t*>(RAM_ADDRESS(ti::mpRtcAlarmSeconds)))
+#define RTC_AlarmMinutes (static_cast<uint8_t*>(RAM_ADDRESS(ti::mpRtcAlarmMinutes)))
+#define RTC_AlarmHours   (static_cast<uint8_t*>(RAM_ADDRESS(ti::mpRtcAlarmHours  )))
 
 // Doesn't properly support internal counter/latching
 static void PortCE_update_RTC(void) {
@@ -446,7 +449,7 @@ void reset_ti84ce_registers(void) {
     lcd_Timing2 = 0x00EF7802;
     lcd_Timing3 = 0x00000000;
 
-    lcd_UpBaseFull = (uint32_t)RAM_OFFSET(lcd_Ram);
+    lcd_UpBaseFull = static_cast<uint32_t>(ti::vRam);
     lcd_LpBaseFull = 0x00000000;
     lcd_Control    = LCD_BGR16bit;
 
@@ -484,8 +487,8 @@ void reset_ti84ce_registers(void) {
     calc_seconds = 0   ;
 
     /* Timers */
-        memset(RAM_ADDRESS(0xF20000), 0, 0x38);
+        PortCE_memory_memset(ti::mpTmrRange, 0, 0x48);
         last_timer_update = getNanoTime();
     /* RTC */
-        memset(RAM_ADDRESS(0xF30000), 0, 0x38);
+        PortCE_memory_memset(ti::mpRtcRange, 0, 0x48);
 }

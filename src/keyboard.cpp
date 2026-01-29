@@ -13,6 +13,8 @@
 #include "event.hpp"
 #include "key_input.hpp"
 
+#include "ti84pceg.hpp"
+
 #include <SDL.h>
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
@@ -301,12 +303,12 @@ void Key_Input_key_up(Key_Input code) {
 //     kb_Down = 1     , kb_Left = 2   , kb_Right = 4  , kb_Up = 8
 // };
 
-#define internal_kb_Data static_cast<uint16_t*>(RAM_ADDRESS(0xF50010))
+#define internal_kb_Data (static_cast<uint16_t*>(RAM_ADDRESS(ti::kbdG1)) - 1)
 
-#define DI_Mode     static_cast<uint8_t*>(RAM_ADDRESS(0xF50000))
-#define DI_Cntrl    static_cast<uint8_t*>(RAM_ADDRESS(0xF50004))
-#define DI_Int      static_cast<uint8_t*>(RAM_ADDRESS(0xF50008))
-#define DI_IntMask  static_cast<uint8_t*>(RAM_ADDRESS(0xF5000C))
+#define kb_DI_Mode     static_cast<uint8_t*>(RAM_ADDRESS(ti::DI_Mode))
+#define kb_DI_Cntrl    static_cast<uint8_t*>(RAM_ADDRESS(ti::DI_Cntrl))
+#define kb_DI_Int      static_cast<uint8_t*>(RAM_ADDRESS(ti::DI_Int))
+#define kb_DI_IntMask  static_cast<uint8_t*>(RAM_ADDRESS(ti::DI_IntMask))
 
 constexpr int KB_Row_Count = 8;
 __attribute__((__unused__)) constexpr int KB_Max_Key_Code = 64;
@@ -398,7 +400,7 @@ static uint8_t to_Button_Code(Button_Input button) {
 }
 
 static void keypadc_kb_scan(void) {
-    *DI_Mode = 0x02;
+    *kb_DI_Mode = 0x02;
     handle_SDL_events();
     for (size_t i = 0; i < button_state.size(); i++) {
         if (button_state[i].is_pressed()) {
@@ -408,7 +410,7 @@ static void keypadc_kb_scan(void) {
             resetKey(to_Button_Code(static_cast<Button_Input>(i)));
         }
     }
-    *DI_Mode = 0x00;
+    *kb_DI_Mode = 0x00;
 }
 
 void kb_Scan(void) {
@@ -417,13 +419,13 @@ void kb_Scan(void) {
 
 void kb_Reset(void) {
     // ld (ti.DI_Mode + 0), $000F00
-    DI_Mode[0] = 0x00;
-    DI_Mode[1] = 0x0F;
-    DI_Mode[2] = 0x00;
+    kb_DI_Mode[0] = 0x00;
+    kb_DI_Mode[1] = 0x0F;
+    kb_DI_Mode[2] = 0x00;
     // ld (ti.DI_Mode + 3), $08080F
-    DI_Mode[3] = 0x0F;
-    DI_Mode[4] = 0x08;
-    DI_Mode[5] = 0x08;
+    kb_DI_Mode[3] = 0x0F;
+    kb_DI_Mode[4] = 0x08;
+    kb_DI_Mode[5] = 0x08;
 }
 
 kb_key_t kb_ScanGroup(uint8_t row) {

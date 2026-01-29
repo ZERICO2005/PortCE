@@ -113,8 +113,16 @@ typedef long double ti_long_double;
 /**
  * @brief Access pointers through this macro.
  * @example `*(uint8_t*)RAM_ADDRESS(0xD40000) = 0xFF`
+ * @note returns NULL if the address is 0, invalid, or read-only.
  */
 #define RAM_ADDRESS(x) ((void*)(x))
+
+/**
+ * @brief Access pointers through this macro.
+ * @example `uint8_t value = *(const uint8_t*)CONST_RAM_ADDRESS(0xD40000)`
+ * @note returns NULL if the address is 0 or invalid.
+ */
+#define CONST_RAM_ADDRESS(x) ((const void*)(x))
 
 /**
  * @brief Access pointers through this macro at compile time.
@@ -126,6 +134,7 @@ typedef long double ti_long_double;
 /**
  * @brief Calculate pointer offsets from this macro.
  * @example `lcd_Upbase = RAM_OFFSET(lcd_Ram)`
+ * @note returns 0 if the pointer is NULL or does not point to PortCE memory.
  */
 #define RAM_OFFSET(ptr) ((uintptr_t)(ptr))
 
@@ -326,24 +335,33 @@ extern "C++" inline int48_t abs(int48_t value) {
 /**
  * @brief Access pointers through this macro.
  * @example `*(uint8_t*)RAM_ADDRESS(0xD40000) = 0xFF`
+ * @note returns NULL if the address is 0, invalid, or read-only.
  */
 void *RAM_ADDRESS(uint24_t address);
 
 /**
+ * @brief Access pointers through this macro.
+ * @example `uint8_t value = *(const uint8_t*)CONST_RAM_ADDRESS(0xD40000)`
+ * @note returns NULL if the address is 0 or invalid.
+ */
+const void *CONST_RAM_ADDRESS(uint24_t address);
+
+/**
  * @warning Do NOT access this directly.
  */
-extern uint8_t simulated_ram[16777216];
+extern uint8_t PortCE_static_linear_memory[16777216];
 
 /**
  * @brief Access pointers through this macro at compile time.
  * @example `uint8_t * const vram = RAM_ADDRESS_COMPILETIME(0xD40000)`
  * @note This macro may not be supported in all PortCE addressing modes.
  */
-#define RAM_ADDRESS_COMPILETIME(x) ((void*)(&simulated_ram[x]))
+#define RAM_ADDRESS_COMPILETIME(x) ((void*)(&PortCE_static_linear_memory[x]))
 
 /**
  * @brief Calculate pointer offsets from this macro.
  * @example `lcd_Upbase = RAM_OFFSET(lcd_Ram)`
+ * @note returns 0 if the pointer is NULL or does not point to PortCE memory.
  */
 uint24_t RAM_OFFSET(const void *ptr);
 

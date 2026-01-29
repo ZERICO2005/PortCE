@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <PortCE.h>
 #include "PortCE_assert.h"
+#include "PortCE_memory.hpp"
 
 static bool PortCE_init_flag = false;
 
@@ -29,30 +30,13 @@ void assert_PortCE_initialized(void) {
     }
 }
 
-void* RAM_ADDRESS(const uint24_t address) {
-    if (address == 0) {
-        return nullptr;
-    }
-    // if (address >= 0xE00000 && update_ram == false) {
-    //     PortCE_update_registers();
-    //     return &simulated_ram[address];
-    // }
-    return &simulated_ram[address];
-}
-
-uint24_t RAM_OFFSET(const void* const ptr) {
-    if (ptr == nullptr) {
-        return 0;
-    }
-    const ptrdiff_t offset = ((const uint8_t*)ptr - simulated_ram);
-    if (offset < 0 || (size_t)offset >= sizeof(simulated_ram)) {
-        return 0;
-    }
-    return (uint24_t)offset;
-}
-
 void PortCE_initialize(const char* window_title) {
-    // memset(simulated_ram, 0, sizeof(simulated_ram));
+    bool memory_status = PortCE_memory_init();
+    if (!memory_status) {
+        perror("PortCE_memory_init failed");
+        exit(EXIT_FAILURE);
+    }
+
     reset_ti84ce_registers();
     PortCE_reset_SPI_state(true);
 
@@ -66,5 +50,6 @@ void PortCE_terminate(void) {
     terminateLCDcontroller();
     PortCE_terminate_fileioc();
     // export_config_file();
+    PortCE_memory_destroy();
     PortCE_init_flag = false;
 }

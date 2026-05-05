@@ -3,13 +3,13 @@ function(portce_add_web_shell target)
 		message(FATAL_ERROR "portce_add_web_shell: target '${target}' does not exist.")
 	endif()
 
-	set(options)
+	set(options MERGE_WASM)
 	set(one_value_args OUT_DIR TEMPLATE TITLE)
 	set(multi_value_args)
 	cmake_parse_arguments(PORTCE_WEB "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
 	if(NOT PORTCE_WEB_OUT_DIR)
-		message(FATAL_ERROR "portce_add_web_shell: OUT_DIR is required.")
+		set(PORTCE_WEB_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 	endif()
 
 	if(NOT PORTCE_WEB_TEMPLATE)
@@ -41,6 +41,17 @@ endfunction()
 function(portce_web_shell_config target)
 	if(NOT EMSCRIPTEN)
 		return()
+	endif()
+
+	set(options MERGE_WASM)
+	set(one_value_args OUT_DIR TEMPLATE TITLE)
+	set(multi_value_args)
+	cmake_parse_arguments(PORTCE_WEB "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
+
+	if(PORTCE_WEB_MERGE_WASM)
+		target_link_options("${target}" PUBLIC
+			"SHELL:-sSINGLE_FILE=1"
+		)
 	endif()
 
 	portce_add_web_shell("${target}" ${ARGN})

@@ -26,9 +26,10 @@ MacOS: Use Clang to compile
 
 2. Building the examples
 
-* Set the `current directory` to `PortCE/examples/hello_world`. Then run `mkdir build` and `cd build`. You should now be in `PortCE/examples/hello_world/build`.
-* Then run `cmake -G Ninja ..`, and then run `ninja`. This will compile `hello_world`.
-* To run the program, do `bin/hello_world`.
+* Set the `current directory` to `PortCE/examples/hello_world`.
+* Run `cmake -S . -B build -G Ninja` to setup the build directory.
+* Then run `cmake --build build`. This will compile `hello_world`.
+* To run the program, do `build/hello_world`.
 
 ## Targeting Emscripten
 
@@ -45,9 +46,30 @@ https://emscripten.org/docs/getting_started/downloads.html
 
 2. Building the examples
 
-* Set the `current directory` to `PortCE/examples/hello_world`. Then run `mkdir build` and `cd build`. You should now be in `PortCE/examples/hello_world/build`.
-* Then run `emcmake cmake -G Ninja ..`, and then run `ninja`. This will compile `hello_world`.
-* To run the program, do `python3 -m http.server 8000 --directory bin`. This will create a webpage that you can visit at `http://localhost:8000/hello_world.html`.
+* Set the `current directory` to `PortCE/examples/hello_world`.
+* Run `emcmake cmake -S . -B build -G Ninja` to setup the build directory.
+* Then run `cmake --build build`. This will compile `hello_world`.
+* To run the program, do `python3 -m http.server 8000 --directory build`. This will create a webpage that you can visit at `http://localhost:8000/hello_world.html`.
+
+3. Emscripten configuration
+PortCE provides the `portce_web_shell_config()` helper in `PortCE/cmake/PortCEWeb.cmake`.
+
+Supported options:
+- `MERGE_WASM`: Bundles the `.wasm` into the generated `.js`, so you only need to distribute the `.html` and `.js` files.
+- `OUT_DIR`: Output directory for the generated `.html` shell file. If omitted, it defaults to `CMAKE_CURRENT_BINARY_DIR`.
+- `TEMPLATE`: Path to the HTML template file used to generate the shell. This is required.
+- `TITLE`: Title text used in the generated HTML page.
+
+Example:
+```cmake
+include("${PORTCE_SOURCE_ROOT}/cmake/PortCEWeb.cmake")
+portce_web_shell_config(
+	${PROJECT_NAME}
+	MERGE_WASM
+	TEMPLATE "${PORTCE_SOURCE_ROOT}/web/portce_shell.html.in"
+	TITLE ${PROJECT_NAME}
+)
+```
 
 # Compiling PortCE Projects
 
@@ -146,7 +168,7 @@ We recommend compiling your PortCE projects with Clang (Which is the same compil
 
 PortCE uses `_BitInt(24)` for `int24_t`, which is supported in Clang 18 onwards. Otherwise you can try using `_ExtInt(24)`. You can also try `typedef int32_t int24_t`, but this may break/crash your code.
 
-To compile your code for PortCE, run `mkdir build`, `cd build`, and `cmake -G Ninja ..`, then run `ninja` to compile your code.
+To compile your code for PortCE, run `cmake -S . -B build -G Ninja`, then run `cmake --build build` to compile your code.
 
 7. Keybinds
 

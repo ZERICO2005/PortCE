@@ -8,8 +8,6 @@ project(${PROJECT_NAME})
 set(SRC_DIR "./src")
 set(PORTCE_SOURCE_ROOT "${CMAKE_CURRENT_LIST_DIR}/../..")
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
-
 # Compiler
 if(NOT EMSCRIPTEN)
 	set(CMAKE_C_COMPILER clang)
@@ -79,7 +77,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC PortCE::PortCE)
 include("${PORTCE_SOURCE_ROOT}/cmake/PortCEWeb.cmake")
 portce_web_shell_config(
 	${PROJECT_NAME}
-	OUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+	MERGE_WASM
 	TEMPLATE "${PORTCE_SOURCE_ROOT}/web/portce_shell.html.in"
 	TITLE ${PROJECT_NAME}
 )

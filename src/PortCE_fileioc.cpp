@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include "PortCE_Common.h"
+#include "PortCE_quit.hpp"
 
 #include <cassert>
 #include <cstring>
@@ -351,10 +352,10 @@ void* ti_GetDataPtr(uint8_t handle) {
     fread(ram_file[ram_file_count], sizeof(unsigned char), read_size, ti_File_Handle[handle].file);
     ram_file_count++;
     printf("ram_file_count: %zu/256\n",ram_file_count);
-    if (ram_file_count == 256) {
+    if (ram_file_count >= 256) {
         PortCE_terminate_fileioc();
-        printf("Terminating program, opened too many files.\n");
-        exit(-1);
+        fprintf(stderr, "Terminating program, opened too many files.\n");
+        PortCE_quit(EXIT_FAILURE);
     }
     return (void*)(ram_file[ram_file_count - 1] + 0x4A);
 }

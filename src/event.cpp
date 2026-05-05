@@ -3,6 +3,7 @@
 #include "PortCE_Render.h"
 #include "key_input.hpp"
 #include "SDL_keybind.hpp"
+#include "PortCE_quit.hpp"
 
 static void handle_key_up(const SDL_Event& event) {
     SDL_Keybind keybind = get_Current_Keybind();
@@ -26,14 +27,11 @@ static void handle_key_down(const SDL_Event& event) {
     }
 }
 
-[[noreturn]] static void quit_PortCE(void) {
-    terminateLCDcontroller();
-    exit(0);
-}
-
 static void process_SDL_event(const SDL_Event& event) {
     switch (event.type) {
-        case SDL_QUIT: { quit_PortCE(); }
+        case SDL_QUIT: {
+            PortCE_quit(EXIT_SUCCESS);
+        } break;
         case SDL_KEYUP: {
             handle_key_up(event);
         } break;

@@ -9,6 +9,8 @@
 #include "PortCE_quit.hpp"
 
 #include <cassert>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 #include <fileioc.h>

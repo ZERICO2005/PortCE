@@ -18,7 +18,10 @@
 
 #include <lcddrvce.h>
 #include "PortCE_SPI.h"
+#include <cinttypes>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "PortCE_memory.hpp"
 #include "frame_manipulation.hpp"

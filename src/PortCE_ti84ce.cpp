@@ -25,7 +25,10 @@
 #include "ti84pceg.hpp"
 
 #include <algorithm>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <ctime>
 
 // #include <process.h>
 //#include <dir.h>

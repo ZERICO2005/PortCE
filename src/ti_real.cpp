@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <cinttypes>
 #include <limits>
 

@@ -17,6 +17,7 @@
 #include "PortCE_memory.hpp"
 #include "ti84pceg.hpp"
 
+#include <cstdarg>
 #include <cstring>
 #include <cstdio>
 #include <cctype>

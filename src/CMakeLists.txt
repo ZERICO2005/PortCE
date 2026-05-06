@@ -152,9 +152,9 @@ target_compile_options(
 	# -Wno-documentation-unknown-command
 	# -Wno-cast-align
 	# -Wno-format-nonliteral
-	# -Wno-zero-length-array
 	# -Wno-float-equal
 	# -Wno-switch-enum
+	# -Wno-exit-time-destructors
 )
 
 # Specify include directories for both compilation and installation process.

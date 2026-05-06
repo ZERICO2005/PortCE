@@ -145,6 +145,7 @@ enum TiOS_Colors {
     }
 
     __attribute__((unused))
+    __attribute__((format(__printf__, 1, 0)))
     static int TiOS_vprintf(
         const char *__restrict format, va_list va
     ) {

@@ -31,7 +31,7 @@ static void process_SDL_event(const SDL_Event& event) {
     switch (event.type) {
         case SDL_QUIT: {
             PortCE_quit(EXIT_SUCCESS);
-        } break;
+        } /* break; */
         case SDL_KEYUP: {
             handle_key_up(event);
         } break;

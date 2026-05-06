@@ -17,18 +17,18 @@ extern "C" {
 typedef struct SPI_State {
 /* Command Table 1 */
     uint8_t gamma_curve : 4; uint8_t : 0; /**< `GC` */
-    uint16_t X0_addr : 9; uint8_t : 0;/**< `XS` X Start Address [0 - 320) */
-    uint16_t X1_addr : 9; uint8_t : 0;/**< `XE` X End Address [0 - 320) */
-    uint16_t Y0_addr : 9; uint8_t : 0;/**< `YS` Y Start Address [0 - 320) */
-    uint16_t Y1_addr : 9; uint8_t : 0;/**< `YE` Y End Address [0 - 320) */
+    uint16_t X0_addr : 9; uint16_t : 0; /**< `XS` X Start Address [0 - 320) */
+    uint16_t X1_addr : 9; uint16_t : 0; /**< `XE` X End Address [0 - 320) */
+    uint16_t Y0_addr : 9; uint16_t : 0; /**< `YS` Y Start Address [0 - 320) */
+    uint16_t Y1_addr : 9; uint16_t : 0; /**< `YE` Y End Address [0 - 320) */
     struct {
-        uint16_t partial_start_line : 9; uint8_t : 0; /**< `PSL` */
-        uint16_t partial_end_line : 9; uint8_t : 0; /**< `PEL` */
+        uint16_t partial_start_line : 9; uint16_t : 0; /**< `PSL` */
+        uint16_t partial_end_line : 9; uint16_t : 0; /**< `PEL` */
     } partial_area;
     struct {
-        uint16_t top_fixed_area : 9; uint8_t : 0; /**< `TFA` */
-        uint16_t virtical_scrolling_area : 9; uint8_t : 0; /**< `VSA` */
-        uint16_t bottom_fixed_area : 9; uint8_t : 0; /**< `BFA` */
+        uint16_t top_fixed_area : 9; uint16_t : 0; /**< `TFA` */
+        uint16_t virtical_scrolling_area : 9; uint16_t : 0; /**< `VSA` */
+        uint16_t bottom_fixed_area : 9; uint16_t : 0; /**< `BFA` */
     } vertical_scrolling_definition;
     struct {
         uint8_t : 2; /**< Padding */
@@ -115,7 +115,7 @@ typedef struct SPI_State {
 
 extern SPI_State PortCE_SPI_State;
 
-void PortCE_reset_SPI_state(const bool TiOS_defaults);
+void PortCE_reset_SPI_state(bool TiOS_defaults);
 
 /* Query SPI */
 

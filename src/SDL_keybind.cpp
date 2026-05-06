@@ -12,7 +12,7 @@
  * - Keybind_jsTIfied
  * - Add your own custom keybind in `PortCE/src/SDL_keybind_data.hpp`
  */
-const SDL_Keybind& Default_Keybind = Keybind_PortCE_Legacy;
+static const SDL_Keybind& Default_Keybind = Keybind_PortCE_Legacy;
 
 const SDL_Keybind& get_Default_Keybind() {
     return Default_Keybind;

@@ -176,7 +176,7 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
     /* Sleep and Delays */
 
         void delay(uint16_t msec) {
-            nano64_t dur = (nano64_t)msec * 1000000;
+            nano64_t dur = static_cast<nano64_t>(msec) * 1000000;
             nano64_t startTime = getNanoTime();
             PortCE_new_frame();
             while (getNanoTime() - startTime < dur) {
@@ -185,7 +185,7 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
         }
 
         void msleep(uint16_t msec) {
-            nano64_t dur = (nano64_t)msec * 1000000;
+            nano64_t dur = static_cast<nano64_t>(msec) * 1000000;
             nano64_t startTime = getNanoTime();
             PortCE_new_frame();
             while (getNanoTime() - startTime < dur) {
@@ -194,7 +194,7 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
         }
 
         ti_uint sleep(ti_uint seconds) {
-            nano64_t dur = (nano64_t)seconds * 1000000000;
+            nano64_t dur = static_cast<nano64_t>(seconds) * 1000000000;
             nano64_t startTime = getNanoTime();
             while (getNanoTime() - startTime < dur) {
                 PortCE_new_frame();
@@ -203,7 +203,9 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
         }
 
         void ticksleep(ti_ulong ticks) {
-            nano64_t dur = (nano64_t)((double)ticks * (1000000000.0 / (double)TI_CLOCKS_PER_SEC));
+            nano64_t dur = static_cast<nano64_t>(
+                static_cast<double>(ticks) * (1000000000.0 / static_cast<double>(TI_CLOCKS_PER_SEC))
+            );
             nano64_t startTime = getNanoTime();
             PortCE_new_frame();
             while (getNanoTime() - startTime < dur) {
@@ -212,7 +214,7 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
         }
 
         ti_int usleep(ti_useconds_t usec) {
-            nano64_t dur = (nano64_t)usec * 1000;
+            nano64_t dur = static_cast<nano64_t>(usec) * 1000;
             nano64_t startTime = getNanoTime();
             PortCE_new_frame();
             while (getNanoTime() - startTime < dur) {
@@ -229,8 +231,16 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
 
 static const double timer_mult = 1.0;
 
+static double get_timer_mult() {
+    return timer_mult;
+}
+
 ti_clock_t ti_clock() {
-    return (ti_clock_t)((double)clock() * ((double)TI_CLOCKS_PER_SEC / (double)CLOCKS_PER_SEC) * timer_mult);
+    return static_cast<ti_clock_t>(
+        static_cast<double>(clock()) *
+        (static_cast<double>(TI_CLOCKS_PER_SEC) / static_cast<double>(CLOCKS_PER_SEC)) *
+        get_timer_mult()
+    );
 }
 
 static nano64_t last_timer_update = 0;
@@ -243,20 +253,20 @@ struct Timer_Struct {
 };
 
 // Timer_ENABLE/Timer_DISABLE
-static const uint16_t Timer_ENABLE [3] = {(1<<0), (1<<3 ), (1<<6 )};
+static constexpr uint16_t Timer_ENABLE [3] = {(1<<0), (1<<3 ), (1<<6 )};
 
 // Timer_32K/Timer_CPU
-static const uint16_t Timer_32K    [3] = {(1<<1), (1<<4 ), (1<<7 )};
+static constexpr uint16_t Timer_32K    [3] = {(1<<1), (1<<4 ), (1<<7 )};
 
 // TImer_0INT/Timer_CPU
-static const uint16_t Timer_0INT   [3] = {(1<<2), (1<<5 ), (1<<8 )};
+static constexpr uint16_t Timer_0INT   [3] = {(1<<2), (1<<5 ), (1<<8 )};
 
 // Timer_UP/Timer_DOWN
-static const uint16_t Timer_UP     [3] = {(1<<9), (1<<10), (1<<11)};
+static constexpr uint16_t Timer_UP     [3] = {(1<<9), (1<<10), (1<<11)};
 
-static const uint16_t Timer_MATCH1  [3] = {(1<<0), (1<<3), (1<<6)};
-static const uint16_t Timer_MATCH2  [3] = {(1<<1), (1<<4), (1<<7)};
-static const uint16_t Timer_RELOADED[3] = {(1<<2), (1<<5), (1<<8)};
+static constexpr uint16_t Timer_MATCH1  [3] = {(1<<0), (1<<3), (1<<6)};
+static constexpr uint16_t Timer_MATCH2  [3] = {(1<<1), (1<<4), (1<<7)};
+static constexpr uint16_t Timer_RELOADED[3] = {(1<<2), (1<<5), (1<<8)};
 
 #define timer_list static_cast<Timer_Struct*>(RAM_ADDRESS(ti::mpTmrRange))
 
@@ -296,8 +306,8 @@ static void PortCE_update_timers(void) {
     const nano64_t current_time = getNanoTime();
 
     const nano64_t delta_nano = (current_time - last_timer_update);
-    const uint32_t delta_32K = (uint32_t)((int32_t)((double)delta_nano * (32768.0 / 1.0e9) * timer_mult)); // 32 KHz
-    const uint32_t delta_CPU = (uint32_t)((int32_t)((double)delta_nano * (get_clockspeed() / 1.0e9) * timer_mult)); // 8 MHz
+    const uint32_t delta_32K = (uint32_t)((int32_t)((double)delta_nano * (32768.0 / 1.0e9) * get_timer_mult())); // 32 KHz
+    const uint32_t delta_CPU = (uint32_t)((int32_t)((double)delta_nano * (get_clockspeed() / 1.0e9) * get_timer_mult())); // 8 MHz
     if (delta_32K == 0 || delta_CPU == 0) {
         // Prevents infinite loops if not enough time passes between updates
         return;
@@ -386,10 +396,10 @@ static void get_RTC_time(uint8_t* Seconds, uint8_t* Minutes, uint8_t* Hours, uin
     }
 
     // Populate the time values
-    *Seconds = (uint8_t)tm->tm_sec;
-    *Minutes = (uint8_t)tm->tm_min;
-    *Hours   = (uint8_t)tm->tm_hour;
-    *Days    = (uint8_t)tm->tm_yday;
+    *Seconds = static_cast<uint8_t>(tm->tm_sec);
+    *Minutes = static_cast<uint8_t>(tm->tm_min);
+    *Hours   = static_cast<uint8_t>(tm->tm_hour);
+    *Days    = static_cast<uint8_t>(tm->tm_yday);
 }
 
 #define RTC_Time    (static_cast<uint32_t*>(RAM_ADDRESS(ti::mpRtcTime   )))

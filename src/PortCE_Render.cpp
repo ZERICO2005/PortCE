@@ -50,7 +50,7 @@ struct BufferBox {
     int resX;
     int resY;
     size_t pitch;
-}; typedef struct BufferBox BufferBox;
+};
 
 static BufferBox Master;
 

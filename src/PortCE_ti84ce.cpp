@@ -138,7 +138,7 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
     //     uint8_t rate;
     //     uint8_t inter;
     //     uint8_t dir;
-    // }; typedef struct Simulated_Timer Simulated_Timer;
+    // };
 
     // static Simulated_Timer simulated_timer[3] = {
     //     {0,1,0,1},{1,1,0,1},{1,1,0,1}
@@ -235,12 +235,12 @@ ti_clock_t ti_clock() {
 
 static nano64_t last_timer_update = 0;
 
-typedef struct Timer_Struct {
+struct Timer_Struct {
     uint32_t Counter;
     uint32_t ReloadValue;
     uint32_t MatchValue_1;
     uint32_t MatchValue_2;
-} Timer_Struct;
+};
 
 // Timer_ENABLE/Timer_DISABLE
 static const uint16_t Timer_ENABLE [3] = {(1<<0), (1<<3 ), (1<<6 )};

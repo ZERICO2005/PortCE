@@ -2,13 +2,13 @@
 #include <stdint.h>
 #include <stdio.h>
 
-typedef union reg {
+union reg {
     uint16_t full;
     struct {
         uint8_t low;
         uint8_t high;
     } split;
-} reg;
+};
 
 static uint8_t* dst;
 static const uint8_t* src;

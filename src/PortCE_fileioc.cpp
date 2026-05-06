@@ -50,7 +50,7 @@ __attribute__((unused)) static const uint8_t File_8XV_Text[] = {
 /* 3 */ '\0','\0','\0','\0','\0'
 };
 
-typedef struct __attribute__((packed)) Ti_File_Structure  {
+struct __attribute__((packed)) Ti_File_Structure  {
     char header[53];
     uint16_t file_size; /** 17 bytes more than data_size */
     uint8_t value_0x0D;
@@ -61,16 +61,16 @@ typedef struct __attribute__((packed)) Ti_File_Structure  {
     uint8_t valueB_0x00;
     uint8_t value_0x80;
     unsigned char data[]; /** size = data_size */
-} Ti_File_Structure;
+};
 
-typedef struct Ti_File_Handle {
+struct Ti_File_Handle {
     bool active;
     bool read;
     bool write;
     bool append;
     FILE* file;
     char name[NameSize + 1];
-} Ti_File_Handle;
+};
 
 static Ti_File_Handle ti_File_Handle[256];
 

@@ -1,13 +1,13 @@
 #include <stdint.h>
 #include <algorithm>
 
-typedef union reg {
+union reg {
     uint16_t full;
     struct {
         uint8_t low;
         uint8_t high;
     } split;
-} reg;
+};
 
 static uint8_t a;
 static bool carry;

@@ -87,7 +87,7 @@ struct Frame_Manipulation {
 
 void frame_copy(const Frame_Manipulation& data);
 
-inline uint32_t bgr888_to_abgr8888(uint8_t b, uint8_t g, uint8_t r) {
+constexpr uint32_t bgr888_to_abgr8888(uint8_t b, uint8_t g, uint8_t r) {
     constexpr uint8_t alpha = UINT8_C(0xFF);
     uint32_t ret = 0;
     ret |= (static_cast<uint32_t>(r    ) <<  0);
@@ -97,7 +97,7 @@ inline uint32_t bgr888_to_abgr8888(uint8_t b, uint8_t g, uint8_t r) {
     return ret;
 }
 
-inline uint32_t rgb888_to_abgr8888(uint8_t b, uint8_t g, uint8_t r) {
+constexpr uint32_t rgb888_to_abgr8888(uint8_t b, uint8_t g, uint8_t r) {
     constexpr uint8_t alpha = UINT8_C(0xFF);
     uint32_t ret = 0;
     ret |= (static_cast<uint32_t>(b    ) <<  0);
@@ -107,14 +107,14 @@ inline uint32_t rgb888_to_abgr8888(uint8_t b, uint8_t g, uint8_t r) {
     return ret;
 }
 
-inline uint32_t bgr24_to_abgr8888(uint32_t color) {
+constexpr uint32_t bgr24_to_abgr8888(uint32_t color) {
     uint8_t r = static_cast<uint8_t>(color >>  0);
     uint8_t g = static_cast<uint8_t>(color >>  8);
     uint8_t b = static_cast<uint8_t>(color >> 16);
     return bgr888_to_abgr8888(b, g, r);
 }
 
-inline uint32_t rgb24_to_abgr888(uint32_t color) {
+constexpr uint32_t rgb24_to_abgr888(uint32_t color) {
     uint8_t b = static_cast<uint8_t>(color >>  0);
     uint8_t g = static_cast<uint8_t>(color >>  8);
     uint8_t r = static_cast<uint8_t>(color >> 16);

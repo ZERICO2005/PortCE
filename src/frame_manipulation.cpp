@@ -303,7 +303,7 @@ static void init_palette() {
     init = true;
 
     for (size_t i = 0; i < 65536; i++) {
-        uint16_t c = (uint16_t)i;
+        uint16_t c = static_cast<uint16_t>(i);
         PreCalc_RGB1555[i] = rgb1555_to_abgr8888(c);
         PreCalc_BGR1555[i] = bgr1555_to_abgr8888(c);
         PreCalc_RGB565[i] = rgb565_to_abgr8888(c);

@@ -42,7 +42,7 @@ static constexpr double FRAMERATE_TO_SECONDS(double f) {
     return 1.0 / f;
 }
 
-static inline double getDecimalTime(void) {
+static constexpr double getDecimalTime(void) {
     return NANO_TO_SECONDS(getNanoTime());
 }
 

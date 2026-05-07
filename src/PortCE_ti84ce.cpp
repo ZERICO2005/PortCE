@@ -25,10 +25,13 @@
 #include "ti84pceg.hpp"
 
 #include <algorithm>
+#include <cinttypes>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <limits>
 
 // #include <process.h>
 //#include <dir.h>
@@ -235,6 +238,13 @@ static double get_timer_mult() {
     return timer_mult;
 }
 
+template<class T>
+static T calculate_delta(nano64_t delta_nano, double tick_speed) {
+    double delta_ticks = NANO_TO_SECONDS(delta_nano) * tick_speed * get_timer_mult();
+    double delta_modulo = fmod(delta_modulo, );
+    std::numeric_limits<T>::max();
+}
+
 ti_clock_t ti_clock() {
     return static_cast<ti_clock_t>(
         static_cast<double>(clock()) *
@@ -301,11 +311,17 @@ static bool did_timer_overflow(uint32_t t0, uint32_t t1, bool forwards) {
 
 static void PortCE_update_timers(void) {
     if (last_timer_update == 0) {
+        // initialize the timers
         last_timer_update = getNanoTime();
     }
     const nano64_t current_time = getNanoTime();
 
     const nano64_t delta_nano = (current_time - last_timer_update);
+    if (delta_nano < 0) {
+        fprintf(stderr, "PortCE_update_timers() expects a positive delta time: %" PRId64 "ns\n", delta_nano);
+    }
+    const uint32_t delta_32K = calculate_delta(delta_nano, 32768.0);
+    const uint32_t delta_CPU = calculate_delta(delta_nano, get_clockspeed());
     const uint32_t delta_32K = (uint32_t)((int32_t)((double)delta_nano * (32768.0 / 1.0e9) * get_timer_mult())); // 32 KHz
     const uint32_t delta_CPU = (uint32_t)((int32_t)((double)delta_nano * (get_clockspeed() / 1.0e9) * get_timer_mult())); // 8 MHz
     if (delta_32K == 0 || delta_CPU == 0) {

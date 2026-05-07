@@ -25,6 +25,7 @@
 #include "ti84pceg.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cinttypes>
 #include <cmath>
 #include <cstdio>
@@ -137,99 +138,64 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
 
 /* <sys/timers.h> */
 
-    // struct Simulated_Timer {
-    //     uint8_t enabled;
-    //     uint8_t rate;
-    //     uint8_t inter;
-    //     uint8_t dir;
-    // };
+void delay(uint16_t msec) {
+    nano64_t dur = static_cast<nano64_t>(msec) * 1000000;
+    nano64_t startTime = getNanoTime();
+    PortCE_new_frame();
+    while (getNanoTime() - startTime < dur) {
+        /* Wait */
+        PortCE_update_registers();
+    }
+}
 
-    // static Simulated_Timer simulated_timer[3] = {
-    //     {0,1,0,1},{1,1,0,1},{1,1,0,1}
-    // };
+void ce_msleep(uint16_t msec) {
+    nano64_t dur = static_cast<nano64_t>(msec) * 1000000;
+    nano64_t startTime = getNanoTime();
+    PortCE_new_frame();
+    while (getNanoTime() - startTime < dur) {
+        /* Wait */
+        PortCE_update_registers();
+    }
+}
 
-    // void timer_Enable(uint8_t n, uint8_t rate, uint8_t inter, uint8_t dir) {
-    //     if (n < 1 || n > 3) { return; }
-    //     simulated_timer[n - 1].enabled = 1;
-    //     simulated_timer[n - 1].rate = rate;
-    //     simulated_timer[n - 1].inter = inter;
-    //     simulated_timer[n - 1].dir = dir;
-    // }
+ti_uint ce_sleep(ti_uint seconds) {
+    assert(seconds < 65536 && "ce_sleep: number of seconds (must be < 65536)");
 
-    // void timer_Disable(uint8_t n) {
-    //     if (n < 1 || n > 3) { return; }
-    //     simulated_timer[n - 1].enabled = 0;
-    // }
+    nano64_t dur = static_cast<nano64_t>(seconds) * 1000000000;
+    nano64_t startTime = getNanoTime();
+    while (getNanoTime() - startTime < dur) {
+        /* Wait */
+        PortCE_new_frame();
+    }
+    return 0;
+}
 
-    // // n is supposed to be a value between 1 and 3
-    // uint32_t timer_Get(uint8_t n) {
-    //     if (n < 1 || n > 3) { return 0; }
-    //     if (simulated_timer[n - 1].enabled == 0) {
-    //         return 0;
-    //     }
-    //     if (simulated_timer[n - 1].rate == 0) {
-    //         double timerCPU = getDecimalTime(); //Time in seconds
-    //         timerCPU *= 15000000.0;
-    //         return (uint32_t)timerCPU;
-    //     }
-    //     double timer32K = getDecimalTime(); //Time in seconds
-    //     timer32K *= 32768.0;
-    //     return (uint32_t)timer32K;
-    // }
+void ticksleep(ez80_ulong ticks) {
+    nano64_t dur = static_cast<nano64_t>(
+        static_cast<double>(ticks) * (1000000000.0 / static_cast<double>(CE_CLOCKS_PER_SEC))
+    );
+    nano64_t startTime = getNanoTime();
+    PortCE_new_frame();
+    while (getNanoTime() - startTime < dur) {
+        /* Wait */
+        PortCE_update_registers();
+    }
+}
 
-    /* Sleep and Delays */
+ti_int ce_usleep(ce_useconds_t usec) {
+    nano64_t dur = static_cast<nano64_t>(usec) * 1000;
+    nano64_t startTime = getNanoTime();
+    PortCE_new_frame();
+    while (getNanoTime() - startTime < dur) {
+        /* Wait */
+        PortCE_update_registers();
+    }
+    return 0;
+}
 
-        void delay(uint16_t msec) {
-            nano64_t dur = static_cast<nano64_t>(msec) * 1000000;
-            nano64_t startTime = getNanoTime();
-            PortCE_new_frame();
-            while (getNanoTime() - startTime < dur) {
-                /* Wait */
-            }
-        }
-
-        void msleep(uint16_t msec) {
-            nano64_t dur = static_cast<nano64_t>(msec) * 1000000;
-            nano64_t startTime = getNanoTime();
-            PortCE_new_frame();
-            while (getNanoTime() - startTime < dur) {
-                /* Wait */
-            }
-        }
-
-        ti_uint sleep(ti_uint seconds) {
-            nano64_t dur = static_cast<nano64_t>(seconds) * 1000000000;
-            nano64_t startTime = getNanoTime();
-            while (getNanoTime() - startTime < dur) {
-                PortCE_new_frame();
-            }
-            return 0;
-        }
-
-        void ticksleep(ti_ulong ticks) {
-            nano64_t dur = static_cast<nano64_t>(
-                static_cast<double>(ticks) * (1000000000.0 / static_cast<double>(CE_CLOCKS_PER_SEC))
-            );
-            nano64_t startTime = getNanoTime();
-            PortCE_new_frame();
-            while (getNanoTime() - startTime < dur) {
-                /* Wait */
-            }
-        }
-
-        ti_int usleep(ti_useconds_t usec) {
-            nano64_t dur = static_cast<nano64_t>(usec) * 1000;
-            nano64_t startTime = getNanoTime();
-            PortCE_new_frame();
-            while (getNanoTime() - startTime < dur) {
-                /* Wait */
-            }
-            return 0;
-        }
-
-        void boot_WaitShort(void) {
-            delay(10);
-        }
+void boot_WaitShort(void) {
+    delay(10);
+}
 
 /* Update */
 

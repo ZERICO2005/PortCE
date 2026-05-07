@@ -157,12 +157,26 @@ typedef long double ti_long_double;
 #define PortCE_get_file_name(x) x
 
 //------------------------------------------------------------------------------
-// Function aliases
+// <time.h> aliases
 //------------------------------------------------------------------------------
 
-#define TI_CLOCKS_PER_SEC CLOCKS_PER_SEC
-#define ti_clock_t clock_t
-#define ti_clock clock
+#define CE_CLOCKS_PER_SEC CLOCKS_PER_SEC
+
+#define CE_LOCALTIME_GMT_OFFSET LOCALTIME_GMT_OFFSET
+
+#define ce_time_t time_t
+
+#define ce_clock_t clock_t
+
+#define ce_clock clock
+
+#define ce_difftime difftime
+
+#define ce_time time
+
+//------------------------------------------------------------------------------
+// Function aliases
+//------------------------------------------------------------------------------
 
 #define ti_random random
 #define ti_srandom srandom
@@ -415,12 +429,22 @@ ti_int PortCE_update_registers(void);
 const char* PortCE_get_appvar_path(const char * name);
 
 //------------------------------------------------------------------------------
-// Function aliases
+// <time.h> aliases
 //------------------------------------------------------------------------------
 
-#define TI_CLOCKS_PER_SEC 32768
-typedef ti_long ti_clock_t;
-ti_clock_t ti_clock(void);
+#define CE_LOCALTIME_GMT_OFFSET 0
+
+#define CE_CLOCKS_PER_SEC 32768
+
+typedef ez80_ulong ce_time_t;
+
+typedef ez80_ulong ce_clock_t;
+
+ce_clock_t ce_clock(void);
+
+double ce_difftime(ce_time_t time1, ce_time_t time0);
+
+ce_time_t ce_time(ce_time_t *timer);
 
 //------------------------------------------------------------------------------
 
@@ -453,6 +477,10 @@ typedef ez80_llong ti_signed_long_long __attribute__((__deprecated__("use ez80_l
 typedef packed_int24_t packed_ti_int __attribute__((__deprecated__("use packed_int24_t instead")));
 typedef packed_int24_t packed_ti_signed_int __attribute__((__deprecated__("use packed_int24_t instead")));
 typedef packed_uint24_t packed_ti_unsigned_int __attribute__((__deprecated__("use packed_uint24_t instead")));
+
+#define TI_CLOCKS_PER_SEC CE_CLOCKS_PER_SEC _Pragma("GCC warning \"'TI_CLOCKS_PER_SEC' is deprecated, use 'CE_CLOCKS_PER_SEC' instead\"")
+#define ti_clock_t ce_clock_t _Pragma("GCC warning \"'ti_clock_t' is deprecated, use 'ce_clock_t' instead\"")
+#define ti_clock ce_clock _Pragma("GCC warning \"'ti_clock' is deprecated, use 'ce_clock' instead\"")
 
 //------------------------------------------------------------------------------
 

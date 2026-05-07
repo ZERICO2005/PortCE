@@ -158,7 +158,7 @@ Not all C/C++ code may work as intended. Here is a list of things to watch out f
 
 Some functions have a different name to preserve behavior or avoid conflicts:
 - Use `uint32_t ti_random(void)` instead of `long random(void)` (which is defined on some Linux environments)
-- `clock()` typically defines `CLOCKS_PER_SEC` to be 1000. So you can use `ti_clock` and `TI_CLOCKS_PER_SEC` instead.
+- `clock()` typically defines `CLOCKS_PER_SEC` to be 1000. So you can use `ce_clock()` and `CE_CLOCKS_PER_SEC` instead.
 
 PortCE may run into different performance bottlenecks than the CE. For example, it takes about 1000 times as long to add two floats on the CE compared to adding two integers. But on x86-64, adding floats takes the same time as adding integers.
 

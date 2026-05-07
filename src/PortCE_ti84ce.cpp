@@ -208,7 +208,7 @@ uint32_t atomic_load_decreasing_32(volatile uint32_t* p) {
 
         void ticksleep(ti_ulong ticks) {
             nano64_t dur = static_cast<nano64_t>(
-                static_cast<double>(ticks) * (1000000000.0 / static_cast<double>(TI_CLOCKS_PER_SEC))
+                static_cast<double>(ticks) * (1000000000.0 / static_cast<double>(CE_CLOCKS_PER_SEC))
             );
             nano64_t startTime = getNanoTime();
             PortCE_new_frame();
@@ -254,14 +254,6 @@ static T ticks_to_integer(double ticks) {
 template<class T>
 static T calculate_delta(nano64_t delta_nano, double tick_speed) {
     return ticks_to_integer<T>(NANO_TO_SECONDS(delta_nano) * tick_speed * get_timer_mult());
-}
-
-ti_clock_t ti_clock() {
-    constexpr double clock_divider = static_cast<double>(CLOCKS_PER_SEC) / static_cast<double>(TI_CLOCKS_PER_SEC);
-    double clock_value = static_cast<double>(clock());
-    // more accurate conversion
-    clock_value /= clock_divider;
-    return ticks_to_integer<ti_clock_t>(clock_value);
 }
 
 static nano64_t last_timer_update = 0;

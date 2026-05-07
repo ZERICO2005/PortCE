@@ -25,10 +25,14 @@
 #include "ti84pceg.hpp"
 
 #include <algorithm>
+#include <cinttypes>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <limits>
+#include <type_traits>
 
 // #include <process.h>
 //#include <dir.h>
@@ -235,12 +239,29 @@ static double get_timer_mult() {
     return timer_mult;
 }
 
+template<class T>
+static T ticks_to_integer(double ticks) {
+    using U = std::make_unsigned_t<T>;
+    constexpr double ticks_modulo = static_cast<double>(std::numeric_limits<U>::max()) + 1.0;
+    // we truncate so very small negative values are not rounded to a full tick
+    double ticks_wrap = std::fmod(std::trunc(ticks), ticks_modulo);
+    if (ticks_wrap < 0.0) {
+        ticks_wrap += ticks_modulo;
+    }
+    return static_cast<T>(static_cast<U>(ticks_wrap));
+}
+
+template<class T>
+static T calculate_delta(nano64_t delta_nano, double tick_speed) {
+    return ticks_to_integer<T>(NANO_TO_SECONDS(delta_nano) * tick_speed * get_timer_mult());
+}
+
 ti_clock_t ti_clock() {
-    return static_cast<ti_clock_t>(
-        static_cast<double>(clock()) *
-        (static_cast<double>(TI_CLOCKS_PER_SEC) / static_cast<double>(CLOCKS_PER_SEC)) *
-        get_timer_mult()
-    );
+    constexpr double clock_divider = static_cast<double>(CLOCKS_PER_SEC) / static_cast<double>(TI_CLOCKS_PER_SEC);
+    double clock_value = static_cast<double>(clock());
+    // more accurate conversion
+    clock_value /= clock_divider;
+    return ticks_to_integer<ti_clock_t>(clock_value);
 }
 
 static nano64_t last_timer_update = 0;
@@ -301,13 +322,17 @@ static bool did_timer_overflow(uint32_t t0, uint32_t t1, bool forwards) {
 
 static void PortCE_update_timers(void) {
     if (last_timer_update == 0) {
+        // initialize the timers
         last_timer_update = getNanoTime();
     }
     const nano64_t current_time = getNanoTime();
 
     const nano64_t delta_nano = (current_time - last_timer_update);
-    const uint32_t delta_32K = (uint32_t)((int32_t)((double)delta_nano * (32768.0 / 1.0e9) * get_timer_mult())); // 32 KHz
-    const uint32_t delta_CPU = (uint32_t)((int32_t)((double)delta_nano * (get_clockspeed() / 1.0e9) * get_timer_mult())); // 8 MHz
+    if (delta_nano < 0) {
+        fprintf(stderr, "PortCE_update_timers() expects a positive delta time: %" PRId64 "ns\n", delta_nano);
+    }
+    const uint32_t delta_32K = calculate_delta<uint32_t>(delta_nano, 32768.0);
+    const uint32_t delta_CPU = calculate_delta<uint32_t>(delta_nano, get_clockspeed());
     if (delta_32K == 0 || delta_CPU == 0) {
         // Prevents infinite loops if not enough time passes between updates
         return;
@@ -322,7 +347,7 @@ static void PortCE_update_timers(void) {
     for (int i = 0; i < 3; i++) {
         if (!(timer_Control & Timer_ENABLE[i])) {
             // timer is disabled
-            // continue;
+            continue;
         }
         uint32_t prev_Counter = timer_list[i].Counter;
         bool forwards_clock = (timer_Control & Timer_UP[i]);
@@ -345,32 +370,6 @@ static void PortCE_update_timers(void) {
             timer_list[i].Counter = timer_list[i].ReloadValue;
         }
     }
-
-    #if 0
-    /* Update timers */
-        if (timer_Control & TIMER1_ENABLE) {
-            if (timer_Control & TIMER1_UP) {
-                timer_1_Counter += (timer_Control & TIMER1_32K) ? delta_32K : delta_CPU;
-
-            } else {
-                timer_1_Counter -= (timer_Control & TIMER1_32K) ? delta_32K : delta_CPU;
-            }
-        }
-        if (timer_Control & TIMER2_ENABLE) {
-            if (timer_Control & TIMER2_UP) {
-                timer_2_Counter += (timer_Control & TIMER2_32K) ? delta_32K : delta_CPU;
-            } else {
-                timer_2_Counter -= (timer_Control & TIMER2_32K) ? delta_32K : delta_CPU;
-            }
-        }
-        if (timer_Control & TIMER3_ENABLE) {
-            if (timer_Control & TIMER3_UP) {
-                timer_3_Counter += (timer_Control & TIMER3_32K) ? delta_32K : delta_CPU;
-            } else {
-                timer_3_Counter -= (timer_Control & TIMER3_32K) ? delta_32K : delta_CPU;
-            }
-        }
-    #endif
 
     last_timer_update = current_time;
 }

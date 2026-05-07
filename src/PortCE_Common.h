@@ -55,9 +55,17 @@ void PortCE_terminate_fileioc(void);
 
 void reset_ti84ce_registers(void);
 
+void PortCE_crt0_init(void);
+
+void PortCE_crt0_fini(void);
+
 void set_clockspeed(double clock_speed);
 
 double get_clockspeed();
+
+/* other definitions */
+
+#define flash_wait_states *static_cast<uint8_t*>(RAM_ADDRESS(0xE00305))
 
 #ifdef __cplusplus
 }

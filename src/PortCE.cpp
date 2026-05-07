@@ -90,4 +90,5 @@ void PortCE_initialize(const char* window_title) {
 
     PortCE_init_flag = true;
     PortCE_register_atexit();
+    PortCE_crt0_init();
 }

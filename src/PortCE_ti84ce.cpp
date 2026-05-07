@@ -456,6 +456,9 @@ ti_int PortCE_update_registers(void) {
 
 void reset_ti84ce_registers(void) {
 
+    constexpr uint8_t TiOS_Flash_Wait_States = 5;
+    flash_wait_states = TiOS_Flash_Wait_States;
+
     lcd_Timing0 = 0x1F0A0338;
     lcd_Timing1 = 0x0402093F;
     lcd_Timing2 = 0x00EF7802;

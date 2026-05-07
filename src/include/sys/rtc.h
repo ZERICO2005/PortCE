@@ -103,9 +103,9 @@ bool boot_IsAfterNoon(void);
 #define rtc_IntStatus           (*(const volatile uint8_t*)CONST_RAM_ADDRESS(0xF30034))
 #ifdef _EZ80
 #define rtc_IntAcknowledge      (*(volatile uint8_t*)RAM_ADDRESS(0xF30034))
-#else
+#else /* _EZ80 */
 extern uint8_t rtc_IntAcknowledge;
-#endif
+#endif /* _EZ80 */
 /* @endcond */
 
 /**
@@ -168,9 +168,9 @@ do { \
  */
 #ifdef _EZ80
 #define rtc_IsBusy() ((rtc_Control) & RTC_LOAD)
-#else
+#else /* _EZ80 */
 #define rtc_IsBusy() (false)
-#endif
+#endif /* _EZ80 */
 
 /**
  * Acknowledges an RTC interrupt.
@@ -185,21 +185,21 @@ do { \
  *
  * @param mask RTC interrupt mask.
  */
-#define rtc_ChkInterrupt(mask) (PortCE_update_registers() | (rtc_IntStatus & (mask)))
+#define rtc_ChkInterrupt(mask) (PortCE_update_registers(), (rtc_IntStatus & (mask)))
 
 /**
  * Gets a combination of the RTC time; useful for seeding random numbers
  * via srand().
  */
-#define rtc_Time()              (*(volatile uint32_t*)((uintptr_t)PortCE_update_registers() + (uint8_t*)RAM_ADDRESS(0xF30044)))
+#define rtc_Time()              (*(volatile uint32_t*)(PortCE_update_registers(), (uint8_t*)RAM_ADDRESS(0xF30044)))
 
-#define rtc_Seconds             (*(volatile uint8_t*)((uintptr_t)PortCE_update_registers() + (uint8_t*)RAM_ADDRESS(0xF30000)))    /**< RTC seconds */
-#define rtc_Minutes             (*(volatile uint8_t*)((uintptr_t)PortCE_update_registers() + (uint8_t*)RAM_ADDRESS(0xF30004)))    /**< RTC minutes */
-#define rtc_Hours               (*(volatile uint8_t*)((uintptr_t)PortCE_update_registers() + (uint8_t*)RAM_ADDRESS(0xF30008)))    /**< RTC hours */
-#define rtc_Days                (*(volatile uint16_t*)((uintptr_t)PortCE_update_registers() + (uint8_t*)RAM_ADDRESS(0xF3000C)))   /**< RTC days */
-#define rtc_AlarmSeconds        (*(volatile uint8_t*)((uintptr_t)PortCE_update_registers() + (uint8_t*)RAM_ADDRESS(0xF30010)))    /**< RTC alarm seconds */
-#define rtc_AlarmMinutes        (*(volatile uint8_t*)((uintptr_t)PortCE_update_registers() + (uint8_t*)RAM_ADDRESS(0xF30014)))    /**< RTC alarm minutes */
-#define rtc_AlarmHours          (*(volatile uint8_t*)((uintptr_t)PortCE_update_registers() + (uint8_t*)RAM_ADDRESS(0xF30018)))    /**< RTC alarm hours */
+#define rtc_Seconds             (*(volatile uint8_t*)(PortCE_update_registers(), (uint8_t*)RAM_ADDRESS(0xF30000)))    /**< RTC seconds */
+#define rtc_Minutes             (*(volatile uint8_t*)(PortCE_update_registers(), (uint8_t*)RAM_ADDRESS(0xF30004)))    /**< RTC minutes */
+#define rtc_Hours               (*(volatile uint8_t*)(PortCE_update_registers(), (uint8_t*)RAM_ADDRESS(0xF30008)))    /**< RTC hours */
+#define rtc_Days                (*(volatile uint16_t*)(PortCE_update_registers(), (uint8_t*)RAM_ADDRESS(0xF3000C)))   /**< RTC days */
+#define rtc_AlarmSeconds        (*(volatile uint8_t*)(PortCE_update_registers(), (uint8_t*)RAM_ADDRESS(0xF30010)))    /**< RTC alarm seconds */
+#define rtc_AlarmMinutes        (*(volatile uint8_t*)(PortCE_update_registers(), (uint8_t*)RAM_ADDRESS(0xF30014)))    /**< RTC alarm minutes */
+#define rtc_AlarmHours          (*(volatile uint8_t*)(PortCE_update_registers(), (uint8_t*)RAM_ADDRESS(0xF30018)))    /**< RTC alarm hours */
 
 #define RTC_LOAD_INT             (1<<5)  /**< RTC load operation complete */
 #define RTC_ALARM_INT            (1<<4)  /**< RTC alarm interrupt */

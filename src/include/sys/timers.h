@@ -247,13 +247,13 @@ void boot_WaitShort(void);
 #define timer_IntStatus          (*(const volatile uint16_t*)CONST_RAM_ADDRESS(0xF20034))
 #ifdef _EZ80
 #define timer_IntAcknowledge     (*(volatile uint16_t*)RAM_ADDRESS(0xF20034))
-#else
+#else /* _EZ80 */
 extern uint16_t timer_IntAcknowledge;
-#endif
+#endif /* _EZ80 */
 #define timer_EnableInt          (*(volatile uint16_t*)RAM_ADDRESS(0xF20038))
-#define TIMER_COUNT_ADDR(n)      (volatile uint32_t*)((uintptr_t)PortCE_update_registers() + (uint8_t*)RAM_ADDRESS(0xF20000 + (16 * ((n) - 1))))
-#define TIMER_RELOAD_ADDR(n)     (volatile uint32_t*)((uintptr_t)PortCE_update_registers() + (uint8_t*)RAM_ADDRESS(0xF20004 + (16 * ((n) - 1))))
-#define TIMER_MATCH_ADDR(n, m)   (volatile uint32_t*)((uintptr_t)PortCE_update_registers() + (uint8_t*)RAM_ADDRESS(0xF20008 + (16 * ((n) - 1)) + (4 * ((m) - 1))))
+#define TIMER_COUNT_ADDR(n)      (volatile uint32_t*)(PortCE_update_registers(), (uint8_t*)RAM_ADDRESS(0xF20000 + (16 * ((n) - 1))))
+#define TIMER_RELOAD_ADDR(n)     (volatile uint32_t*)(PortCE_update_registers(), (uint8_t*)RAM_ADDRESS(0xF20004 + (16 * ((n) - 1))))
+#define TIMER_MATCH_ADDR(n, m)   (volatile uint32_t*)(PortCE_update_registers(), (uint8_t*)RAM_ADDRESS(0xF20008 + (16 * ((n) - 1)) + (4 * ((m) - 1))))
 #define timer_GetLow(n) (_Pragma("GCC warning \"'timer_GetLow' is deprecated, use 'clock'\""))
 /* @endcond */
 

@@ -13,6 +13,7 @@
 #define PORTCE_EXTRA_H
 
 #include <PortCE.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {

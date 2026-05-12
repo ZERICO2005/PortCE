@@ -35,6 +35,81 @@ constexpr size_t bits_per_pixel(Color_Mode color) {
     }
 }
 
+/**
+ * @brief retrieve the required pixel alignment value for a given color mode.
+ */
+constexpr size_t pixel_alignment(Color_Mode color) {
+    switch(color) {
+        case Color_Mode::Indexed_1:
+            return 8;
+        case Color_Mode::Indexed_2:
+            return 4;
+        case Color_Mode::Indexed_4:
+            return 2;
+        case Color_Mode::Indexed_8:
+            return 1;
+        case Color_Mode::Color_1555:
+        case Color_Mode::Color_565:
+        case Color_Mode::Color_555:
+        case Color_Mode::Color_444:
+            return 1;
+    }
+}
+
+/**
+ * @brief tests if the current color mode requires the use of a palette.
+ */
+constexpr bool uses_palette(Color_Mode color) {
+    switch(color) {
+        case Color_Mode::Indexed_1:
+        case Color_Mode::Indexed_2:
+        case Color_Mode::Indexed_4:
+        case Color_Mode::Indexed_8:
+            return true;
+        case Color_Mode::Color_1555:
+        case Color_Mode::Color_565:
+        case Color_Mode::Color_555:
+        case Color_Mode::Color_444:
+            return false;
+    }
+}
+
+/**
+ * @brief retrieve the minimum value that the width must be aligned to.
+ */
+constexpr size_t required_width_alignment(Color_Mode color_mode, bool transpose) {
+    return transpose ? 1 : pixel_alignment(color_mode);
+}
+
+/**
+ * @brief retrieve the minimum value that the height must be aligned to.
+ */
+constexpr size_t required_height_alignment(Color_Mode color_mode, bool transpose) {
+    return !transpose ? 1 : pixel_alignment(color_mode);
+}
+
+static_assert(required_width_alignment(Color_Mode::Color_1555, false) == 1);
+static_assert(required_width_alignment(Color_Mode::Color_1555, true) == 1);
+static_assert(required_width_alignment(Color_Mode::Indexed_8, false) == 1);
+static_assert(required_width_alignment(Color_Mode::Indexed_8, true) == 1);
+static_assert(required_width_alignment(Color_Mode::Indexed_4, false) == 2);
+static_assert(required_width_alignment(Color_Mode::Indexed_4, true) == 1);
+static_assert(required_width_alignment(Color_Mode::Indexed_2, false) == 4);
+static_assert(required_width_alignment(Color_Mode::Indexed_2, true) == 1);
+static_assert(required_width_alignment(Color_Mode::Indexed_1, false) == 8);
+static_assert(required_width_alignment(Color_Mode::Indexed_1, true) == 1);
+
+static_assert(required_height_alignment(Color_Mode::Color_1555, false) == 1);
+static_assert(required_height_alignment(Color_Mode::Color_1555, true) == 1);
+static_assert(required_height_alignment(Color_Mode::Indexed_8, false) == 1);
+static_assert(required_height_alignment(Color_Mode::Indexed_8, true) == 1);
+static_assert(required_height_alignment(Color_Mode::Indexed_4, false) == 1);
+static_assert(required_height_alignment(Color_Mode::Indexed_4, true) == 2);
+static_assert(required_height_alignment(Color_Mode::Indexed_2, false) == 1);
+static_assert(required_height_alignment(Color_Mode::Indexed_2, true) == 4);
+static_assert(required_height_alignment(Color_Mode::Indexed_1, false) == 1);
+static_assert(required_height_alignment(Color_Mode::Indexed_1, true) == 8);
+
 struct Frame_Manipulation {
     void const *__restrict src;
     uint16_t const *__restrict palette;
@@ -51,14 +126,19 @@ struct Frame_Manipulation {
         if (src == nullptr || dst == nullptr) {
             return false;
         }
+        if (uses_palette(color_mode) && palette == nullptr) {
+            return false;
+        }
         if (width <= 0 || height <= 0) {
             return false;
         }
+        size_t width_alignment = required_width_alignment(color_mode, transpose);
+        size_t height_alignment = required_height_alignment(color_mode, transpose);
         /**
-         * Not sure how to display 1 bit per pixel images if the resolution
-         * is not a multiple of 8.
+         * Test that the alignment is valid. Not sure how to display 1 bit per
+         * pixel images if the resolution is not a multiple of 8.
          */
-        if (width % 8 != 0 || height % 8 != 0) {
+        if (width % width_alignment != 0 || height % height_alignment != 0) {
             return false;
         }
         return true;

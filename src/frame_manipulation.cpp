@@ -359,6 +359,7 @@ static void calculate_palette(const Frame_Manipulation& data) {
 
 void frame_copy(const Frame_Manipulation& data) {
     if (!data.is_valid_state()) {
+        fprintf(stderr, "frame_copy: failed to copy frame data\n");
         return;
     }
     calculate_palette(data);

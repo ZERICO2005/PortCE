@@ -18,10 +18,13 @@
 
 #include <lcddrvce.h>
 #include "PortCE_SPI.h"
+
+#include <algorithm>
 #include <cinttypes>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 
 #include "PortCE_memory.hpp"
 #include "frame_manipulation.hpp"
@@ -42,6 +45,10 @@ static SDL_ScaleMode PortCE_scale_mode = SDL_ScaleModeNearest;
 
 static int RESX_MINIMUM = LCD_RESX;
 static int RESY_MINIMUM = LCD_RESY;
+
+// placeholders, not sure what the maximum should be set to
+static int RESX_MAXIMUM = std::numeric_limits<int>::max();
+static int RESY_MAXIMUM = std::numeric_limits<int>::max();
 
 /* Modern Code */
 
@@ -92,11 +99,6 @@ uint32_t PortCE_get_mouse_state(int32_t* posX, int32_t* posY) {
     if (posY != nullptr) { *posY = y; }
     return state;
 }
-
-/* Pointers */
-
-static uint8_t videoCopy[153600];
-static uint16_t paletteRAM[256];
 
 /**
  * @brief converts the cursor from a 2bit to an 8bit image
@@ -216,6 +218,9 @@ static void copyFrame(uint32_t* data) {
         internal_print_LCD_registers();
     #endif
 
+    static uint8_t videoCopy[153600];
+    static uint16_t paletteRAM[256];
+
     int width = LCD_RESX;
     int height = LCD_RESY;
 
@@ -231,7 +236,7 @@ static void copyFrame(uint32_t* data) {
         case LCD_MASK_COLOR444 : color_mode = Color_Mode::Color_444 ; break;
         default: color_mode = Color_Mode::Color_555; break;
     }
-    size_t pixel_count = (size_t)(width * height);
+    size_t pixel_count = static_cast<size_t>(width * height);
     size_t copyAmount = (pixel_count * bits_per_pixel(color_mode)) / 8;
     uint24_t offset = ti::ramStart | (lcd_UpBase & (0xFFFF << 3));
     PortCE_memory_read(videoCopy, offset, copyAmount);
@@ -330,10 +335,10 @@ static bool resizeWindow(int resX, int resY, int* resizeX, int* resizeY) {
     if (resX_prev == resX && resY_prev == resY) {
         return false;
     }
-    resX = resX < RESX_MINIMUM ? RESX_MINIMUM : resX;
-    resY = resY < RESY_MINIMUM ? RESY_MINIMUM : resY;
+    resX = std::clamp(resX, RESX_MINIMUM, RESX_MAXIMUM);
+    resY = std::clamp(resY, RESY_MINIMUM, RESY_MAXIMUM);
 
-    SDL_SetWindowSize(window,resX,resY);
+    SDL_SetWindowSize(window, resX, resY);
 
     SDL_RenderSetLogicalSize(renderer, resX, resY);
 

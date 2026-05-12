@@ -50,7 +50,7 @@ uint8_t rtc_IntAcknowledge;
 
 /* <sys/util.h> */
 
-uint32_t ti_random(void) {
+uint32_t ce_random(void) {
     uint32_t ret = 0;
     // RAND_MAX is at least 15 bits wide
     ret <<= 15;
@@ -62,7 +62,7 @@ uint32_t ti_random(void) {
     return ret;
 }
 
-void ti_srandom(uint32_t seed) {
+void ce_srandom(uint32_t seed) {
     srand(seed);
 }
 

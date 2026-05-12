@@ -178,8 +178,8 @@ typedef long double ti_long_double;
 // Function aliases
 //------------------------------------------------------------------------------
 
-#define ti_random random
-#define ti_srandom srandom
+#define ce_random random
+#define ce_srandom srandom
 
 //------------------------------------------------------------------------------
 
@@ -481,6 +481,9 @@ typedef packed_uint24_t packed_ti_unsigned_int __attribute__((__deprecated__("us
 #define TI_CLOCKS_PER_SEC CE_CLOCKS_PER_SEC _Pragma("GCC warning \"'TI_CLOCKS_PER_SEC' is deprecated, use 'CE_CLOCKS_PER_SEC' instead\"")
 #define ti_clock_t ce_clock_t _Pragma("GCC warning \"'ti_clock_t' is deprecated, use 'ce_clock_t' instead\"")
 #define ti_clock ce_clock _Pragma("GCC warning \"'ti_clock' is deprecated, use 'ce_clock' instead\"")
+
+#define ti_random ce_random _Pragma("GCC warning \"'ti_random' is deprecated, use 'ce_random' instead\"")
+#define ti_srandom ce_srandom _Pragma("GCC warning \"'ti_srandom' is deprecated, use 'ce_srandom' instead\"")
 
 //------------------------------------------------------------------------------
 

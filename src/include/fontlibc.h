@@ -25,7 +25,7 @@ extern "C" {
 typedef enum {
     /**
      * Enables automatic wrapping at the end of the line.
-     * @note This is per-glyph; word warp is neither implemented nor planned
+     * @note This is per-glyph; word wrap is neither implemented nor planned.
      */
     FONTLIB_ENABLE_AUTO_WRAP = 0x01,
     /**
@@ -52,7 +52,7 @@ typedef enum {
 
 /**
  * Options for controlling how SetFont functions.
- * @see fontlib_SetFont
+ * @see fontlib_LoadFont
  */
 typedef enum {
     /**
@@ -137,7 +137,8 @@ typedef struct __attribute__((__packed__)) fontlib_metadata_t {
      * Do not try to include a complete license in here!  Space is limited!
      * @note Typefaces and bitmapped fonts cannot be copyrighted under US law.
      * This field is therefore referred to as a pseudocopyright.  HOWEVER,
-     * it IS is applicable in other jusrisdictions, such as Germany. */
+     * it IS applicable in other jurisdictions, such as Germany.
+     */
     uint16_t font_pseudocopyright;
     uint8_t : 8;
     /**
@@ -169,7 +170,7 @@ typedef struct __attribute__((__packed__)) fontlib_metadata_t {
  *  unsigned char baseline;
  *  fontlib_font_t *my_font = fontlib_GetFontByStyle("FONTPACK", 12, 12,
  *      FONTLIB_NORMAL, FONTLIB_NORMAL, FONTLIB_SERIF, 0);
- *  if (!my_font || !fontlib_SetFont(my_font))
+ *  if (!my_font || !fontlib_LoadFont(my_font, 0))
  *      return;
  *  baseline = my_font->baseline_height;
  * @endcode
@@ -393,14 +394,23 @@ void fontlib_HomeUp();
 void fontlib_Home();
 
 /**
+ * @warning fontlib_SetFont is deprecated, use fontlib_LoadFont instead.
+ * @note due to a bug, fontlib_SetFont ignores flags and assumes
+ * FONTLIB_IGNORE_LINE_SPACING. This has been fixed with fontlib_LoadFont
+ */
+bool fontlib_SetFont(const fontlib_font_t *font_data, fontlib_load_options_t flags);
+
+#define fontlib_SetFont _Pragma("GCC warning \"'fontlib_SetFont' is deprecated, use 'fontlib_LoadFont' instead\"") fontlib_SetFont
+
+/**
  * Sets the current font
  * @param[in] font_data Pointer to font data
- * @param[in] flags Information about how to process the font (unused)
+ * @param[in] flags Information about how to process the font
  * @return Returns false if the font seems invalid for any reason
  * @warning If false is returned, no valid font is currently loaded and trying
  * to print will print garbage!
  */
-bool fontlib_SetFont(const fontlib_font_t *font_data, fontlib_load_options_t flags);
+bool fontlib_LoadFont(const fontlib_font_t *font_data, fontlib_load_options_t flags);
 
 /**
  * Sets the current foreground color FontLibC will use for drawing.
@@ -455,7 +465,7 @@ void fontlib_SetTransparency(bool transparency);
 bool fontlib_GetTransparency(void);
 
 /**
- * Controls hows much black space will be added above and below each line of
+ * Controls how much blank space will be added above and below each line of
  * text.  If transparency is set, then the padding will not be overwritten with
  * the background color, but padding will still be added.  Padding space is
  * added at the time each glyph is drawn.
@@ -515,7 +525,7 @@ size_t fontlib_GetTotalGlyphs(void);
  * Returns the code point of the first printable glyph.
  * @note The C SDK makes char SIGNED by default, so you probably want to
  * typecast this to unsigned char before attempting any math with it.
- * @return First print glyph code point
+ * @return First printable glyph code point
  */
 char fontlib_GetFirstGlyph(void);
 
@@ -523,7 +533,7 @@ char fontlib_GetFirstGlyph(void);
  * Allows you to set the code point that is recognized as being a new line code.
  * You can set this to zero to prevent new line code processing.
  * @note If FONTLIB_ENABLE_AUTO_WRAP is enabled, then wrapping will still
- * implicitly case a newline.
+ * implicitly cause a newline.
  * @note This defaults to 0x0A (ASCII line feed/UNIX newline)
  * @param[in] code_point New code point to use for newline
  */
@@ -556,7 +566,7 @@ char fontlib_GetAlternateStopCode(void);
 /**
  * Sets the first code point considered printable.
  * All code points before this will be considered control codes.
- * This defaults 0x10.
+ * This defaults to 0x10.
  * @note Setting this to 0 (NULL) will NOT cause NULL to be ignored.
  * @param[in] code_point First printable code point
  */
@@ -800,7 +810,7 @@ fontlib_font_t *fontlib_GetFontByIndex(const char *font_pack_name, uint8_t index
  * font pack's address is safe.
  * @see ti_GetDataPtr()
  * @param[in] font_pack Pointer to font pack
- * @param[in] size_min Minimum heigh, in pixels, to accept.  Space above and
+ * @param[in] size_min Minimum height, in pixels, to accept.  Space above and
  * space below metrics are not considered.
  * @param[in] size_max Maximum height
  * @param[in] weight_min Minimum weight to accept.  0 may be used.
@@ -819,7 +829,7 @@ fontlib_font_t *fontlib_GetFontByStyleRaw(const fontlib_font_pack_t *font_pack, 
  * any file write, create, delete, or un/archive, as all those operations could
  * invalidate the cached data pointers to the currently loaded font.
  * @param[in] font_pack_name Pointer to font pack appvar's name
- * @param[in] size_min Minimum heigh, in pixels, to accept.  Space above and
+ * @param[in] size_min Minimum height, in pixels, to accept.  Space above and
  * space below metrics are not considered.
  * @param[in] size_max Maximum height
  * @param[in] weight_min Minimum weight to accept.  0 may be used.

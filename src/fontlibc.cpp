@@ -280,7 +280,7 @@ uint8_t fontlib_GetCurrentFontHeight(void) {
 // functions
 //------------------------------------------------------------------------------
 
-bool fontlib_SetFont(const fontlib_font_t *font_data, fontlib_load_options_t flags) {
+bool fontlib_LoadFont(const fontlib_font_t *font_data, fontlib_load_options_t flags) {
     if (font_data->fontVersion != 0) {
         return false;
     }
@@ -310,18 +310,17 @@ bool fontlib_SetFont(const fontlib_font_t *font_data, fontlib_load_options_t fla
     bitmapsTablePtr = reinterpret_cast<const uint16_t*>(
         reinterpret_cast<const uint8_t*>(currentFontRoot) + static_cast<size_t>(currentFont.bitmaps)
     );
-#if 0
-    if (flags == FONTLIB_IGNORE_LINE_SPACING || static_cast<int>(flags) != 0) {
+    if (flags & FONTLIB_IGNORE_LINE_SPACING) {
         currentFont.space_above = 0;
         currentFont.space_below = 0;
     }
-#else
-    if (flags == FONTLIB_IGNORE_LINE_SPACING || static_cast<int>(flags) != 0 || true) {
-        currentFont.space_above = 0;
-        currentFont.space_below = 0;
-    }
-#endif
     return true;
+}
+
+#undef fontlib_SetFont
+bool fontlib_SetFont(const fontlib_font_t *font_data, fontlib_load_options_t flags) {
+    (void)flags;
+    return fontlib_LoadFont(font_data, FONTLIB_IGNORE_LINE_SPACING);
 }
 
 bool fontlib_ValidateCodePoint(char code_point) {

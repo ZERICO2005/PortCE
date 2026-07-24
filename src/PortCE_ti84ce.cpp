@@ -48,24 +48,6 @@ uint16_t timer_IntAcknowledge;
 uint8_t rtc_IntAcknowledge;
 #define rtc_IntStatus_ptr static_cast<uint8_t*>(RAM_ADDRESS(ti::mpRtcIntStatus))
 
-/* <sys/util.h> */
-
-uint32_t ce_random(void) {
-    uint32_t ret = 0;
-    // RAND_MAX is at least 15 bits wide
-    ret <<= 15;
-    ret ^= static_cast<uint32_t>(rand());
-    ret <<= 15;
-    ret ^= static_cast<uint32_t>(rand());
-    ret <<= 15;
-    ret ^= static_cast<uint32_t>(rand());
-    return ret;
-}
-
-void ce_srandom(uint32_t seed) {
-    srand(seed);
-}
-
 /** Not actually atomic */
 uint32_t atomic_load_32(volatile uint32_t* p) {
     return *p;

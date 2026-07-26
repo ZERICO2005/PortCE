@@ -30,6 +30,10 @@ static reg reg_de;
 
 #define jr(cond, label) do { if ((cond)) { goto label; } } while(0)
 
+static void scf() {
+    carry = true;
+}
+
 static void ccf() {
     carry = !carry;
 }
@@ -38,12 +42,6 @@ static void add_a_a() {
     carry = (a & 0x80);
     a <<= 1;
     zero = (a == 0);
-}
-
-static void sla(uint8_t& r) {
-    carry = (r & 0x80);
-    r <<= 1;
-    zero = (r == 0);
 }
 
 static void rl(uint8_t& r) {
@@ -151,8 +149,9 @@ dzx7t_len_value_start:
     // load offset flag (1 bit) + offset value (7 bits)
     e = *src;
     ++src;
-    sla(e);
-    inc(e);
+    scf();
+    // sll e since carry is set
+    rl(e);
     // if offset flag is set, load 4 extra bits
     jr(!carry, dzx7t_offset_end);
     // check next bit

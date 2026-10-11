@@ -303,22 +303,6 @@ uint16_t ti_Tell(uint8_t handle) {
     return std::max<uint16_t>((uint16_t)position, INT16_MAX);
 }
 
-uint16_t ti_GetSize(uint8_t handle) {
-    if (validate_File_Handle(handle) == false) {
-        return 0;
-    }
-    fpos_t currentPos;
-    fgetpos(ti_File_Handle[handle].file,&currentPos);
-    fseek(ti_File_Handle[handle].file, 0, SEEK_END);
-    long fileSize = ftell(ti_File_Handle[handle].file);
-    fsetpos(ti_File_Handle[handle].file,&currentPos);
-    if (fileSize < 0) {
-        printf("ftell error: %ld", fileSize);
-        return 0;
-    }
-    return std::max<uint16_t>((uint16_t)fileSize, INT16_MAX);
-}
-
 static size_t internal_ti_GetSize(uint8_t handle) {
     if (validate_File_Handle(handle) == false) {
         return 0;
@@ -333,6 +317,28 @@ static size_t internal_ti_GetSize(uint8_t handle) {
         return 0;
     }
     return (size_t)fileSize;
+}
+
+uint16_t ti_GetSize(uint8_t handle) {
+    if (validate_File_Handle(handle) == false) {
+        return 0;
+    }
+    size_t file_size = internal_ti_GetSize(handle);
+    if (file_size < 0x4C) {
+        return 0;
+    }
+    FILE* file = ti_File_Handle[handle].file;
+    fpos_t position;
+    if (fgetpos(file, &position) != 0) {
+        return 0;
+    }
+    uint8_t bytes[2];
+    bool read = fseek(file, 0x48, SEEK_SET) == 0 && fread(bytes, 1, 2, file) == 2;
+    if (fsetpos(file, &position) != 0 || !read) {
+        return 0;
+    }
+    uint16_t size = static_cast<uint16_t>(bytes[0] | (bytes[1] << 8));
+    return size <= file_size - 0x4C ? size : 0;
 }
 
 static size_t ram_file_count = 0;
